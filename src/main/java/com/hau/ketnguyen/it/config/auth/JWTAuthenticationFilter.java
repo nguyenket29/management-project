@@ -9,6 +9,7 @@ import com.hau.ketnguyen.it.entity.auth.User;
 import com.hau.ketnguyen.it.model.dto.auth.RefreshTokenDTO;
 import com.hau.ketnguyen.it.model.request.LoginRequest;
 import com.hau.ketnguyen.it.model.response.JwtResponse;
+import com.hau.ketnguyen.it.repository.RefreshTokenReps;
 import com.hau.ketnguyen.it.repository.UserReps;
 import com.hau.ketnguyen.it.service.RefreshTokenService;
 import org.springframework.http.HttpStatus;
@@ -28,7 +29,9 @@ import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
@@ -83,18 +86,30 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         user.setFullName(userEntity.getFullName());
         user.setAvatar(userEntity.getAvatar());
 
+        Optional<RefreshTokenDTO> refreshToken = refreshTokenService.findByUserId(user.getId());
+        JwtResponse tokenResponse = null;
         String token = tokenUtil.generateToken(user.getUsername(), authorities,
                 user.getId(), user.getFullName(), user.getAvatar());
-
-        RefreshTokenDTO refreshTokenDTO = refreshTokenService.createRefreshToken(user.getId(), token);
-        JwtResponse tokenResponse = new JwtResponse();
-        tokenResponse.setToken(token);
-        tokenResponse.setRefreshToken(refreshTokenDTO.getRefreshToken());
-        tokenResponse.setRefreshTokenExpiredDate(refreshTokenDTO.getExpiryDate());
+        if (refreshToken.isPresent()) {
+            refreshToken.get().setAccessToken(token);
+            RefreshTokenDTO tokenDTO = refreshTokenService.update(refreshToken.get());
+            tokenResponse = setJwtResponse(tokenDTO.getAccessToken(), tokenDTO.getRefreshToken(), tokenDTO.getExpiryDate());
+        } else {
+            RefreshTokenDTO refreshTokenDTO = refreshTokenService.createRefreshToken(user.getId(), token);
+            tokenResponse = setJwtResponse(token, refreshTokenDTO.getRefreshToken(), refreshTokenDTO.getExpiryDate());
+        }
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setHeader(Commons.AUTH_HEADER, token);
         response.setHeader(Commons.Refresh_Token, tokenResponse.getRefreshToken());
         response.getWriter().println(new ObjectMapper().writer().writeValueAsString(tokenResponse));
+    }
+
+    private JwtResponse setJwtResponse(String accToken, String rfToken, Date expireDate) {
+        JwtResponse tokenResponse = new JwtResponse();
+        tokenResponse.setToken(accToken);
+        tokenResponse.setRefreshToken(rfToken);
+        tokenResponse.setRefreshTokenExpiredDate(expireDate);
+        return tokenResponse;
     }
 }

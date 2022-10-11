@@ -33,6 +33,11 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
 
     @Override
+    public Optional<RefreshTokenDTO> findByAccessToken(String accessToken) {
+        return tokenReps.findByAccessToken(accessToken).map(refreshTokenMapper::to);
+    }
+
+    @Override
     public Optional<RefreshTokenDTO> findByUserId(Integer id) {
         return tokenReps.findByUserId(id).map(refreshTokenMapper::to);
     }
@@ -63,5 +68,15 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
             }
         }
         return token;
+    }
+
+    @Override
+    public RefreshTokenDTO update(RefreshTokenDTO dto) {
+        Optional<RefreshToken> refreshToken = tokenReps.findByUserId(dto.getUserId());
+        if (refreshToken.isPresent()) {
+            refreshTokenMapper.copy(dto, refreshToken.get());
+            return refreshTokenMapper.to(tokenReps.save(refreshToken.get()));
+        }
+        return null;
     }
 }

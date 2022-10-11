@@ -15,8 +15,8 @@ import java.util.function.Function;
 public class JwtTokenUtil {
     //5p
     public final long JWT_TOKEN_VALIDITY = 10 * 30;
-    public String TOKEN_SECRET = "Ket@AllRights";
-    public final String TOKEN_ISSUER = "http://google.vn/";
+    public String TOKEN_SECRET = "Siten@AllRights";
+    public final String TOKEN_ISSUER = "http://siten.vn/";
 
     @PostConstruct
     protected void init() {
