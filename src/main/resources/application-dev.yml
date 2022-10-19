@@ -33,9 +33,22 @@ spring:
   mvc:
     path match:
       matching-strategy: ant_path_matcher
+  main:
+    allow-bean-definition-overriding: true
 
 inventory:
   logs:
     path: ./logs/development
+
+application:
+  default-password: $2a$12$CVy4btq466w7HPQbLx0eNetqANEt.7aGKsV.WS410qPPYJ0C36jAS #bpwgcdgsvhwqeikj
+  default-password-decode: bpwgcdgsvhwqeikj
+  storage-file:
+    directory: ${EXPORT_REPORT_PATH:/upload/} #/upload/ #
+    font: font/
+  mail:
+    enable: true
+    add-emails-in-to-address: ketnguyen2906@gmail.com
+    add-emails-in-cc-address:
 
 

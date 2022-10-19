@@ -15,6 +15,7 @@ public class UserDTO {
     private String lastName;
     private String address;
     private Short status;
+    private String email;
     private String avatar;
     private Date birthday;
     private Short gender;

@@ -186,7 +186,7 @@ public class AuthServiceimpl implements AuthService {
                 userVerificationService.save(userDTO.get().getId(), code);
 
                 //send verify to email
-                emailService.sendMail(u.getId(), request);
+                emailService.sendMail(u, request);
             } catch (Exception e) {
                 log.error(e.getMessage());
                 throw APIException.from(HttpStatus.BAD_REQUEST).withMessage(e.getMessage());

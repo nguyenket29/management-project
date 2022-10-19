@@ -1,8 +1,10 @@
 package com.hau.ketnguyen.it.service.impl;
 
 import com.hau.ketnguyen.it.common.exception.APIException;
+import com.hau.ketnguyen.it.config.propertise.ApplicationPropertise;
 import com.hau.ketnguyen.it.entity.auth.User;
 import com.hau.ketnguyen.it.entity.auth.UserVerification;
+import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
 import com.hau.ketnguyen.it.repository.UserReps;
 import com.hau.ketnguyen.it.service.EmailService;
 import com.hau.ketnguyen.it.service.UserVerificationService;
@@ -14,11 +16,15 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Optional;
+import java.io.File;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -27,13 +33,20 @@ public class EmailServiceImpl implements EmailService {
     private final JavaMailSender javaMailSender;
     private final UserReps userReps;
     private final String senderMail;
+    private final ApplicationPropertise applicationProperties;
+    private final ApplicationPropertise.Mail mail;
+    private final TemplateEngine templateEngine;
 
     public EmailServiceImpl(UserVerificationService userVerificationService, JavaMailSender javaMailSender,
-                            UserReps userReps, @Value("${spring.mail.username}") String senderMail) {
+                            UserReps userReps, @Value("${spring.mail.username}") String senderMail,
+                            ApplicationPropertise applicationProperties, TemplateEngine templateEngine) {
         this.userVerificationService = userVerificationService;
         this.javaMailSender = javaMailSender;
         this.userReps = userReps;
         this.senderMail = senderMail;
+        this.applicationProperties = applicationProperties;
+        this.mail = applicationProperties.getMail();
+        this.templateEngine = templateEngine;
     }
 
     /**
@@ -41,41 +54,44 @@ public class EmailServiceImpl implements EmailService {
      * @RequestParam : userId, httpSeverletRequest
      * */
     @Override
-    public void sendMail(Integer userId, HttpServletRequest request) throws MessagingException {
-        Optional<UserVerification> userVerification = userVerificationService.findByUserId(userId);
-        User user = userReps.findById(userId).orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("User not found"));
+    public void sendMail(UserDTO userDTO, HttpServletRequest request) throws MessagingException {
+        Optional<UserVerification> userVerification = userVerificationService.findByUserId(userDTO.getId());
         String url = ServletUriComponentsBuilder.fromRequestUri(request)
                 .replacePath(request.getContextPath())
                 .build()
                 .toUriString();
+
         //check if the user has a code
         if (userVerification.isPresent()) {
             String code = userVerification.get().getCode();
-            String msg = getMailBody(url, code);
-            MimeMessage mimeMessage = getMimeMessage(user.getEmail(), msg);
-            javaMailSender.send(mimeMessage);
+            Map<String, Object> variables = new HashMap<>();
+            String sub = "Email address verification !";
+
+            String start = StringUtils.join("<a href=", url , "/activation?code=", code, ">");
+            String end = "</a>";
+            String activeUrl = StringUtils.join("Click ", start, " here ", end, " to active account !");
+            variables.put("url", activeUrl);
+            sendEmail(sub, variables, null, null, userDTO);
         }
     }
-    
-    /**
-     * Create email
-     * */
-    private MimeMessage getMimeMessage(String email, String msg) throws MessagingException {
+
+    @Override
+    public void sendEmail(String subject, Map<String, Object> variables, String pathFile,
+                          String fileName, UserDTO userDTO) throws MessagingException {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
-        MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage);
+        MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMessage,
+                MimeMessageHelper.MULTIPART_MODE_MIXED_RELATED,
+                StandardCharsets.UTF_8.name());
+        if (fileName != null && pathFile != null) {
+            mimeMessageHelper.addAttachment(fileName, new File(pathFile));
+        }
+        Context context = new Context();
+        context.setVariables(variables);
 
-        mimeMessageHelper.setFrom(senderMail);
-        mimeMessageHelper.setTo(email);
-        mimeMessageHelper.setSubject("Email address verification !");
-        mimeMessageHelper.setText(msg, true);
-        return mimeMessage;
-    }
-
-    /**
-     * Create content email*/
-    private String getMailBody(String url, String code){
-        String start = StringUtils.join("<a href=", url , "/activation?code=", code, ">");
-        String end = "</a>";
-        return StringUtils.join("Click ", start, " here ", end, " to active account !");
+        String html = templateEngine.process("mail/send-mail", context);
+        mimeMessageHelper.setTo(userDTO.getEmail());
+        mimeMessageHelper.setText(html, true);
+        mimeMessageHelper.setSubject(subject);
+        javaMailSender.send(mimeMessage);
     }
 }
