@@ -47,14 +47,14 @@ public class GoogleDriverController {
             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<APIResponse<Void>> uploadFile(@RequestParam("fileUpload") MultipartFile fileUpload,
-                                                        @RequestBody FileDriverDTO fileDriverDTO) {
-
-        log.info(fileDriverDTO.getFilePath());
-        if (fileDriverDTO.getFilePath().equals("")) {
+                                                        @RequestParam("filePath") String pathFile,
+                                                        @RequestParam("shared") String shared) {
+        System.out.println(pathFile);
+        if (pathFile.equals("")) {
             // Save to default folder if the user does not select a folder to save - you can change it
-            fileDriverDTO.setFilePath("Root");
+            pathFile = "Root";
         }
-        googleDriveFileService.uploadFile(fileUpload, fileDriverDTO.getFilePath(), Boolean.parseBoolean(fileDriverDTO.getShared()));
+        googleDriveFileService.uploadFile(fileUpload, pathFile, Boolean.parseBoolean(shared));
         return ResponseEntity.ok(APIResponse.success());
     }
 
@@ -81,7 +81,7 @@ public class GoogleDriverController {
     }
 
     // Delete folder by id
-    @GetMapping("/delete/folder/{id}")
+    @DeleteMapping("/delete/folder/{id}")
     public ResponseEntity<APIResponse<Void>> deleteFolder(@PathVariable String id) throws Exception {
         googleDriveFolderService.deleteFolder(id);
         return ResponseEntity.ok(APIResponse.success());
