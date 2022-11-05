@@ -1,4 +1,4 @@
-package com.hau.ketnguyen.it.config;
+package com.hau.ketnguyen.it.config.aop;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.LogManager;

@@ -1,7 +1,7 @@
 package com.hau.ketnguyen.it.service.impl;
 
 import com.google.api.services.drive.model.File;
-import com.hau.ketnguyen.it.config.GoogleFileManager;
+import com.hau.ketnguyen.it.config.ggdriver.GoogleFileManager;
 import com.hau.ketnguyen.it.convert.ConvertByteToMB;
 import com.hau.ketnguyen.it.model.dto.hau.GoogleDriverFileDTO;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
