@@ -1,4 +1,4 @@
-package com.hau.ketnguyen.it.repository;
+package com.hau.ketnguyen.it.repository.auth;
 
 import com.hau.ketnguyen.it.entity.auth.User;
 import org.springframework.data.domain.Page;
@@ -13,6 +13,7 @@ import java.util.Optional;
 @Repository
 public interface UserReps extends JpaRepository<User, Integer> {
     Optional<User> findByUsernameAndStatus(String username, short status);
+    Optional<User> findByEmail(String email);
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
     @Query("SELECT u FROM User u")

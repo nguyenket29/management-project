@@ -4,7 +4,7 @@ import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.auth.Role;
 import com.hau.ketnguyen.it.model.request.RoleRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
-import com.hau.ketnguyen.it.repository.RoleReps;
+import com.hau.ketnguyen.it.repository.auth.RoleReps;
 import com.hau.ketnguyen.it.service.RoleService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,5 +1,6 @@
 package com.hau.ketnguyen.it.controller.hau;
 
+import com.hau.ketnguyen.it.model.dto.auth.PasswordDTO;
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
 import com.hau.ketnguyen.it.model.request.SignupRequest;
 import com.hau.ketnguyen.it.model.request.TokenRefreshRequest;
@@ -24,6 +25,12 @@ public class AuthController {
     @PostMapping("/refresh-token")
     public ResponseEntity<APIResponse<TokenRefreshResponse>> tokenRefresh(@RequestBody TokenRefreshRequest request) {
         return ResponseEntity.ok(APIResponse.success(authService.refreshToken(request)));
+    }
+
+    @PostMapping("/update-password")
+    public ResponseEntity<APIResponse<Boolean>> updatePassword(@RequestBody PasswordDTO passwordDTO) {
+        return ResponseEntity.ok(APIResponse
+                .success(authService.updatePassword(passwordDTO.getNewPassword(), passwordDTO.getToken(), passwordDTO.getOldPassword())));
     }
 
     @PostMapping("/sign-up")

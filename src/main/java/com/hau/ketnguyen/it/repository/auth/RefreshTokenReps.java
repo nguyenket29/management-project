@@ -1,4 +1,4 @@
-package com.hau.ketnguyen.it.repository;
+package com.hau.ketnguyen.it.repository.auth;
 
 import com.hau.ketnguyen.it.entity.auth.RefreshToken;
 import org.springframework.data.jpa.repository.JpaRepository;

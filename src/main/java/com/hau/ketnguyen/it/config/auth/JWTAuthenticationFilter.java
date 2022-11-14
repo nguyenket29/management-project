@@ -9,7 +9,7 @@ import com.hau.ketnguyen.it.entity.auth.User;
 import com.hau.ketnguyen.it.model.dto.auth.RefreshTokenDTO;
 import com.hau.ketnguyen.it.model.request.LoginRequest;
 import com.hau.ketnguyen.it.model.response.JwtResponse;
-import com.hau.ketnguyen.it.repository.UserReps;
+import com.hau.ketnguyen.it.repository.auth.UserReps;
 import com.hau.ketnguyen.it.service.RefreshTokenService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

@@ -1,17 +1,14 @@
 package com.hau.ketnguyen.it.service.impl;
 
-import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.config.propertise.ApplicationPropertise;
-import com.hau.ketnguyen.it.entity.auth.User;
 import com.hau.ketnguyen.it.entity.auth.UserVerification;
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
-import com.hau.ketnguyen.it.repository.UserReps;
+import com.hau.ketnguyen.it.repository.auth.UserReps;
 import com.hau.ketnguyen.it.service.EmailService;
 import com.hau.ketnguyen.it.service.UserVerificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;

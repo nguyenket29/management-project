@@ -1,7 +1,7 @@
 package com.hau.ketnguyen.it.service.impl;
 
 import com.hau.ketnguyen.it.entity.auth.UserVerification;
-import com.hau.ketnguyen.it.repository.UserVerificationReps;
+import com.hau.ketnguyen.it.repository.auth.UserVerificationReps;
 import com.hau.ketnguyen.it.service.UserVerificationService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

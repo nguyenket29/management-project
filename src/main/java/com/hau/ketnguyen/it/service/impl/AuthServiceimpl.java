@@ -2,18 +2,20 @@ package com.hau.ketnguyen.it.service.impl;
 
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.AuthorityUtil;
+import com.hau.ketnguyen.it.common.util.HashHelper;
 import com.hau.ketnguyen.it.common.util.JwtTokenUtil;
 import com.hau.ketnguyen.it.config.auth.Commons;
 import com.hau.ketnguyen.it.entity.auth.*;
+import com.hau.ketnguyen.it.model.dto.auth.PasswordDTO;
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
 import com.hau.ketnguyen.it.model.request.SignupRequest;
 import com.hau.ketnguyen.it.model.request.TokenRefreshRequest;
 import com.hau.ketnguyen.it.model.response.TokenRefreshResponse;
 import com.hau.ketnguyen.it.model.response.UserResponse;
-import com.hau.ketnguyen.it.repository.RefreshTokenReps;
-import com.hau.ketnguyen.it.repository.RoleReps;
-import com.hau.ketnguyen.it.repository.UserReps;
-import com.hau.ketnguyen.it.repository.UserVerificationReps;
+import com.hau.ketnguyen.it.repository.auth.RefreshTokenReps;
+import com.hau.ketnguyen.it.repository.auth.RoleReps;
+import com.hau.ketnguyen.it.repository.auth.UserReps;
+import com.hau.ketnguyen.it.repository.auth.UserVerificationReps;
 import com.hau.ketnguyen.it.service.*;
 import com.hau.ketnguyen.it.service.mapper.RefreshTokenMapper;
 import com.hau.ketnguyen.it.service.mapper.UserMapper;
@@ -29,12 +31,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.time.Instant;
 import java.util.*;
 
+import static com.hau.ketnguyen.it.common.constant.Constants.AES_SECRET;
 import static com.hau.ketnguyen.it.common.enums.RoleEnums.Role.USER;
 
 @Service
@@ -52,6 +57,8 @@ public class AuthServiceimpl implements AuthService {
     private final UserVerificationReps userVerificationReps;
     private final RoleReps roleReps;
     private final UserService userService;
+
+    private final ResetPasswordTokenService resetPasswordTokenService;
 
     /**
      * Lấy lại access token khi token hết hạn
@@ -258,6 +265,59 @@ public class AuthServiceimpl implements AuthService {
         } else {
             throw APIException.from(HttpStatus.BAD_REQUEST)
                     .withMessage("Your verification code is invalid.");
+        }
+        return false;
+    }
+
+    @Override
+    public void forgotPassword(String email, HttpServletRequest request) throws MessagingException {
+        UserDTO userDto = userReps.findByEmail(email).map(userMapper::to).orElseThrow(() ->
+                APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy người dùng với email: " + email));
+        String token = UUID.randomUUID().toString();
+        if (resetPasswordTokenService.createTokenResetPassword(userDto.getId(), token)) {
+            String url = ServletUriComponentsBuilder.fromRequestUri(request)
+                    .replacePath(request.getContextPath())
+                    .build()
+                    .toUriString();
+
+            //Encrypt token reset password
+            String tokenEncrypt = HashHelper.aesEncrypt(token, AES_SECRET);
+
+            Map<String, Object> variables = new HashMap<>();
+            String sub = "Email Reset Password !";
+
+            String start = org.apache.commons.lang3.StringUtils.join("<a href=", url , "/update-password?token=", tokenEncrypt, ">");
+            String end = "</a>";
+            String activeUrl = org.apache.commons.lang3.StringUtils.join("Click ", start, " here ", end, " to reset your password !");
+            variables.put("url", activeUrl);
+            emailService.sendEmail(sub, variables, null, null, userDto);
+        }
+    }
+
+    @Override
+    public boolean updatePassword(String newPassword, String token, String oldPassword) {
+        if (token != null) {
+            String tokenDecrypt = HashHelper.aesEncrypt(token, AES_SECRET);
+            String rs = resetPasswordTokenService.validatePasswordResetToken(tokenDecrypt);
+
+            if (rs != null) {
+                throw APIException.from(HttpStatus.BAD_REQUEST).withMessage(rs);
+            }
+
+            Optional<ResetPasswordToken> resetPasswordToken = resetPasswordTokenService.findByToken(token);
+            if (resetPasswordToken.isPresent()) {
+                Optional<User> userOptional = userReps.findById(resetPasswordToken.get().getUserId());
+                if (userOptional.isPresent()) {
+                    if (newPassword.equals(oldPassword)) {
+                        userOptional.get().setPassword(newPassword);
+                    } else {
+                        throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Mật khẩu không trùng khớp !");
+                    }
+
+                    User user = userReps.save(userOptional.get());
+                    return user.getId() > 0;
+                }
+            }
         }
         return false;
     }

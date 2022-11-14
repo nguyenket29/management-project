@@ -4,6 +4,8 @@ public class Constants {
     public static final String ANONYMOUS = "Anonymous";
     public static final String ADMIN = "ADMIN";
 
+    public static final String AES_SECRET = "MTIzcnVnaHRhbmtobW91dA==";
+
     public static class StatusCode {
         public static final String SUCCESS = "SUCCESS";
         public static final String FAILED = "FAILED";
