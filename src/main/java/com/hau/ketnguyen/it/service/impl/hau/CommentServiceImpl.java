@@ -4,7 +4,10 @@ import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.auth.User;
 import com.hau.ketnguyen.it.entity.hau.Comments;
+import com.hau.ketnguyen.it.entity.hau.Topics;
+import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
 import com.hau.ketnguyen.it.model.dto.hau.CommentDTO;
+import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
 import com.hau.ketnguyen.it.model.request.hau.SearchCommentRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.repository.auth.UserReps;
@@ -23,7 +26,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -33,10 +39,8 @@ public class CommentServiceImpl implements CommentService {
     private final CommentMapper commentMapper;
     private final UserReps userReps;
     private final TopicReps topicReps;
-    private final AssemblyReps assemblyReps;
     private final UserMapper userMapper;
     private final TopicMapper topicMapper;
-    private final AssemblyMapper assemblyMapper;
 
     @Override
     public CommentDTO save(CommentDTO commentDTO) {
@@ -76,13 +80,50 @@ public class CommentServiceImpl implements CommentService {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy bình luận");
         }
 
-        return commentMapper.to(commentsOptional.get());
+        User user = userReps.findById(Integer.parseInt(String.valueOf(commentsOptional.get().getUserId())))
+                .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy người dùng"));
+        UserDTO userDTO = userMapper.to(user);
+        Topics topics = topicReps.findById(commentsOptional.get().getTopicId())
+                .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đề tài"));
+        TopicDTO topicDTO = topicMapper.to(topics);
+        CommentDTO commentDTO = commentMapper.to(commentsOptional.get());
+        commentDTO.setUserDTO(userDTO);
+        commentDTO.setTopicDTO(topicDTO);
+
+        return commentDTO;
     }
 
     @Override
     public PageDataResponse<CommentDTO> getAll(SearchCommentRequest request) {
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
         Page<CommentDTO> page = commentReps.search(request, pageable).map(commentMapper::to);
+        if (!page.isEmpty()) {
+            List<Long> userIdLongs = page.map(CommentDTO::getUserId).toList();
+            List<Integer> userIdInts = userIdLongs.stream().map(Long::intValue).collect(Collectors.toList());
+            List<Long> topicIds = page.map(CommentDTO::getTopicId).toList();
+
+            List<UserDTO> userDTOS = userReps.findByIds(userIdInts).stream().map(userMapper::to).collect(Collectors.toList());
+            List<TopicDTO> topicDTOS = topicReps.findByIdIn(topicIds).stream().map(topicMapper::to).collect(Collectors.toList());
+
+            page.forEach(p -> {
+                if (!userDTOS.isEmpty()) {
+                    userDTOS.forEach(u -> {
+                        if (Objects.equals(p.getUserId().intValue(), u.getId())) {
+                            p.setUserDTO(u);
+                        }
+                    });
+                }
+
+                if (!topicDTOS.isEmpty()) {
+                    topicDTOS.forEach(t -> {
+                        if (Objects.equals(p.getTopicId(), t.getId())) {
+                            p.setTopicDTO(t);
+                        }
+                    });
+                }
+            });
+        }
+
         return PageDataResponse.of(page);
     }
 }

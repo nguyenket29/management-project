@@ -10,4 +10,5 @@ public class FacultyDTO extends BaseDTO {
     private String name;
     private String code;
     private Long workplaceId;
+    private WorkplaceDTO workplaceDTO;
 }

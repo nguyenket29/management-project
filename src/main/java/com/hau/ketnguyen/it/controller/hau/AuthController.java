@@ -12,6 +12,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -41,6 +42,12 @@ public class AuthController {
     @GetMapping("/activation")
     public ResponseEntity<APIResponse<Boolean>> verifyAccount(@RequestParam String code) {
         return ResponseEntity.ok(APIResponse.success(authService.verifyAccount(code)));
+    }
+
+    @GetMapping("/forgot-password")
+    public ResponseEntity<APIResponse<Boolean>> forgotPassword(@RequestParam String email, HttpServletRequest request) throws MessagingException {
+        authService.forgotPassword(email, request);
+        return ResponseEntity.ok(APIResponse.success());
     }
 
     @GetMapping("/account")

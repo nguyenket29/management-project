@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface WorkplaceReps extends CrudRepository<Workplaces, Long> {
     @Query("SELECT c FROM workplaces c " +
@@ -17,4 +19,6 @@ public interface WorkplaceReps extends CrudRepository<Workplaces, Long> {
             " AND (:#{#request.email} IS NULL OR c.email LIKE %:#{#request.email}%) " +
             " ORDER BY c.id desc")
     Page<Workplaces> search(SearchWorkplaceRequest request, Pageable pageable);
+
+    List<Workplaces> findByIdIn(List<Long> ids);
 }

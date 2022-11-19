@@ -35,7 +35,7 @@ public class WorkplaceServiceImpl implements WorkplaceService {
         Optional<Workplaces> workplacesOptional = workplaceReps.findById(id);
 
         if (workplacesOptional.isEmpty()) {
-            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đơn vị công tác");
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đơn vị");
         }
 
         Workplaces workplaces = workplacesOptional.get();
@@ -48,7 +48,7 @@ public class WorkplaceServiceImpl implements WorkplaceService {
         Optional<Workplaces> workplacesOptional = workplaceReps.findById(id);
 
         if (workplacesOptional.isEmpty()) {
-            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đơn vị công tác");
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đơn vị");
         }
 
         workplaceReps.delete(workplacesOptional.get());
@@ -59,7 +59,7 @@ public class WorkplaceServiceImpl implements WorkplaceService {
         Optional<Workplaces> workplacesOptional = workplaceReps.findById(id);
 
         if (workplacesOptional.isEmpty()) {
-            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đơn vị công tác");
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đơn vị");
         }
 
         return workplaceMapper.to(workplacesOptional.get());
