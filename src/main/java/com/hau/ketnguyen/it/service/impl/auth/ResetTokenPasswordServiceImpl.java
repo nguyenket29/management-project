@@ -1,4 +1,4 @@
-package com.hau.ketnguyen.it.service.impl;
+package com.hau.ketnguyen.it.service.impl.auth;
 
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.entity.auth.ResetPasswordToken;

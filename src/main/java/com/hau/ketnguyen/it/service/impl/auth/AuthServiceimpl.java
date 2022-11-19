@@ -1,4 +1,4 @@
-package com.hau.ketnguyen.it.service.impl;
+package com.hau.ketnguyen.it.service.impl.auth;
 
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.AuthorityUtil;
@@ -6,10 +6,9 @@ import com.hau.ketnguyen.it.common.util.HashHelper;
 import com.hau.ketnguyen.it.common.util.JwtTokenUtil;
 import com.hau.ketnguyen.it.config.auth.Commons;
 import com.hau.ketnguyen.it.entity.auth.*;
-import com.hau.ketnguyen.it.model.dto.auth.PasswordDTO;
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
-import com.hau.ketnguyen.it.model.request.SignupRequest;
-import com.hau.ketnguyen.it.model.request.TokenRefreshRequest;
+import com.hau.ketnguyen.it.model.request.auth.SignupRequest;
+import com.hau.ketnguyen.it.model.request.auth.TokenRefreshRequest;
 import com.hau.ketnguyen.it.model.response.TokenRefreshResponse;
 import com.hau.ketnguyen.it.model.response.UserResponse;
 import com.hau.ketnguyen.it.repository.auth.RefreshTokenReps;

@@ -1,8 +1,8 @@
-package com.hau.ketnguyen.it.service.impl;
+package com.hau.ketnguyen.it.service.impl.auth;
 
 import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.auth.Role;
-import com.hau.ketnguyen.it.model.request.RoleRequest;
+import com.hau.ketnguyen.it.model.request.auth.RoleRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.repository.auth.RoleReps;
 import com.hau.ketnguyen.it.service.RoleService;

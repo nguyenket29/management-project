@@ -1,4 +1,4 @@
-package com.hau.ketnguyen.it.model.request;
+package com.hau.ketnguyen.it.model.request.auth;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;

@@ -1,7 +1,7 @@
 package com.hau.ketnguyen.it.controller.hau;
 
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
-import com.hau.ketnguyen.it.model.request.UserRequest;
+import com.hau.ketnguyen.it.model.request.auth.UserRequest;
 import com.hau.ketnguyen.it.model.response.APIResponse;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.service.UserService;

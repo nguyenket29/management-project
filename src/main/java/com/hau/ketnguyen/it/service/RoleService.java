@@ -1,7 +1,7 @@
 package com.hau.ketnguyen.it.service;
 
 import com.hau.ketnguyen.it.entity.auth.Role;
-import com.hau.ketnguyen.it.model.request.RoleRequest;
+import com.hau.ketnguyen.it.model.request.auth.RoleRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 
 public interface RoleService {

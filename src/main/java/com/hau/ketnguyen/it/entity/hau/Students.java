@@ -12,7 +12,7 @@ import java.util.Date;
 @Entity(name = "students")
 @Data
 public class Students extends BaseEntity {
-    @Column(name = "name")
+    /*@Column(name = "name")
     private String name;
 
     @Column(name = "gender")
@@ -28,7 +28,9 @@ public class Students extends BaseEntity {
     private String email;
 
     @Column(name = "phone_number")
-    private String phoneNumber;
+    private String phoneNumber;*/
+    @Column(name = "user_id")
+    private Integer userId;
 
     @Column(name = "topic_id")
     private Long topicId;

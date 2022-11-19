@@ -1,8 +1,8 @@
 package com.hau.ketnguyen.it.service;
 
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
-import com.hau.ketnguyen.it.model.request.SignupRequest;
-import com.hau.ketnguyen.it.model.request.TokenRefreshRequest;
+import com.hau.ketnguyen.it.model.request.auth.SignupRequest;
+import com.hau.ketnguyen.it.model.request.auth.TokenRefreshRequest;
 import com.hau.ketnguyen.it.model.response.TokenRefreshResponse;
 import com.hau.ketnguyen.it.model.response.UserResponse;
 

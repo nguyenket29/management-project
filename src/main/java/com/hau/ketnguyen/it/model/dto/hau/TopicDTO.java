@@ -1,11 +1,13 @@
 package com.hau.ketnguyen.it.model.dto.hau;
 
 import com.hau.ketnguyen.it.model.dto.BaseDTO;
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.Date;
 
 @Data
+@Builder
 public class TopicDTO extends BaseDTO {
     private String name;
     private Integer stdNumber;

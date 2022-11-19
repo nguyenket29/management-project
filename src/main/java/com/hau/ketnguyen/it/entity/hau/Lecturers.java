@@ -1,6 +1,7 @@
 package com.hau.ketnguyen.it.entity.hau;
 
 import com.hau.ketnguyen.it.entity.BaseEntity;
+import io.swagger.models.auth.In;
 import lombok.Data;
 
 import javax.persistence.Column;
@@ -12,7 +13,7 @@ import java.util.Date;
 @Entity(name = "lecturers")
 @Data
 public class Lecturers extends BaseEntity {
-    public static final class Gender {
+    /*public static final class Gender {
         public static final short MALE = 0;
         public static final short FEMALE = 1;
         public static final short OTHER = 2;
@@ -37,7 +38,9 @@ public class Lecturers extends BaseEntity {
     private String email;
 
     @Column(name = "phone_number")
-    private String phoneNumber;
+    private String phoneNumber;*/
+    @Column(name = "user_id")
+    private Integer userId;
 
     //chức vụ
     @Column(name = "regency")

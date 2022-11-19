@@ -1,4 +1,4 @@
-package com.hau.ketnguyen.it.service.impl;
+package com.hau.ketnguyen.it.service.impl.auth;
 
 import com.hau.ketnguyen.it.entity.auth.UserVerification;
 import com.hau.ketnguyen.it.repository.auth.UserVerificationReps;

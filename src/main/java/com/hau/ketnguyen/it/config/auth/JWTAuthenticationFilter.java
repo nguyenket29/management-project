@@ -7,7 +7,7 @@ import com.hau.ketnguyen.it.common.util.JwtTokenUtil;
 import com.hau.ketnguyen.it.entity.auth.CustomUser;
 import com.hau.ketnguyen.it.entity.auth.User;
 import com.hau.ketnguyen.it.model.dto.auth.RefreshTokenDTO;
-import com.hau.ketnguyen.it.model.request.LoginRequest;
+import com.hau.ketnguyen.it.model.request.auth.LoginRequest;
 import com.hau.ketnguyen.it.model.response.JwtResponse;
 import com.hau.ketnguyen.it.repository.auth.UserReps;
 import com.hau.ketnguyen.it.service.RefreshTokenService;

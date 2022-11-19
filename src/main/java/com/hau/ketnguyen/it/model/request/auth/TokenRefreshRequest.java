@@ -1,4 +1,4 @@
-package com.hau.ketnguyen.it.model.request;
+package com.hau.ketnguyen.it.model.request.auth;
 
 import lombok.Data;
 
