@@ -2,7 +2,7 @@ package com.hau.ketnguyen.it.service.impl.auth;
 
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.entity.auth.ResetPasswordToken;
-import com.hau.ketnguyen.it.repository.hau.ResetPasswordTokenReps;
+import com.hau.ketnguyen.it.repository.auth.ResetPasswordTokenReps;
 import com.hau.ketnguyen.it.service.ResetPasswordTokenService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

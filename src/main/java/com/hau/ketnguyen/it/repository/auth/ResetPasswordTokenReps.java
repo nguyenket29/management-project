@@ -1,4 +1,4 @@
-package com.hau.ketnguyen.it.repository.hau;
+package com.hau.ketnguyen.it.repository.auth;
 
 import com.hau.ketnguyen.it.entity.auth.ResetPasswordToken;
 import org.springframework.data.repository.CrudRepository;

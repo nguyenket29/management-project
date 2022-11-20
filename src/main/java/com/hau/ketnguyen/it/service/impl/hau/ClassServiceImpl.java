@@ -102,8 +102,8 @@ public class ClassServiceImpl implements ClassService {
 
                 List<StudentDTO> listStd = studentReps.findByClassIdIn(classIds)
                         .stream().map(studentMapper::to).collect(Collectors.toList());
-                List<FacultyDTO> facultyDTOS = facultyReps.findByIdIn(facultyIds)
-                        .stream().map(facultyMapper::to).collect(Collectors.toList());
+                Map<Long, FacultyDTO> facultyDTOS = facultyReps.findByIdIn(facultyIds)
+                        .stream().map(facultyMapper::to).collect(Collectors.toMap(FacultyDTO::getId, f -> f));
 
                 page.forEach(p -> {
                     if (!listStd.isEmpty()) {
@@ -112,17 +112,13 @@ public class ClassServiceImpl implements ClassService {
                                 stds.add(std);
                             }
                         });
+
+                        p.setStds(stds);
                     }
 
-                    if (!facultyDTOS.isEmpty()) {
-                        facultyDTOS.forEach(f -> {
-                            if (Objects.equals(p.getFacultyId(), f.getId())) {
-                                p.setFacultyDTO(f);
-                            }
-                        });
+                    if (!facultyDTOS.isEmpty() && facultyDTOS.containsKey(p.getFacultyId())) {
+                        p.setFacultyDTO(facultyDTOS.get(p.getFacultyId()));
                     }
-
-                    p.setStds(stds);
                 });
             }
         }

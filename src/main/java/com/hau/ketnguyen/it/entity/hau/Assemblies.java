@@ -16,7 +16,4 @@ public class Assemblies extends BaseEntity {
 
     @Column(name = "topic_id")
     private Long topicId;
-
-    @Column(name = "comment_id")
-    private Long commentId;
 }

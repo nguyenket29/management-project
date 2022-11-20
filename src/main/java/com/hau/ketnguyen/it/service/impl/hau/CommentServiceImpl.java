@@ -27,6 +27,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -102,24 +103,18 @@ public class CommentServiceImpl implements CommentService {
             List<Integer> userIdInts = userIdLongs.stream().map(Long::intValue).collect(Collectors.toList());
             List<Long> topicIds = page.map(CommentDTO::getTopicId).toList();
 
-            List<UserDTO> userDTOS = userReps.findByIds(userIdInts).stream().map(userMapper::to).collect(Collectors.toList());
-            List<TopicDTO> topicDTOS = topicReps.findByIdIn(topicIds).stream().map(topicMapper::to).collect(Collectors.toList());
+            Map<Integer, UserDTO> userDTOS = userReps.findByIds(userIdInts)
+                    .stream().map(userMapper::to).collect(Collectors.toMap(UserDTO::getId, u -> u));
+            Map<Long, TopicDTO> topicDTOS = topicReps.findByIdIn(topicIds)
+                    .stream().map(topicMapper::to).collect(Collectors.toMap(TopicDTO::getId, t -> t));
 
             page.forEach(p -> {
-                if (!userDTOS.isEmpty()) {
-                    userDTOS.forEach(u -> {
-                        if (Objects.equals(p.getUserId().intValue(), u.getId())) {
-                            p.setUserDTO(u);
-                        }
-                    });
+                if (!userDTOS.isEmpty() && userDTOS.containsKey(p.getUserId().intValue())) {
+                    p.setUserDTO(userDTOS.get(p.getUserId().intValue()));
                 }
 
-                if (!topicDTOS.isEmpty()) {
-                    topicDTOS.forEach(t -> {
-                        if (Objects.equals(p.getTopicId(), t.getId())) {
-                            p.setTopicDTO(t);
-                        }
-                    });
+                if (!topicDTOS.isEmpty() && topicDTOS.containsKey(p.getTopicId())) {
+                    p.setTopicDTO(topicDTOS.get(p.getTopicId()));
                 }
             });
         }

@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -72,15 +73,15 @@ public class FacultyServiceImpl implements FacultyService {
 
         if (!facultiesPage.isEmpty()) {
             List<Long> workplaceIds = facultiesPage.map(FacultyDTO::getWorkplaceId).toList();
-            List<WorkplaceDTO> workplaceDTOS = workplaceReps.findByIdIn(workplaceIds)
-                    .stream().map(workplaceMapper::to).collect(Collectors.toList());
+            Map<Long, WorkplaceDTO> workplaceDTOS = workplaceReps.findByIdIn(workplaceIds)
+                    .stream().map(workplaceMapper::to).collect(Collectors.toMap(WorkplaceDTO::getId, w -> w));
 
             if (!workplaceDTOS.isEmpty()) {
-                facultiesPage.forEach(f -> workplaceDTOS.forEach(dto -> {
-                    if (Objects.equals(f.getWorkplaceId(), dto.getId())) {
-                        f.setWorkplaceDTO(dto);
+                facultiesPage.forEach(f -> {
+                    if (workplaceDTOS.containsKey(f.getWorkplaceId())) {
+                        f.setWorkplaceDTO(workplaceDTOS.get(f.getWorkplaceId()));
                     }
-                }));
+                });
             }
         }
 

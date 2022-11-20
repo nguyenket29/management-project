@@ -9,5 +9,7 @@ import lombok.Data;
 public class AssemblyDTO extends BaseDTO {
     private Long lecturerId;
     private Long topicId;
-    private Long commentId;
+
+    private TopicDTO topicDTO;
+    private LecturerDTO lecturerDTO;
 }
