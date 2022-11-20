@@ -14,5 +14,6 @@ public interface UserMapper {
     User from(UserDTO dto);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "email", ignore = true)
     User copy(UserDTO dto, @MappingTarget User entity);
 }

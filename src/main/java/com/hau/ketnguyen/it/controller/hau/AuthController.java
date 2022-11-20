@@ -19,7 +19,6 @@ import javax.validation.Valid;
 
 @RestController
 @AllArgsConstructor
-@CrossOrigin
 public class AuthController {
     private final AuthService authService;
 

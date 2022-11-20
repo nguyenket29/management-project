@@ -27,7 +27,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private final RefreshTokenService refreshTokenService;
     private final UserService userService;
     private final EntryPointAuthenticationConfig entryPointConfig;
-
     private final UserReps userReps;
 
     public WebSecurityConfig(JwtTokenUtil tokenUtil, RefreshTokenService refreshTokenService, UserService userService,

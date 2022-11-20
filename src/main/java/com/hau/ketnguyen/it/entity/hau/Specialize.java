@@ -17,9 +17,6 @@ public class Specialize extends BaseEntity {
     @Column(name = "faculty_id")
     private Long facultyId;
 
-    @Column(name = "class_id")
-    private Long classId;
-
     @Column(name = "training_system_id")
     private Long trainSystemId;
 }

@@ -80,9 +80,7 @@ public class UserServiceImpl implements UserService {
         User user = userOptional.get();
         user.setRoles(roleSet);
 
-        String oldEmail = user.getEmail();
         userMapper.copy(userDTO, user);
-        user.setEmail(oldEmail);
         return userMapper.to(userReps.save(user));
     }
 }

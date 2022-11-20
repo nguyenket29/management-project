@@ -35,4 +35,5 @@ public class SignupRequest {
     private Short status;
     private Short gender;
     private String address;
+    private String phoneNumber;
 }

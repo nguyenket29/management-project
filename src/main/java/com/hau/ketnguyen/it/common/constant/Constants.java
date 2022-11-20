@@ -1,9 +1,11 @@
 package com.hau.ketnguyen.it.common.constant;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class Constants {
     public static final String ANONYMOUS = "Anonymous";
     public static final String ADMIN = "ADMIN";
-
     public static final String AES_SECRET = "MTIzcnVnaHRhbmtobW91dA==";
 
     public static class StatusCode {
@@ -27,6 +29,8 @@ public class Constants {
         }
     }
 
+    public static final List<String> EXTENTIONS = List.of("doc", "docx", "xls",
+            "pdf", "png", "jpg", "jpeg", "pptx", "ppt", "xlsm", "xlsx");
     public static final String ATTRIBUTE_DELIMITER = "#_@_@_#";
     public static final String FORMAT_DATE = "dd/MM/YYYY";
 }

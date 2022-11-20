@@ -6,6 +6,5 @@ import lombok.Data;
 public class SearchSpecializeRequest extends BaseRequest {
     private String name;
     private Long facultyId;
-    private Long classId;
     private Long trainSystemId;
 }

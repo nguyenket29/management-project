@@ -11,6 +11,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface ClassReps extends CrudRepository<Classes, Long> {
     @Query("SELECT c FROM classes c " +
@@ -19,4 +21,6 @@ public interface ClassReps extends CrudRepository<Classes, Long> {
             " AND (:#{#request.facultyId} IS NULL OR c.facultyId = :#{#request.facultyId}) " +
             " ORDER BY c.id desc")
     Page<Classes> search(SearchClassRequest request, Pageable pageable);
+
+    List<Classes> findByIdIn(List<Long> ids);
 }

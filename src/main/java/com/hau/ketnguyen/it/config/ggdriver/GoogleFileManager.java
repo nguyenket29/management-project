@@ -33,6 +33,13 @@ public class GoogleFileManager {
         return result.getFiles();
     }
 
+    //Get File By Id
+    public File getFileById(String id) throws GeneralSecurityException, IOException {
+        File file = googleDriverConfig.getInstance().files().get(id).execute();
+        return file;
+    }
+
+
     // Get all folder
     public List<File> listFolderContent(String parentId) throws IOException, GeneralSecurityException {
         if (parentId == null) {

@@ -10,6 +10,7 @@ import com.hau.ketnguyen.it.service.GoogleDriverFile;
 import com.hau.ketnguyen.it.service.GoogleDriverFolder;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,6 @@ import java.security.GeneralSecurityException;
 @RestController
 @RequestMapping("/google-driver")
 @AllArgsConstructor
-@CrossOrigin
 @Slf4j
 public class GoogleDriverController {
     private final GoogleDriverFile googleDriveFileService;
@@ -69,7 +69,7 @@ public class GoogleDriverController {
     @GetMapping("/download/file/{id}")
     public ResponseEntity<APIResponse<Void>> downloadFile(@PathVariable String id, HttpServletResponse response)
             throws IOException, GeneralSecurityException {
-        googleDriveFileService.downloadFile(id, response.getOutputStream());
+        googleDriveFileService.downloadFile(id, response.getOutputStream(), response);
         return ResponseEntity.ok(APIResponse.success());
     }
 

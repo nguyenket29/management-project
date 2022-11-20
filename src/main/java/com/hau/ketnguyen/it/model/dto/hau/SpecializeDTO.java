@@ -9,6 +9,7 @@ import lombok.Data;
 public class SpecializeDTO extends BaseDTO {
     private String name;
     private Long facultyId;
-    private Long classId;
     private Long trainSystemId;
+    private FacultyDTO facultyDTO;
+    private TrainingSystemDTO trainingSystemDTO;
 }
