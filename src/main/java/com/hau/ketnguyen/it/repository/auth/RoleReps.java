@@ -18,4 +18,5 @@ public interface RoleReps extends JpaRepository<Role, Integer> {
 
     @Query("SELECT r FROM Role r WHERE (COALESCE(:codes, NULL) IS NULL OR r.code IN :codes)")
     List<Role> findByCodes(List<String> codes);
+    List<Role> findByIdIn(List<Integer> roleIds);
 }

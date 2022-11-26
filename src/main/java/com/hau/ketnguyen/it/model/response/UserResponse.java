@@ -1,34 +1,39 @@
 package com.hau.ketnguyen.it.model.response;
 
+import lombok.Builder;
 import lombok.Data;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.Set;
 
 @Data
+@Builder
 public class UserResponse {
+    public static final class Status {
+        public static final short ACTIVE = 1;
+        public static final short WAITING = 0;
+        public static final short LOCK = -1;
+    }
+
+    public static final class Gender {
+        public static final short MALE = 0;
+        public static final short FEMALE = 1;
+        public static final short OTHER = 2;
+    }
+
     private Integer id;
     private String username;
-    private String firstName;
-    private String lastName;
-    private String address;
-    private Short status;
+    private String email;
+    private String fullName;
     private String avatar;
-    private Date birthday;
-    private Short gender;
+    private Instant dateOfBirth;
+    private String town;
+    private String gender;
+    private String marriageStatus;
+    private String address;
+    private String phoneNumber;
+    private String status;
+    private String type;
     private Set<String> authorities;
-
-    public UserResponse(Integer id, String username, String firstName, String lastName, String address,
-                        Short status, String avatar, Date birthday, Short gender, Set<String> authorities) {
-        this.id = id;
-        this.username = username;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.address = address;
-        this.status = status;
-        this.avatar = avatar;
-        this.birthday = birthday;
-        this.gender = gender;
-        this.authorities = authorities;
-    }
 }

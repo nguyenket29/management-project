@@ -1,25 +1,17 @@
 
 package com.hau.ketnguyen.it.entity.auth;
 
+import com.hau.ketnguyen.it.common.enums.TypeUser;
 import com.hau.ketnguyen.it.common.util.JsonUtil;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Table(name = "users")
 @Data
 public class User {
-
-    public static final class Gender {
-        public static final short MALE = 0;
-        public static final short FEMALE = 1;
-        public static final short OTHER = 2;
-    }
-
     public static final class Status {
         public static final short ACTIVE = 1;
         public static final short WAITING = 0;
@@ -37,45 +29,39 @@ public class User {
     @Column(name = "password")
     private String password;
 
-    @Column(name = "first_name")
-    private String firstName;
-
-    @Column(name = "last_name")
-    private String lastName;
-
-    @Column(name = "avatar")
-    private String avatar;
-
-    @Column(name = "birthday")
-    private Date birthday;
-
-    @Column(name = "gender")
-    private Short gender;
-
     @Column(name = "status")
     private Short status;
 
     @Column(name = "email")
     private String email;
 
-    @Column(name = "address")
-    private String address;
-
-    @Column(name = "phone_number")
-    private String phoneNumber;
+    @Column(name = "type")
+    @Enumerated(value = EnumType.STRING)
+    private TypeUser type;
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = { CascadeType.MERGE })
     @JoinTable(name = "user_role", joinColumns = { @JoinColumn(name = "user_id") },
             inverseJoinColumns = { @JoinColumn(name = "role_id") })
     private Set<Role> roles = new HashSet<Role>(0);
 
-    @Transient
-    public String getFullName() {
-        return this.lastName + " " + this.firstName;
-    }
-
     @Override
     public String toString() {
         return JsonUtil.toJson(this);
+    }
+
+    public Map<Short, String> getMapStatus() {
+        Map<Short, String> mapStatus = new HashMap<>();
+        mapStatus.put((short) 1, "ACTIVE");
+        mapStatus.put((short) 0, "WAITING");
+        mapStatus.put((short) -1, "LOCK");
+        return mapStatus;
+    }
+
+    public Map<Short, String> getMapGender() {
+        Map<Short, String> mapStatus = new HashMap<>();
+        mapStatus.put((short) 0, "MALE");
+        mapStatus.put((short) 1, "FEMALE");
+        mapStatus.put((short) 2, "OTHER");
+        return mapStatus;
     }
 }

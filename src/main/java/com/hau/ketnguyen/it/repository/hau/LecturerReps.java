@@ -12,20 +12,19 @@ import java.util.List;
 
 @Repository
 public interface LecturerReps extends CrudRepository<Lecturers, Long> {
-    @Query("SELECT l FROM lecturers l, User u " +
-            "WHERE l.userId = u.id " +
-            " AND (:#{#request.degree} IS NULL OR l.degree LIKE %:#{#request.degree}%) " +
+    @Query("SELECT l FROM lecturers l " +
+            "LEFT JOIN User u ON l.userId = u.id " +
+            "LEFT JOIN UserInfo ui ON l.userId = ui.id " +
+            "WHERE (:#{#request.degree} IS NULL OR l.degree LIKE %:#{#request.degree}%) " +
             " AND (:#{#request.regency} IS NULL OR l.regency LIKE %:#{#request.regency}%) " +
-            " AND (:#{#request.lastName} IS NULL OR u.lastName LIKE %:#{#request.lastName}%) " +
-            " AND (:#{#request.firstName} IS NULL OR u.firstName LIKE %:#{#request.firstName}%) " +
+            " AND (:#{#request.fullName} IS NULL OR ui.fullName LIKE %:#{#request.fullName}%) " +
             " AND (:#{#request.email} IS NULL OR u.email LIKE %:#{#request.email}%) " +
-            " AND (:#{#request.phoneNumber} IS NULL OR u.phoneNumber LIKE %:#{#request.phoneNumber}%) " +
-            " AND (:#{#request.address} IS NULL OR u.address LIKE %:#{#request.address}%) " +
-            " AND (:#{#request.phoneNumber} IS NULL OR u.phoneNumber LIKE %:#{#request.phoneNumber}%) " +
+            " AND (:#{#request.phoneNumber} IS NULL OR ui.phoneNumber LIKE %:#{#request.phoneNumber}%) " +
+            " AND (:#{#request.address} IS NULL OR ui.address LIKE %:#{#request.address}%) " +
             " AND (:#{#request.facultyId} IS NULL OR l.facultyId = :#{#request.facultyId}) " +
             " AND (:#{#request.workplaceId} IS NULL OR l.workplaceId = :#{#request.workplaceId}) " +
-            " AND (:#{#request.dateOfBirth} IS NULL OR u.birthday = :#{#request.dateOfBirth}) " +
-            " AND (:#{#request.gender} IS NULL OR u.gender = :#{#request.gender}) " +
+            " AND (:#{#request.dateOfBirth} IS NULL OR ui.dateOfBirth = :#{#request.dateOfBirth}) " +
+            " AND (:#{#request.gender} IS NULL OR ui.gender = :#{#request.gender}) " +
             " ORDER BY l.id desc")
     Page<Lecturers> search(SearchLecturerRequest request, Pageable pageable);
 

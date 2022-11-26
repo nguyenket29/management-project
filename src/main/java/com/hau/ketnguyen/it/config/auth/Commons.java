@@ -13,9 +13,12 @@ public class Commons {
     public static final String TOKEN_SECRET = "Siten@AllRights";
     public static final String TOKEN_ISSUER = "http://siten.vn/";
     public static final String DOWN_FILE_GG_DRIVER = "/google-driver/**";
+    public static final String FORGOT_PASS = "/forgot-password";
+    public static final String UPDATE_PASS = "/update-password";
     public static final String DEFAULT_ROLE = "DEFAULT";
 
-    public static final String[] PUBLIC_URLs = new String[]{LOGIN_URL, REFRESH_TOKEN, SIGN_UP_URL, ACTIVE_URL, "/", DOWN_FILE_GG_DRIVER};
+    public static final String[] PUBLIC_URLs = new String[]{LOGIN_URL, REFRESH_TOKEN, SIGN_UP_URL, ACTIVE_URL,
+            "/", DOWN_FILE_GG_DRIVER, FORGOT_PASS, UPDATE_PASS};
 
     public static String jwtSubject(User user) {
         return user.getUsername();

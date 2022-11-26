@@ -6,6 +6,8 @@ import lombok.Data;
 @Data
 @Builder
 public class PasswordDTO {
+    private String email;
+
     private String oldPassword;
 
     private  String token;

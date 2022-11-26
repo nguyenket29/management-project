@@ -5,6 +5,7 @@ import com.hau.ketnguyen.it.common.util.JwtTokenUtil;
 import com.hau.ketnguyen.it.config.auth.Commons;
 import com.hau.ketnguyen.it.config.auth.JWTAuthenticationFilter;
 import com.hau.ketnguyen.it.config.auth.JWTAuthorizationFilter;
+import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
 import com.hau.ketnguyen.it.repository.auth.UserReps;
 import com.hau.ketnguyen.it.service.RefreshTokenService;
 import com.hau.ketnguyen.it.service.UserService;
@@ -28,14 +29,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private final UserService userService;
     private final EntryPointAuthenticationConfig entryPointConfig;
     private final UserReps userReps;
+    private final UserInfoReps userInfoReps;
 
     public WebSecurityConfig(JwtTokenUtil tokenUtil, RefreshTokenService refreshTokenService, UserService userService,
-                             EntryPointAuthenticationConfig entryPointConfig, UserReps userReps) {
+                             EntryPointAuthenticationConfig entryPointConfig, UserReps userReps, UserInfoReps userInfoReps) {
         this.tokenUtil = tokenUtil;
         this.refreshTokenService = refreshTokenService;
         this.userService = userService;
         this.entryPointConfig = entryPointConfig;
         this.userReps = userReps;
+        this.userInfoReps = userInfoReps;
     }
 
     @Override
@@ -48,7 +51,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and().logout()
                 .and().csrf().disable()
                 .addFilter(new JWTAuthenticationFilter(authenticationManager(),
-                        bCryptPasswordEncoder(), tokenUtil, refreshTokenService, userReps))
+                        bCryptPasswordEncoder(), tokenUtil, refreshTokenService, userInfoReps, userReps))
                 .addFilter(new JWTAuthorizationFilter(authenticationManager(), userService))
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and().httpBasic().authenticationEntryPoint(entryPointConfig);

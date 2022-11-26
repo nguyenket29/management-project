@@ -27,6 +27,12 @@ public class AuthController {
         return ResponseEntity.ok(APIResponse.success(authService.refreshToken(request)));
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<APIResponse<Void>> forgotPassword(@RequestBody PasswordDTO passwordDTO, HttpServletRequest request) throws MessagingException {
+        authService.forgotPassword(passwordDTO.getEmail(), request);
+        return ResponseEntity.ok(APIResponse.success());
+    }
+
     @PostMapping("/update-password")
     public ResponseEntity<APIResponse<Boolean>> updatePassword(@RequestBody PasswordDTO passwordDTO) {
         return ResponseEntity.ok(APIResponse

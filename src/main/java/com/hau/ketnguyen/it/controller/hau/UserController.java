@@ -21,7 +21,7 @@ public class UserController  {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<APIResponse<UserDTO>> edit(@PathVariable Integer id, @RequestBody UserDTO userDTO) {
-        return ResponseEntity.ok(APIResponse.success(userService.edit(id, userDTO)));
+    public ResponseEntity<APIResponse<UserDTO>> edit(@PathVariable Integer id, @RequestBody UserRequest userRequest) {
+        return ResponseEntity.ok(APIResponse.success(userService.edit(id, userRequest)));
     }
 }

@@ -17,9 +17,6 @@ public class SignupRequest {
     @Size(min = 10, max = 40)
     private String email;
 
-    @NotNull
-    private String firstName;
-
     @NotBlank
     @Size(min = 6, max = 40)
     private String password;
@@ -28,12 +25,5 @@ public class SignupRequest {
     @Size(min = 6, max = 40)
     private String confirmPassword;
 
-    @NotNull
-    private String lastName;
-
-    private Date birthday;
-    private Short status;
-    private Short gender;
-    private String address;
-    private String phoneNumber;
+    private String type;
 }

@@ -1,24 +1,20 @@
-package com.hau.ketnguyen.it.model.request.auth;
+package com.hau.ketnguyen.it.model.dto.auth;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.Instant;
-import java.util.List;
 
 @Data
-public class UserRequest extends SearchRequest{
-    private String username;
-    private String password;
-    private Short status;
-    private String email;
-    private String type;
+@Builder
+public class UserInfoDTO {
     private String fullName;
     private String avatar;
     private Instant dateOfBirth;
     private String town;
     private short gender;
     private String marriageStatus;
+    private Integer userId;
     private String address;
     private String phoneNumber;
-    private List<String> listRole;
 }
