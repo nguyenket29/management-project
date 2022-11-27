@@ -33,10 +33,11 @@ public class EmailServiceImpl implements EmailService {
     private final ApplicationPropertise applicationProperties;
     private final ApplicationPropertise.Mail mail;
     private final TemplateEngine templateEngine;
+    private final String portFe;
 
     public EmailServiceImpl(UserVerificationService userVerificationService, JavaMailSender javaMailSender,
                             UserReps userReps, @Value("${spring.mail.username}") String senderMail,
-                            ApplicationPropertise applicationProperties, TemplateEngine templateEngine) {
+                            ApplicationPropertise applicationProperties, TemplateEngine templateEngine, @Value("${port-fe}") String portFe) {
         this.userVerificationService = userVerificationService;
         this.javaMailSender = javaMailSender;
         this.userReps = userReps;
@@ -44,6 +45,7 @@ public class EmailServiceImpl implements EmailService {
         this.applicationProperties = applicationProperties;
         this.mail = applicationProperties.getMail();
         this.templateEngine = templateEngine;
+        this.portFe = portFe;
     }
 
     /**
@@ -64,7 +66,7 @@ public class EmailServiceImpl implements EmailService {
             Map<String, Object> variables = new HashMap<>();
             String sub = "Email address verification !";
 
-            String start = StringUtils.join("<a href=", url , "/activation?code=", code, ">");
+            String start = StringUtils.join("<a href=", url, ":", portFe , "/pages/activation?code=", code, ">");
             String end = "</a>";
             String activeUrl = StringUtils.join("Click ", start, " here ", end, " to active account !");
             variables.put("url", activeUrl);

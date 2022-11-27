@@ -3,7 +3,6 @@ package com.hau.ketnguyen.it.service.impl.auth;
 import com.hau.ketnguyen.it.common.enums.TypeUser;
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.AuthorityUtil;
-import com.hau.ketnguyen.it.common.util.HashHelper;
 import com.hau.ketnguyen.it.common.util.JwtTokenUtil;
 import com.hau.ketnguyen.it.config.auth.Commons;
 import com.hau.ketnguyen.it.entity.auth.*;
@@ -17,8 +16,8 @@ import com.hau.ketnguyen.it.repository.auth.*;
 import com.hau.ketnguyen.it.service.*;
 import com.hau.ketnguyen.it.service.mapper.RefreshTokenMapper;
 import com.hau.ketnguyen.it.service.mapper.UserMapper;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
@@ -37,12 +36,10 @@ import javax.servlet.http.HttpServletResponse;
 import java.time.Instant;
 import java.util.*;
 
-import static com.hau.ketnguyen.it.common.constant.Constants.AES_SECRET;
 import static com.hau.ketnguyen.it.common.enums.RoleEnums.Role.USER;
 
 @Service
 @Slf4j
-@AllArgsConstructor
 public class AuthServiceimpl implements AuthService {
     private final UserReps userReps;
     private final RefreshTokenService refreshToken;
@@ -57,6 +54,28 @@ public class AuthServiceimpl implements AuthService {
     private final UserService userService;
     private final UserInfoReps userInfoReps;
     private final ResetPasswordTokenService resetPasswordTokenService;
+    private final String portFe;
+
+    public AuthServiceimpl(UserReps userReps, RefreshTokenService refreshToken, UserMapper userMapper,
+                           JwtTokenUtil tokenUtil, RefreshTokenReps refreshTokenReps,
+                           RefreshTokenMapper refreshTokenMapper, UserVerificationService userVerificationService,
+                           EmailService emailService, UserVerificationReps userVerificationReps, RoleReps roleReps, UserService userService,
+                           UserInfoReps userInfoReps, ResetPasswordTokenService resetPasswordTokenService, @Value("${port-fe}") String portFe) {
+        this.userReps = userReps;
+        this.refreshToken = refreshToken;
+        this.userMapper = userMapper;
+        this.tokenUtil = tokenUtil;
+        this.refreshTokenReps = refreshTokenReps;
+        this.refreshTokenMapper = refreshTokenMapper;
+        this.userVerificationService = userVerificationService;
+        this.emailService = emailService;
+        this.userVerificationReps = userVerificationReps;
+        this.roleReps = roleReps;
+        this.userService = userService;
+        this.userInfoReps = userInfoReps;
+        this.resetPasswordTokenService = resetPasswordTokenService;
+        this.portFe = portFe;
+    }
 
     /**
      * Lấy lại access token khi token hết hạn
@@ -307,20 +326,21 @@ public class AuthServiceimpl implements AuthService {
         String token = UUID.randomUUID().toString();
         if (resetPasswordTokenService.createTokenResetPassword(userDto.getId(), token)) {
             String url = ServletUriComponentsBuilder.fromRequestUri(request)
-                    .replacePath(request.getContextPath())
+                    .replacePath(request.getPathInfo())
                     .build()
                     .toUriString();
 
             Map<String, Object> variables = new HashMap<>();
             String sub = "Email Reset Password !";
 
-            String start = org.apache.commons.lang3.StringUtils.join("<a href=", url , "/pages/update-password?token=", token, ">");
+            String start = org.apache.commons.lang3.StringUtils.join("<a href=", url, ":", portFe , "/pages/update-password?token=", token, ">");
             String end = "</a>";
             String activeUrl = org.apache.commons.lang3.StringUtils.join("Click ", start, " here ", end, " to reset your password !");
             variables.put("url", activeUrl);
             emailService.sendEmail(sub, variables, null, null, userDto);
         }
     }
+
 
     @Override
     public boolean updatePassword(String newPassword, String token, String oldPassword) {

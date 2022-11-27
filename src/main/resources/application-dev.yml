@@ -40,6 +40,7 @@ spring:
       max-request-size: 100MB
       max-file-size: 100MB
 
+port-fe: 8080
 
 inventory:
   logs:
