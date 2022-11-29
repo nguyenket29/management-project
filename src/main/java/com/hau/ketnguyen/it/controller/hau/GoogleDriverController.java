@@ -1,6 +1,5 @@
 package com.hau.ketnguyen.it.controller.hau;
 
-import com.hau.ketnguyen.it.model.dto.hau.FileDriverDTO;
 import com.hau.ketnguyen.it.model.dto.hau.FolderDriverDTO;
 import com.hau.ketnguyen.it.model.dto.hau.GoogleDriverFileDTO;
 import com.hau.ketnguyen.it.model.dto.hau.GoogleDriverFolderDTO;
@@ -8,9 +7,9 @@ import com.hau.ketnguyen.it.model.response.APIResponse;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.service.GoogleDriverFile;
 import com.hau.ketnguyen.it.service.GoogleDriverFolder;
+import io.swagger.annotations.Api;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +20,7 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 @RestController
+@Api(value = "Google Driver Controller", description = "Các APIs quản lý tệp lưu trên gg driver")
 @RequestMapping("/google-driver")
 @AllArgsConstructor
 @Slf4j

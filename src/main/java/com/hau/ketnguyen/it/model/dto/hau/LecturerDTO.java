@@ -16,9 +16,7 @@ public class LecturerDTO extends BaseDTO {
     //cấp bậc
     private String degree;
     private Long facultyId;
-    private Long workplaceId;
 
     private UserDTO userDTO;
     private FacultyDTO facultyDTO;
-    private WorkplaceDTO workplaceDTO;
 }

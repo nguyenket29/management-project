@@ -1,4 +1,4 @@
-package com.hau.ketnguyen.it.controller.hau;
+package com.hau.ketnguyen.it.controller.auth;
 
 import com.hau.ketnguyen.it.model.dto.auth.PasswordDTO;
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
@@ -8,6 +8,7 @@ import com.hau.ketnguyen.it.model.response.APIResponse;
 import com.hau.ketnguyen.it.model.response.TokenRefreshResponse;
 import com.hau.ketnguyen.it.model.response.UserResponse;
 import com.hau.ketnguyen.it.service.AuthService;
+import io.swagger.annotations.Api;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 @RestController
+@Api(value = "Authentication Controller", description = "Các APIs quản lý xác thực")
 @AllArgsConstructor
 public class AuthController {
     private final AuthService authService;

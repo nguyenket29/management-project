@@ -41,8 +41,6 @@ public class LecturerServiceImpl implements LecturerService {
     private final UserMapper userMapper;
     private final FacultyReps facultyReps;
     private final FacultyMapper facultyMapper;
-    private final WorkplaceReps workplaceReps;
-    private final WorkplaceMapper workplaceMapper;
 
     @Override
     public LecturerDTO save(LecturerDTO lecturerDTO) {
@@ -86,11 +84,9 @@ public class LecturerServiceImpl implements LecturerService {
                 .map(userMapper::to).orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy người dùng"));
         FacultyDTO facultyDTO = facultyReps.findById(lecturersOptional.get().getFacultyId())
                 .map(facultyMapper::to).orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy khoa"));
-        WorkplaceDTO workplaceDTO = workplaceReps.findById(lecturersOptional.get().getWorkplaceId())
-                .map(workplaceMapper::to).orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đơn vị"));
+
         LecturerDTO lecturerDTO = lecturerMapper.to(lecturersOptional.get());
         lecturerDTO.setUserDTO(userDTO);
-        lecturerDTO.setWorkplaceDTO(workplaceDTO);
         lecturerDTO.setFacultyDTO(facultyDTO);
 
         return lecturerDTO;
@@ -104,14 +100,11 @@ public class LecturerServiceImpl implements LecturerService {
         if (!page.isEmpty()) {
             List<Integer> userIds = page.map(LecturerDTO::getUserId).toList();
             List<Long> facultyIds = page.map(LecturerDTO::getFacultyId).toList();
-            List<Long> workplaceIds = page.map(LecturerDTO::getWorkplaceId).toList();
 
             Map<Integer, UserDTO> userDTOMap = userReps.findByIds(userIds).stream()
                     .map(userMapper::to).collect(Collectors.toMap(UserDTO::getId, u -> u));
             Map<Long, FacultyDTO> facultyDTOMap = facultyReps.findByIdIn(facultyIds).stream()
                     .map(facultyMapper::to).collect(Collectors.toMap(FacultyDTO::getId, u -> u));
-            Map<Long, WorkplaceDTO> workplaceDTOMap = workplaceReps.findByIdIn(workplaceIds).stream()
-                    .map(workplaceMapper::to).collect(Collectors.toMap(WorkplaceDTO::getId, u -> u));
 
             page.forEach(p -> {
                 if (!userDTOMap.isEmpty() && userDTOMap.containsKey(p.getUserId())) {
@@ -120,10 +113,6 @@ public class LecturerServiceImpl implements LecturerService {
 
                 if (!facultyDTOMap.isEmpty() && facultyDTOMap.containsKey(p.getFacultyId())) {
                     p.setFacultyDTO(facultyDTOMap.get(p.getFacultyId()));
-                }
-
-                if (!workplaceDTOMap.isEmpty() && workplaceDTOMap.containsKey(p.getWorkplaceId())) {
-                    p.setWorkplaceDTO(workplaceDTOMap.get(p.getWorkplaceId()));
                 }
             });
         }

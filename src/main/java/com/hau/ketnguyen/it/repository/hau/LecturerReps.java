@@ -22,7 +22,6 @@ public interface LecturerReps extends CrudRepository<Lecturers, Long> {
             " AND (:#{#request.phoneNumber} IS NULL OR ui.phoneNumber LIKE %:#{#request.phoneNumber}%) " +
             " AND (:#{#request.address} IS NULL OR ui.address LIKE %:#{#request.address}%) " +
             " AND (:#{#request.facultyId} IS NULL OR l.facultyId = :#{#request.facultyId}) " +
-            " AND (:#{#request.workplaceId} IS NULL OR l.workplaceId = :#{#request.workplaceId}) " +
             " AND (:#{#request.dateOfBirth} IS NULL OR ui.dateOfBirth = :#{#request.dateOfBirth}) " +
             " AND (:#{#request.gender} IS NULL OR ui.gender = :#{#request.gender}) " +
             " ORDER BY l.id desc")

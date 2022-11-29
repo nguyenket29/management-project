@@ -1,15 +1,17 @@
-package com.hau.ketnguyen.it.controller.hau;
+package com.hau.ketnguyen.it.controller.auth;
 
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
 import com.hau.ketnguyen.it.model.request.auth.UserRequest;
 import com.hau.ketnguyen.it.model.response.APIResponse;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.service.UserService;
+import io.swagger.annotations.Api;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Api(value = "User Controller", description = "Các APIs quản lý người dùng")
 @RequestMapping("/users")
 @AllArgsConstructor
 public class UserController  {

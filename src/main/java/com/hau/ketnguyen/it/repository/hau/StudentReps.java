@@ -1,10 +1,6 @@
 package com.hau.ketnguyen.it.repository.hau;
 
-import com.hau.ketnguyen.it.entity.hau.Lecturers;
-import com.hau.ketnguyen.it.entity.hau.Specialize;
 import com.hau.ketnguyen.it.entity.hau.Students;
-import com.hau.ketnguyen.it.model.request.hau.SearchLecturerRequest;
-import com.hau.ketnguyen.it.model.request.hau.SearchSpecializeRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchStudentRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

@@ -12,23 +12,6 @@ import java.util.Date;
 @Entity(name = "students")
 @Data
 public class Students extends BaseEntity {
-    /*@Column(name = "name")
-    private String name;
-
-    @Column(name = "gender")
-    private short gender;
-
-    @Column(name = "date_of_birth")
-    private Date dateOfBirth;
-
-    @Column(name = "address")
-    private String address;
-
-    @Column(name = "email")
-    private String email;
-
-    @Column(name = "phone_number")
-    private String phoneNumber;*/
     @Column(name = "user_id")
     private Integer userId;
 

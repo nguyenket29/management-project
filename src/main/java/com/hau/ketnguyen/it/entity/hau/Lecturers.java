@@ -13,32 +13,6 @@ import java.util.Date;
 @Entity(name = "lecturers")
 @Data
 public class Lecturers extends BaseEntity {
-    /*public static final class Gender {
-        public static final short MALE = 0;
-        public static final short FEMALE = 1;
-        public static final short OTHER = 2;
-    }
-
-    @Column(name = "name")
-    private String name;
-
-    @Column(name = "code")
-    private String code;
-
-    @Column(name = "gender")
-    private short gender;
-
-    @Column(name = "date_of_birth")
-    private Date dateOfBirth;
-
-    @Column(name = "address")
-    private String address;
-
-    @Column(name = "email")
-    private String email;
-
-    @Column(name = "phone_number")
-    private String phoneNumber;*/
     @Column(name = "user_id")
     private Integer userId;
 
@@ -52,7 +26,4 @@ public class Lecturers extends BaseEntity {
 
     @Column(name = "faculty_id")
     private Long facultyId;
-
-    @Column(name = "workplace_id")
-    private Long workplaceId;
 }

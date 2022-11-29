@@ -20,5 +20,4 @@ public class SearchLecturerRequest extends BaseRequest {
     //cấp bậc
     private String degree;
     private Long facultyId;
-    private Long workplaceId;
 }
