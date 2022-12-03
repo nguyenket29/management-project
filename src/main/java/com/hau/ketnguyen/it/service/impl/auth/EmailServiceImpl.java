@@ -66,12 +66,16 @@ public class EmailServiceImpl implements EmailService {
             Map<String, Object> variables = new HashMap<>();
             String sub = "Email address verification !";
 
-            String start = StringUtils.join("<a href=", url, ":", portFe , "/pages/activation?code=", code, ">");
+            String start = StringUtils.join("<a href=", splitUrl(url), portFe , "/#/pages/activation?code=", code, ">");
             String end = "</a>";
             String activeUrl = StringUtils.join("Click ", start, " here ", end, " to active account !");
             variables.put("url", activeUrl);
             sendEmail(sub, variables, null, null, userDTO);
         }
+    }
+
+    private String splitUrl(String url) {
+        return url.replaceAll("[0-9]", "");
     }
 
     @Override

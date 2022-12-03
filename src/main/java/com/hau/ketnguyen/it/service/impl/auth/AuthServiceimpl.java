@@ -224,6 +224,8 @@ public class AuthServiceimpl implements AuthService {
             } else {
                 user.setType(TypeUser.CANDIDATE);
             }
+        } else {
+            user.setType(TypeUser.CANDIDATE);
         }
 
         //set role user for all account when register
@@ -333,12 +335,16 @@ public class AuthServiceimpl implements AuthService {
             Map<String, Object> variables = new HashMap<>();
             String sub = "Email Reset Password !";
 
-            String start = org.apache.commons.lang3.StringUtils.join("<a href=", url, ":", portFe , "/pages/update-password?token=", token, ">");
+            String start = org.apache.commons.lang3.StringUtils.join("<a href=", splitUrl(url), portFe , "/#/pages/update-password?token=", token, ">");
             String end = "</a>";
             String activeUrl = org.apache.commons.lang3.StringUtils.join("Click ", start, " here ", end, " to reset your password !");
             variables.put("url", activeUrl);
             emailService.sendEmail(sub, variables, null, null, userDto);
         }
+    }
+
+    private String splitUrl(String url) {
+        return url.replaceAll("[0-9]", "");
     }
 
 
