@@ -325,6 +325,9 @@ public class AuthServiceimpl implements AuthService {
     public void forgotPassword(String email, HttpServletRequest request) throws MessagingException {
         UserDTO userDto = userReps.findByEmail(email).map(userMapper::to).orElseThrow(() ->
                 APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy người dùng với email: " + email));
+        UserInfo userInfo = userInfoReps.findByUserId(userDto.getId()).orElseThrow(() ->
+                APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin người dùng với email: " + email));
+
         String token = UUID.randomUUID().toString();
         if (resetPasswordTokenService.createTokenResetPassword(userDto.getId(), token)) {
             String url = ServletUriComponentsBuilder.fromRequestUri(request)
@@ -334,12 +337,14 @@ public class AuthServiceimpl implements AuthService {
 
             Map<String, Object> variables = new HashMap<>();
             String sub = "Email Reset Password !";
+            String fullName = userInfo.getFullName();
+            String userName = userDto.getUsername();
 
-            String start = org.apache.commons.lang3.StringUtils.join("<a href=", splitUrl(url), portFe , "/#/pages/update-password?token=", token, ">");
-            String end = "</a>";
-            String activeUrl = org.apache.commons.lang3.StringUtils.join("Click ", start, " here ", end, " to reset your password !");
+            String activeUrl = splitUrl(url).concat(portFe).concat("/#/pages/update-password?token=").concat(token);
             variables.put("url", activeUrl);
-            emailService.sendEmail(sub, variables, null, null, userDto);
+            variables.put("fullName", fullName);
+            variables.put("userName", userName);
+            emailService.sendEmail(sub, variables, null, null, userDto, "mail/forgot-password");
         }
     }
 

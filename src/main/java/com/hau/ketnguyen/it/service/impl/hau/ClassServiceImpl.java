@@ -1,6 +1,7 @@
 package com.hau.ketnguyen.it.service.impl.hau;
 
 import com.hau.ketnguyen.it.common.exception.APIException;
+import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.hau.Classes;
 import com.hau.ketnguyen.it.entity.hau.Faculties;
@@ -53,7 +54,7 @@ public class ClassServiceImpl implements ClassService {
         }
 
         Classes classes = classesOptional.get();
-        classMapper.copy(classDTO, classes);
+        BeanUtil.copyNonNullProperties(classDTO, classes);
 
         return classMapper.to(classes);
     }

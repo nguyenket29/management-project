@@ -1,6 +1,7 @@
 package com.hau.ketnguyen.it.service.impl.hau;
 
 import com.hau.ketnguyen.it.common.exception.APIException;
+import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.auth.User;
 import com.hau.ketnguyen.it.entity.hau.Comments;
@@ -57,7 +58,7 @@ public class CommentServiceImpl implements CommentService {
         }
 
         Comments comments = commentsOptional.get();
-        commentMapper.copy(commentDTO, comments);
+        BeanUtil.copyNonNullProperties(commentDTO, comments);
 
         return commentMapper.to(comments);
     }

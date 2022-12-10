@@ -8,5 +8,6 @@ import java.util.Map;
 
 public interface EmailService {
     void sendMail(UserDTO userDTO, HttpServletRequest request) throws MessagingException;
-    void sendEmail(String subject, Map<String, Object> variables, String pathFile, String fileName, UserDTO userDTO) throws MessagingException;
+    void sendEmail(String subject, Map<String, Object> variables, String pathFile,
+                   String fileName, UserDTO userDTO, String pathTemplate) throws MessagingException;
 }

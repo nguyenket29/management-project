@@ -42,6 +42,7 @@ public class GoogleDriverFileServiceImpl implements GoogleDriverFile {
                     dto.setSize(ConvertByteToMB.getSize(f.getSize()));
                     dto.setLink("https://drive.google.com/file/d/" + f.getId() + "/view?usp=sharing");
                     dto.setShared(f.getShared());
+                    dto.setExportLink(f.getExportLinks());
 
                     responseList.add(dto);
                 }
@@ -56,7 +57,7 @@ public class GoogleDriverFileServiceImpl implements GoogleDriverFile {
     }
 
     @Override
-    public void uploadFile(MultipartFile file, String filePath, boolean isPublic) {
+    public String uploadFile(MultipartFile file, String filePath, boolean isPublic) {
         String type = "";
         String role = "";
         if (isPublic) {
@@ -68,7 +69,7 @@ public class GoogleDriverFileServiceImpl implements GoogleDriverFile {
             type = "private";
             role = "private";
         }
-        googleFileManager.uploadFile(file, filePath, type, role);
+        return googleFileManager.uploadFile(file, filePath, type, role);
     }
 
     @Override
@@ -78,5 +79,4 @@ public class GoogleDriverFileServiceImpl implements GoogleDriverFile {
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getName() + "\"");
         googleFileManager.downloadFile(id, outputStream);
     }
-
 }

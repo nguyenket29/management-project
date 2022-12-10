@@ -14,7 +14,7 @@ import java.util.function.Function;
 @Slf4j
 public class JwtTokenUtil {
     //5p
-    public final long JWT_TOKEN_VALIDITY = 10 * 30;
+    public final long JWT_TOKEN_VALIDITY = 10 * 30 * 30;
     public String TOKEN_SECRET = "Siten@AllRights";
     public final String TOKEN_ISSUER = "http://siten.vn/";
 

@@ -3,6 +3,7 @@ package com.hau.ketnguyen.it.service.impl.auth;
 import com.hau.ketnguyen.it.common.enums.TypeUser;
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
+import com.hau.ketnguyen.it.entity.auth.CustomUser;
 import com.hau.ketnguyen.it.entity.auth.Role;
 import com.hau.ketnguyen.it.entity.auth.User;
 import com.hau.ketnguyen.it.entity.hau.UserInfo;
@@ -13,16 +14,21 @@ import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.repository.auth.RoleReps;
 import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
 import com.hau.ketnguyen.it.repository.auth.UserReps;
+import com.hau.ketnguyen.it.service.GoogleDriverFile;
 import com.hau.ketnguyen.it.service.UserService;
 import com.hau.ketnguyen.it.service.mapper.UserInfoMapper;
 import com.hau.ketnguyen.it.service.mapper.UserMapper;
+import io.swagger.models.auth.In;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,6 +42,7 @@ public class UserServiceImpl implements UserService {
     private final RoleReps roleReps;
     private final UserInfoReps userInfoReps;
     private final UserInfoMapper userInfoMapper;
+    private final GoogleDriverFile googleDriverFile;
 
     /**
      * Tìm kiếm người dùng theo username và status
@@ -133,6 +140,39 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void deleteUser(List<Integer> userIds) {
+        if (userIds != null && !userIds.isEmpty()) {
+            List<User> users = userReps.findByIds(userIds);
+            List<UserInfo> userInfos = userInfoReps.findByUserIdIn(userIds);
+            if (!users.isEmpty() && !userInfos.isEmpty()) {
+                userReps.deleteAll(users);
+                userInfoReps.deleteAll(userInfos);
+            }
+        }
+    }
+
+    @Override
+    public List<UserDTO> findById(List<Integer> userIds) {
+        if (userIds != null && !userIds.isEmpty()) {
+            List<UserDTO> users = userReps.findByIds(userIds)
+                    .stream().map(userMapper::to).collect(Collectors.toList());
+            Map<Integer, UserInfoDTO> userInfos = userInfoReps.findByUserIdIn(userIds)
+                    .stream().map(userInfoMapper::to).collect(Collectors.toMap(UserInfoDTO::getUserId, u -> u));
+
+            if (!users.isEmpty()) {
+                users.forEach(u -> {
+                    if (!userInfos.isEmpty() && userInfos.containsKey(u.getId())) {
+                        u.setUserInfoDTO(userInfos.get(u.getId()));
+                    }
+                });
+            }
+
+            return users;
+        }
+        return null;
+    }
+
+    @Override
     public void addRoleToUser(List<Integer> roleIds, List<Integer> userIds) {
         if (roleIds != null && !roleIds.isEmpty()) {
             Set<Role> roles = new HashSet<>(roleReps.findByIdIn(roleIds));
@@ -144,6 +184,25 @@ public class UserServiceImpl implements UserService {
                     userReps.saveAll(users);
                 }
             }
+        }
+    }
+
+    @Override
+    public void uploadAvatar(MultipartFile file, String filePath, boolean isPublic) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUser user = (CustomUser) authentication.getPrincipal();
+        String fileId = googleDriverFile.uploadFile(file, filePath, isPublic);
+        if (fileId != null) {
+            Optional<UserInfo> userInfoOptional = userInfoReps.findByUserId(user.getId());
+
+            if (userInfoOptional.isEmpty()) {
+                throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy người dùng");
+            }
+
+            UserInfo userInfo = userInfoOptional.get();
+            userInfo.setAvatar(fileId);
+
+            userInfoReps.save(userInfo);
         }
     }
 }

@@ -13,6 +13,6 @@ import java.util.List;
 public interface GoogleDriverFile {
     PageDataResponse<GoogleDriverFileDTO> getAllFile() throws IOException, GeneralSecurityException;
     void deleteFile(String id) throws Exception;
-    void uploadFile(MultipartFile file, String filePath, boolean isPublic);
+    String uploadFile(MultipartFile file, String filePath, boolean isPublic);
     void downloadFile(String id, OutputStream outputStream, HttpServletResponse response) throws IOException, GeneralSecurityException;
 }

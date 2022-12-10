@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Mail Verify</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+<p>Kính gửi Quý khách hàng: <strong th:text="${userName}"></strong></p>
+<p>Chào mừng Quý khách hàng đã tham gia kết nối số cùng hệ thống quản lý đồ án tốt nghiệp.</p>
+<div style="text-align: left">
+  <a th:href="@{${url}}" style="padding:10px; color:#fff;background:#143980; border-radius:2px;
+            border: 1px solid #143980;box-shadow: 5px 2px 5px 10px #fff;
+            margin: auto; align-items: center; justify-content:center;text-decoration: unset;">Kích hoạt tài khoản</a>
+</div>
+<p>Nếu đây không phải yêu cầu của bạn, xin hãy bỏ qua email này.</br> Để được hỗ trợ kỹ thuật, vui lòng liên hệ
+  <b>ketmax121@gmail.com</b>.</p>
+<p>Trân trọng!</p>
+
+</body>
+</html>

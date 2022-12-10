@@ -13,6 +13,7 @@ import io.swagger.annotations.Api;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,12 +26,12 @@ public class CommentsController extends APIController<CommentDTO, SearchCommentR
     private final CommentService commentService;
 
     @Override
-    public ResponseEntity<APIResponse<CommentDTO>> save(CommentDTO commentDTO) {
+    public ResponseEntity<APIResponse<CommentDTO>> save(@RequestBody CommentDTO commentDTO) {
         return ResponseEntity.ok(APIResponse.success(commentService.save(commentDTO)));
     }
 
     @Override
-    public ResponseEntity<APIResponse<CommentDTO>> edit(Long id, CommentDTO commentDTO) {
+    public ResponseEntity<APIResponse<CommentDTO>> edit(Long id,@RequestBody CommentDTO commentDTO) {
         return ResponseEntity.ok(APIResponse.success(commentService.edit(id, commentDTO)));
     }
 

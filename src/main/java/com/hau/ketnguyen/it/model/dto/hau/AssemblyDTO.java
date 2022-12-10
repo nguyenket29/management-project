@@ -1,12 +1,18 @@
 package com.hau.ketnguyen.it.model.dto.hau;
 
-import com.hau.ketnguyen.it.model.dto.BaseDTO;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.Date;
+
 @Data
 @Builder
-public class AssemblyDTO extends BaseDTO {
+public class AssemblyDTO {
+    private Long id;
+    private String createdBy;
+    private Date created;
+    private String updatedBy;
+    private Date updated;
     private Long lecturerId;
     private Long topicId;
 

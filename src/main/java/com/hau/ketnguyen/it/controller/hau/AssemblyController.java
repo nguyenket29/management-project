@@ -10,6 +10,7 @@ import io.swagger.annotations.Api;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,12 +23,12 @@ public class AssemblyController extends APIController<AssemblyDTO, SearchAssembl
     private final AssemblyService assemblyService;
 
     @Override
-    public ResponseEntity<APIResponse<AssemblyDTO>> save(AssemblyDTO assemblyDTO) {
+    public ResponseEntity<APIResponse<AssemblyDTO>> save(@RequestBody AssemblyDTO assemblyDTO) {
         return ResponseEntity.ok(APIResponse.success(assemblyService.save(assemblyDTO)));
     }
 
     @Override
-    public ResponseEntity<APIResponse<AssemblyDTO>> edit(Long id, AssemblyDTO assemblyDTO) {
+    public ResponseEntity<APIResponse<AssemblyDTO>> edit(Long id,@RequestBody AssemblyDTO assemblyDTO) {
         return ResponseEntity.ok(APIResponse.success(assemblyService.edit(id, assemblyDTO)));
     }
 

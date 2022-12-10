@@ -1,6 +1,7 @@
 package com.hau.ketnguyen.it.service.impl.hau;
 
 import com.hau.ketnguyen.it.common.exception.APIException;
+import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.hau.Assemblies;
 import com.hau.ketnguyen.it.entity.hau.Lecturers;
@@ -55,7 +56,7 @@ public class AssemblyServiceImpl implements AssemblyService {
         }
 
         Assemblies assemblies = assembliesOptional.get();
-        assemblyMapper.copy(assemblyDTO, assemblies);
+        BeanUtil.copyNonNullProperties(assemblyDTO, assemblies);
 
         return assemblyMapper.to(assemblies);
     }

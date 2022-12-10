@@ -1,6 +1,7 @@
 package com.hau.ketnguyen.it.service.impl.hau;
 
 import com.hau.ketnguyen.it.common.exception.APIException;
+import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.hau.Students;
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
@@ -58,7 +59,7 @@ public class StudentServiceImpl implements StudentService {
         }
 
         Students students = studentOptional.get();
-        studentMapper.copy(studentDTO, students);
+        BeanUtil.copyNonNullProperties(studentDTO, students);
 
         return studentMapper.to(students);
     }

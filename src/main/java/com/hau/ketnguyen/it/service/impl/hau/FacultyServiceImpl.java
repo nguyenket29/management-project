@@ -1,6 +1,7 @@
 package com.hau.ketnguyen.it.service.impl.hau;
 
 import com.hau.ketnguyen.it.common.exception.APIException;
+import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.hau.Faculties;
 import com.hau.ketnguyen.it.entity.hau.Workplaces;
@@ -43,7 +44,7 @@ public class FacultyServiceImpl implements FacultyService {
     public FacultyDTO edit(Long id, FacultyDTO facultyDTO) {
         Faculties facultiesOpt = facultyReps.findById(id).orElseThrow(
                 () -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy khoa " + id));
-        facultyMapper.copy(facultyDTO, facultiesOpt);
+        BeanUtil.copyNonNullProperties(facultyDTO, facultiesOpt);
         return facultyMapper.to(facultiesOpt);
     }
 

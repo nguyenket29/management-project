@@ -1,6 +1,7 @@
 package com.hau.ketnguyen.it.service.impl.hau;
 
 import com.hau.ketnguyen.it.common.exception.APIException;
+import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.hau.Workplaces;
 import com.hau.ketnguyen.it.model.dto.hau.WorkplaceDTO;
@@ -39,7 +40,7 @@ public class WorkplaceServiceImpl implements WorkplaceService {
         }
 
         Workplaces workplaces = workplacesOptional.get();
-        workplaceMapper.copy(workplaceDTO, workplaces);
+        BeanUtil.copyNonNullProperties(workplaceDTO, workplaces);
         return workplaceMapper.to(workplaces);
     }
 

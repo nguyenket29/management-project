@@ -10,6 +10,7 @@ import io.swagger.annotations.Api;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,12 +23,12 @@ public class StudentController extends APIController<StudentDTO, SearchStudentRe
     private final StudentService studentService;
 
     @Override
-    public ResponseEntity<APIResponse<StudentDTO>> save(StudentDTO studentDTO) {
+    public ResponseEntity<APIResponse<StudentDTO>> save(@RequestBody StudentDTO studentDTO) {
         return ResponseEntity.ok(APIResponse.success(studentService.save(studentDTO)));
     }
 
     @Override
-    public ResponseEntity<APIResponse<StudentDTO>> edit(Long id, StudentDTO studentDTO) {
+    public ResponseEntity<APIResponse<StudentDTO>> edit(Long id,@RequestBody StudentDTO studentDTO) {
         return ResponseEntity.ok(APIResponse.success(studentService.edit(id, studentDTO)));
     }
 

@@ -10,6 +10,7 @@ import io.swagger.annotations.Api;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,12 +23,12 @@ public class WorkplaceController extends APIController<WorkplaceDTO, SearchWorkp
     private final WorkplaceService workplaceService;
 
     @Override
-    public ResponseEntity<APIResponse<WorkplaceDTO>> save(WorkplaceDTO workplaceDTO) {
+    public ResponseEntity<APIResponse<WorkplaceDTO>> save(@RequestBody WorkplaceDTO workplaceDTO) {
         return ResponseEntity.ok(APIResponse.success(workplaceService.save(workplaceDTO)));
     }
 
     @Override
-    public ResponseEntity<APIResponse<WorkplaceDTO>> edit(Long id, WorkplaceDTO workplaceDTO) {
+    public ResponseEntity<APIResponse<WorkplaceDTO>> edit(Long id, @RequestBody WorkplaceDTO workplaceDTO) {
         return ResponseEntity.ok(APIResponse.success(workplaceService.edit(id, workplaceDTO)));
     }
 

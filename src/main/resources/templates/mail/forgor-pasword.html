@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Mail Verify</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+</head>
+<body>
+<p>Kính gửi Quý khách hàng: <strong th:text="${fullName}"></strong></p>
+<p>Chúng tôi nhận được yêu cầu lấy lại mật khẩu cho tài khoản <strong th:text="${userName}"></strong> của bạn.</br>Vui lòng
+  click nút dưới đây để đặt lại mật khẩu mới. Chức năng chỉ có hiệu lực trong 24 giờ.</p>
+<div style="text-align: center">
+  <a style="padding:10px; color:#fff;background:#143980; border-radius:2px;
+            border: 1px solid #143980;box-shadow: 5px 2px 5px 10px #fff;
+            margin: 10px auto; align-items: center; justify-content:center;text-decoration: unset;"
+     th:href="@{${url}}">Đặt lại mật khẩu</a>
+</div>
+<p>Nếu đây không phải yêu cầu của bạn, xin hãy bỏ qua email này.</br> Để được hỗ trợ kỹ thuật, vui lòng liên hệ
+  <b>ketmax121@gmail.com</b>.</p>
+<p>Trân trọng!</p>
+
+</body>
+</html>

@@ -46,7 +46,7 @@ public class GoogleDriverController {
     @PostMapping(value = "/upload/file",
             consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
             produces = {MediaType.APPLICATION_JSON_VALUE})
-    public ResponseEntity<APIResponse<Void>> uploadFile(@RequestParam("fileUpload") MultipartFile fileUpload,
+    public ResponseEntity<APIResponse<String>> uploadFile(@RequestParam("fileUpload") MultipartFile fileUpload,
                                                         @RequestParam("filePath") String pathFile,
                                                         @RequestParam("shared") String shared) {
         System.out.println(pathFile);
@@ -54,8 +54,7 @@ public class GoogleDriverController {
             // Save to default folder if the user does not select a folder to save - you can change it
             pathFile = "Root";
         }
-        googleDriveFileService.uploadFile(fileUpload, pathFile, Boolean.parseBoolean(shared));
-        return ResponseEntity.ok(APIResponse.success());
+        return ResponseEntity.ok(APIResponse.success(googleDriveFileService.uploadFile(fileUpload, pathFile, Boolean.parseBoolean(shared))));
     }
 
     // Delete file by id
