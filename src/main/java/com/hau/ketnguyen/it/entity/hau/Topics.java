@@ -19,10 +19,7 @@ public class Topics extends BaseEntity {
     private Integer stdNumber;
 
     @Column(name = "file_id")
-    private Long fileId;
-
-    @Column(name = "src_code_id")
-    private Long srcCodeId;
+    private String fileId;
 
     @Column(name = "year")
     private Date year;

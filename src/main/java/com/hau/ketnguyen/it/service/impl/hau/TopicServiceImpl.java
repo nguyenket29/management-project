@@ -3,13 +3,16 @@ package com.hau.ketnguyen.it.service.impl.hau;
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
+import com.hau.ketnguyen.it.entity.auth.CustomUser;
 import com.hau.ketnguyen.it.entity.hau.Topics;
+import com.hau.ketnguyen.it.entity.hau.UserInfo;
 import com.hau.ketnguyen.it.model.dto.hau.LecturerDTO;
 import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
 import com.hau.ketnguyen.it.model.request.hau.SearchTopicRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.repository.hau.LecturerReps;
 import com.hau.ketnguyen.it.repository.hau.TopicReps;
+import com.hau.ketnguyen.it.service.GoogleDriverFile;
 import com.hau.ketnguyen.it.service.TopicService;
 import com.hau.ketnguyen.it.service.mapper.LecturerMapper;
 import com.hau.ketnguyen.it.service.mapper.TopicMapper;
@@ -18,7 +21,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +40,7 @@ public class TopicServiceImpl implements TopicService {
     private final TopicMapper topicMapper;
     private final LecturerReps lecturerReps;
     private final LecturerMapper lecturerMapper;
+    private final GoogleDriverFile googleDriverFile;
 
     @Override
     public TopicDTO save(TopicDTO topicDTO) {
@@ -108,5 +115,22 @@ public class TopicServiceImpl implements TopicService {
                     .collect(Collectors.toMap(LecturerDTO::getId, l -> l));
         }
         return lecturerDTOMap;
+    }
+
+    @Override
+    public void uploadFile(MultipartFile file, String filePath, boolean isPublic, Long topicId) {
+        String fileId = googleDriverFile.uploadFile(file, filePath, isPublic);
+        if (fileId != null) {
+            Optional<Topics> topicsOptional = topicReps.findById(topicId);
+
+            if (topicsOptional.isEmpty()) {
+                throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đề tài");
+            }
+
+            Topics topic = topicsOptional.get();
+            topic.setFileId(fileId);
+
+            topicReps.save(topic);
+        }
     }
 }

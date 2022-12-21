@@ -15,8 +15,7 @@ public class TopicDTO {
     private Date updated;
     private String name;
     private Integer stdNumber;
-    private Long fileId;
-    private Long srcCodeId;
+    private String fileId;
     private Date year;
     private Float score;
     private Long lecturerId;

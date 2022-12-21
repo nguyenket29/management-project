@@ -10,9 +10,8 @@ import io.swagger.annotations.Api;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @Api(value = "Topic Controller", description = "Các APIs quản lý đề tài")
@@ -46,5 +45,14 @@ public class TopicController extends APIController<TopicDTO, SearchTopicRequest>
     @Override
     public ResponseEntity<APIResponse<PageDataResponse<TopicDTO>>> getAll(SearchTopicRequest request) {
         return ResponseEntity.ok(APIResponse.success(topicService.getAll(request)));
+    }
+
+    @PostMapping
+    public ResponseEntity<APIResponse<Void>> uploadAvatar(@RequestParam("fileUpload") MultipartFile fileUpload,
+                                                          @RequestParam("filePath") String pathFile,
+                                                          @RequestParam("shared") String shared,
+                                                          @RequestParam("topicId") Long topicId) {
+        topicService.uploadFile(fileUpload, pathFile, Boolean.parseBoolean(shared), topicId);
+        return ResponseEntity.ok(APIResponse.success());
     }
 }

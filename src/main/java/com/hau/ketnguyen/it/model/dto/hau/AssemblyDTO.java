@@ -15,6 +15,7 @@ public class AssemblyDTO {
     private Date updated;
     private Long lecturerId;
     private Long topicId;
+    private Float score;
 
     private TopicDTO topicDTO;
     private LecturerDTO lecturerDTO;
