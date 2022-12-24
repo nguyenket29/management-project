@@ -10,40 +10,38 @@ import io.swagger.annotations.Api;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Api(value = "Workplace Controller", description = "Các APIs quản lý nơi làm việc")
 @RequestMapping("/workplaces")
 @AllArgsConstructor
 @Slf4j
-public class WorkplaceController extends APIController<WorkplaceDTO, SearchWorkplaceRequest> {
+public class WorkplaceController {
     private final WorkplaceService workplaceService;
 
-    @Override
+    @PostMapping
     public ResponseEntity<APIResponse<WorkplaceDTO>> save(@RequestBody WorkplaceDTO workplaceDTO) {
         return ResponseEntity.ok(APIResponse.success(workplaceService.save(workplaceDTO)));
     }
 
-    @Override
-    public ResponseEntity<APIResponse<WorkplaceDTO>> edit(Long id, @RequestBody WorkplaceDTO workplaceDTO) {
+    @PutMapping("/{id}")
+    public ResponseEntity<APIResponse<WorkplaceDTO>> edit(@PathVariable Long id, @RequestBody WorkplaceDTO workplaceDTO) {
         return ResponseEntity.ok(APIResponse.success(workplaceService.edit(id, workplaceDTO)));
     }
 
-    @Override
-    public ResponseEntity<APIResponse<Void>> delete(Long id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<APIResponse<Void>> delete(@PathVariable Long id) {
         workplaceService.delete(id);
         return ResponseEntity.ok(APIResponse.success());
     }
 
-    @Override
-    public ResponseEntity<APIResponse<WorkplaceDTO>> findById(Long id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<APIResponse<WorkplaceDTO>> findById(@PathVariable Long id) {
         return ResponseEntity.ok(APIResponse.success(workplaceService.findById(id)));
     }
 
-    @Override
+    @GetMapping
     public ResponseEntity<APIResponse<PageDataResponse<WorkplaceDTO>>> getAll(SearchWorkplaceRequest request) {
         return ResponseEntity.ok(APIResponse.success(workplaceService.getAll(request)));
     }

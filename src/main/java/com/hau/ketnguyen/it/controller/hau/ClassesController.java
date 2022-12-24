@@ -10,40 +10,38 @@ import io.swagger.annotations.Api;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Api(value = "Classes Controller", description = "Các APIs quản lý lớp")
 @RequestMapping("/classes")
 @AllArgsConstructor
 @Slf4j
-public class ClassesController extends APIController<ClassDTO, SearchClassRequest> {
+public class ClassesController {
     private final ClassService classService;
 
-    @Override
+    @PostMapping
     public ResponseEntity<APIResponse<ClassDTO>> save(@RequestBody ClassDTO classDTO) {
         return ResponseEntity.ok(APIResponse.success(classService.save(classDTO)));
     }
 
-    @Override
-    public ResponseEntity<APIResponse<ClassDTO>> edit(Long id,@RequestBody ClassDTO classDTO) {
+    @PutMapping("/{id}")
+    public ResponseEntity<APIResponse<ClassDTO>> edit(@PathVariable Long id,@RequestBody ClassDTO classDTO) {
         return ResponseEntity.ok(APIResponse.success(classService.edit(id, classDTO)));
     }
 
-    @Override
-    public ResponseEntity<APIResponse<Void>> delete(Long id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<APIResponse<Void>> delete(@PathVariable Long id) {
         classService.delete(id);
         return ResponseEntity.ok(APIResponse.success());
     }
 
-    @Override
-    public ResponseEntity<APIResponse<ClassDTO>> findById(Long id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<APIResponse<ClassDTO>> findById(@PathVariable Long id) {
         return ResponseEntity.ok(APIResponse.success(classService.findById(id)));
     }
 
-    @Override
+    @GetMapping
     public ResponseEntity<APIResponse<PageDataResponse<ClassDTO>>> getAll(SearchClassRequest request) {
         return ResponseEntity.ok(APIResponse.success(classService.getAll(request)));
     }

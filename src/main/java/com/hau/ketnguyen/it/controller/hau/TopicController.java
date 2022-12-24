@@ -1,6 +1,5 @@
 package com.hau.ketnguyen.it.controller.hau;
 
-import com.hau.ketnguyen.it.controller.APIController;
 import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
 import com.hau.ketnguyen.it.model.request.hau.SearchTopicRequest;
 import com.hau.ketnguyen.it.model.response.APIResponse;
@@ -18,31 +17,31 @@ import org.springframework.web.multipart.MultipartFile;
 @RequestMapping("/topics")
 @AllArgsConstructor
 @Slf4j
-public class TopicController extends APIController<TopicDTO, SearchTopicRequest> {
+public class TopicController {
     private final TopicService topicService;
 
-    @Override
+    @PostMapping
     public ResponseEntity<APIResponse<TopicDTO>> save(@RequestBody TopicDTO topicDTO) {
         return ResponseEntity.ok(APIResponse.success(topicService.save(topicDTO)));
     }
 
-    @Override
-    public ResponseEntity<APIResponse<TopicDTO>> edit(Long id,@RequestBody TopicDTO topicDTO) {
+    @PutMapping("/{id}")
+    public ResponseEntity<APIResponse<TopicDTO>> edit(@PathVariable Long id,@RequestBody TopicDTO topicDTO) {
         return ResponseEntity.ok(APIResponse.success(topicService.edit(id, topicDTO)));
     }
 
-    @Override
-    public ResponseEntity<APIResponse<Void>> delete(Long id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<APIResponse<Void>> delete(@PathVariable Long id) {
         topicService.delete(id);
         return ResponseEntity.ok(APIResponse.success());
     }
 
-    @Override
-    public ResponseEntity<APIResponse<TopicDTO>> findById(Long id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<APIResponse<TopicDTO>> findById(@PathVariable Long id) {
         return ResponseEntity.ok(APIResponse.success(topicService.findById(id)));
     }
 
-    @Override
+    @GetMapping
     public ResponseEntity<APIResponse<PageDataResponse<TopicDTO>>> getAll(SearchTopicRequest request) {
         return ResponseEntity.ok(APIResponse.success(topicService.getAll(request)));
     }
