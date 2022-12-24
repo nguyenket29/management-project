@@ -59,7 +59,7 @@ public class LecturerServiceImpl implements LecturerService {
         Lecturers lecturers = lecturersOptional.get();
         BeanUtil.copyNonNullProperties(lecturerDTO, lecturers);
 
-        return lecturerMapper.to(lecturers);
+        return lecturerMapper.to(lecturerReps.save(lecturers));
     }
 
     @Override

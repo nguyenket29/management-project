@@ -41,7 +41,7 @@ public class WorkplaceServiceImpl implements WorkplaceService {
 
         Workplaces workplaces = workplacesOptional.get();
         BeanUtil.copyNonNullProperties(workplaceDTO, workplaces);
-        return workplaceMapper.to(workplaces);
+        return workplaceMapper.to(workplaceReps.save(workplaces));
     }
 
     @Override

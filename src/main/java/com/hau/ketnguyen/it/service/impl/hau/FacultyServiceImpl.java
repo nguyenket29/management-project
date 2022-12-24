@@ -45,7 +45,7 @@ public class FacultyServiceImpl implements FacultyService {
         Faculties facultiesOpt = facultyReps.findById(id).orElseThrow(
                 () -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy khoa " + id));
         BeanUtil.copyNonNullProperties(facultyDTO, facultiesOpt);
-        return facultyMapper.to(facultiesOpt);
+        return facultyMapper.to(facultyReps.save(facultiesOpt));
     }
 
     @Override

@@ -58,7 +58,7 @@ public class AssemblyServiceImpl implements AssemblyService {
         Assemblies assemblies = assembliesOptional.get();
         BeanUtil.copyNonNullProperties(assemblyDTO, assemblies);
 
-        return assemblyMapper.to(assemblies);
+        return assemblyMapper.to(assemblyReps.save(assemblies));
     }
 
     @Override

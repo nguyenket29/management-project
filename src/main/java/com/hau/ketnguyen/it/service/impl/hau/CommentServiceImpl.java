@@ -60,7 +60,7 @@ public class CommentServiceImpl implements CommentService {
         Comments comments = commentsOptional.get();
         BeanUtil.copyNonNullProperties(commentDTO, comments);
 
-        return commentMapper.to(comments);
+        return commentMapper.to(commentReps.save(comments));
     }
 
     @Override

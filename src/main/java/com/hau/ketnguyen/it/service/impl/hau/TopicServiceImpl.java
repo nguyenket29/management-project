@@ -58,7 +58,7 @@ public class TopicServiceImpl implements TopicService {
         Topics topics = topicsOptional.get();
         BeanUtil.copyNonNullProperties(topicDTO, topics);
 
-        return topicMapper.to(topics);
+        return topicMapper.to(topicReps.save(topics));
     }
 
     @Override

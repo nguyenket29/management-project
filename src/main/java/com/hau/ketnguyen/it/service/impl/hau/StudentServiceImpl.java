@@ -61,7 +61,7 @@ public class StudentServiceImpl implements StudentService {
         Students students = studentOptional.get();
         BeanUtil.copyNonNullProperties(studentDTO, students);
 
-        return studentMapper.to(students);
+        return studentMapper.to(studentReps.save(students));
     }
 
     @Override

@@ -56,7 +56,7 @@ public class ClassServiceImpl implements ClassService {
         Classes classes = classesOptional.get();
         BeanUtil.copyNonNullProperties(classDTO, classes);
 
-        return classMapper.to(classes);
+        return classMapper.to(classReps.save(classes));
     }
 
     @Override
