@@ -46,7 +46,7 @@ public class TopicController {
         return ResponseEntity.ok(APIResponse.success(topicService.getAll(request)));
     }
 
-    @PostMapping
+    @PostMapping("/upload")
     public ResponseEntity<APIResponse<Void>> uploadAvatar(@RequestParam("fileUpload") MultipartFile fileUpload,
                                                           @RequestParam("filePath") String pathFile,
                                                           @RequestParam("shared") String shared,
