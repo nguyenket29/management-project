@@ -101,13 +101,6 @@ public class UserServiceImpl implements UserService {
         // update account and roles to user
         User user = userOptional.get();
         user.setEmail(userRequest.getEmail());
-        if (userRequest.getType() != null) {
-            if (userRequest.getType().equalsIgnoreCase("employer")) {
-                user.setType(TypeUser.EMPLOYER);
-            } else {
-                user.setType(TypeUser.CANDIDATE);
-            }
-        }
         user.setStatus(userRequest.getStatus());
         user.setUsername(userRequest.getUsername());
 

@@ -219,16 +219,6 @@ public class AuthServiceimpl implements AuthService {
             user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
         }
 
-        if (signupRequest.getType() != null) {
-            if (signupRequest.getType().equalsIgnoreCase("employer")) {
-                user.setType(TypeUser.EMPLOYER);
-            } else {
-                user.setType(TypeUser.CANDIDATE);
-            }
-        } else {
-            user.setType(TypeUser.CANDIDATE);
-        }
-
         //set role user for all account when register
         Set<Role> roles = new HashSet<>();
         Optional<Role> role = roleReps.findByCode(USER.name());
@@ -352,7 +342,6 @@ public class AuthServiceimpl implements AuthService {
     private String splitUrl(String url) {
         return url.replaceAll("[0-9]", "");
     }
-
 
     @Async
     @Override
