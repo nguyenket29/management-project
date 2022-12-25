@@ -13,6 +13,7 @@ public class FacultyDTO {
     private Date created;
     private String updatedBy;
     private Date updated;
+    private String specialization;
     private String name;
     private String code;
     private Long workplaceId;

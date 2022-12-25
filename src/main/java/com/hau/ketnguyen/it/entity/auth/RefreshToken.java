@@ -16,7 +16,7 @@ public class RefreshToken {
 
     private Integer userId;
 
-    @Column(name = "access_token", nullable = false, unique = true)
+    @Column(name = "access_token", nullable = false, unique = true, length = 1000)
     private String accessToken;
 
     @Column(name = "refresh_token", nullable = false, unique = true)

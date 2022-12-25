@@ -122,4 +122,8 @@ public class CommentServiceImpl implements CommentService {
 
         return PageDataResponse.of(page);
     }
+
+    public void sendCommentWebsocket() {
+
+    }
 }

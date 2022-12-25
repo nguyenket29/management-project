@@ -6,7 +6,6 @@ import lombok.Data;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Table;
-import java.util.Date;
 
 @Table
 @Entity(name = "students")
@@ -14,6 +13,9 @@ import java.util.Date;
 public class Students extends BaseEntity {
     @Column(name = "user_id")
     private Integer userId;
+
+    @Column(name = "student_pas", columnDefinition = "boolean default false")
+    private boolean stdPass;
 
     @Column(name = "topic_id")
     private Long topicId;

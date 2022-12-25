@@ -17,6 +17,9 @@ public class Faculties extends BaseEntity {
     @Column(name = "code")
     private String code;
 
+    @Column(name = "specialization")
+    private String specialization;
+
     @Column(name = "workplace_id")
     private Long workplaceId;
 }

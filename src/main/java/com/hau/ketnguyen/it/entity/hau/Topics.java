@@ -5,6 +5,7 @@ import lombok.Data;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Lob;
 import javax.persistence.Table;
 import java.util.Date;
 
@@ -23,6 +24,13 @@ public class Topics extends BaseEntity {
 
     @Column(name = "year")
     private Date year;
+
+    @Column(name = "description")
+    @Lob
+    private String description;
+
+    @Column(name = "status", columnDefinition = "boolean default false")
+    private boolean status;
 
     @Column(name = "score")
     private Float score;

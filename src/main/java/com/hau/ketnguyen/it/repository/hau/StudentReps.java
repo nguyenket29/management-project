@@ -27,4 +27,5 @@ public interface StudentReps extends CrudRepository<Students, Long> {
             " AND (:#{#request.gender} IS NULL OR ui.gender = :#{#request.gender}) " +
             " ORDER BY l.id desc")
     Page<Students> search(SearchStudentRequest request, Pageable pageable);
+    List<Students> findByStdPass(boolean stdPass);
 }

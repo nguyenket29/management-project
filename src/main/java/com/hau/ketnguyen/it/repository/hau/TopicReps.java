@@ -19,4 +19,6 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
             " AND (:#{#request.year} IS NULL OR c.year = :#{#request.year}) " +
             " ORDER BY c.id desc")
     Page<Topics> search(SearchTopicRequest request, Pageable pageable);
+
+    List<Topics> findByStatus(boolean status);
 }

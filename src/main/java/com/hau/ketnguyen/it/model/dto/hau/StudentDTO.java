@@ -17,6 +17,7 @@ public class StudentDTO {
     private Integer userId;
     private Long topicId;
     private Long classId;
+    private boolean stdPass;
 
     private UserDTO userDTO;
     private TopicDTO topicDTO;
