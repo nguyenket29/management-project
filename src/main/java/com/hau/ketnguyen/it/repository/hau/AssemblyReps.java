@@ -15,7 +15,7 @@ import org.springframework.stereotype.Repository;
 public interface AssemblyReps extends CrudRepository<Assemblies, Long> {
     @Query("SELECT l FROM assembly l " +
             " WHERE (:#{#request.topicId} IS NULL OR l.topicId = :#{#request.topicId}) " +
-            " AND (:#{#request.lecturerId} IS NULL OR l.lecturerId = :#{#request.lecturerId}) " +
+            " AND (:#{#request.nameAssembly} IS NULL OR l.nameAssembly LIKE %:#{#request.nameAssembly}%) " +
             " ORDER BY l.id desc")
     Page<Assemblies> search(SearchAssemblyRequest request, Pageable pageable);
 }

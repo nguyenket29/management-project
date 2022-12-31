@@ -1,13 +1,13 @@
 package com.hau.ketnguyen.it.service.impl.hau;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.hau.Assemblies;
-import com.hau.ketnguyen.it.entity.hau.Lecturers;
 import com.hau.ketnguyen.it.entity.hau.Topics;
 import com.hau.ketnguyen.it.model.dto.hau.AssemblyDTO;
-import com.hau.ketnguyen.it.model.dto.hau.CommentDTO;
 import com.hau.ketnguyen.it.model.dto.hau.LecturerDTO;
 import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
 import com.hau.ketnguyen.it.model.request.hau.SearchAssemblyRequest;
@@ -26,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -44,6 +45,17 @@ public class AssemblyServiceImpl implements AssemblyService {
 
     @Override
     public AssemblyDTO save(AssemblyDTO assemblyDTO) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        if (assemblyDTO.getIdLectures() != null && !assemblyDTO.getIdLectures().isEmpty()) {
+            String lectureIds = null;
+            try {
+                lectureIds = objectMapper.writeValueAsString(assemblyDTO.getIdLectures());
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            assemblyDTO.setLecturerIds(lectureIds);
+        }
+
         return assemblyMapper.to(assemblyReps.save(assemblyMapper.from(assemblyDTO)));
     }
 
@@ -53,6 +65,17 @@ public class AssemblyServiceImpl implements AssemblyService {
 
         if (assembliesOptional.isEmpty()) {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy hội đồng");
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        if (assemblyDTO.getIdLectures() != null && !assemblyDTO.getIdLectures().isEmpty()) {
+            String lectureIds = null;
+            try {
+                lectureIds = objectMapper.writeValueAsString(assemblyDTO.getIdLectures());
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            assemblyDTO.setLecturerIds(lectureIds);
         }
 
         Assemblies assemblies = assembliesOptional.get();
@@ -74,22 +97,39 @@ public class AssemblyServiceImpl implements AssemblyService {
 
     @Override
     public AssemblyDTO findById(Long id) {
+        ObjectMapper objectMapper = new ObjectMapper();
         Optional<Assemblies> assembliesOptional = assemblyReps.findById(id);
 
         if (assembliesOptional.isEmpty()) {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy hội đồng");
         }
 
-        Topics topics = topicReps.findById(assembliesOptional.get().getTopicId())
-                .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đề tài"));
-        TopicDTO topicDTO = topicMapper.to(topics);
-        Lecturers lecturers = lecturerReps.findById(assembliesOptional.get().getLecturerId())
-                .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên"));
-        LecturerDTO lecturerDTO = lecturerMapper.to(lecturers);
-
         AssemblyDTO assemblyDTO = assemblyMapper.to(assembliesOptional.get());
-        assemblyDTO.setTopicDTO(topicDTO);
-        assemblyDTO.setLecturerDTO(lecturerDTO);
+        if (assembliesOptional.get().getTopicId() != null) {
+            Topics topics = topicReps.findById(assembliesOptional.get().getTopicId())
+                    .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đề tài"));
+            TopicDTO topicDTO = topicMapper.to(topics);
+            assemblyDTO.setTopicDTO(topicDTO);
+        }
+
+        if (assemblyDTO.getLecturerIds() != null && !assemblyDTO.getLecturerIds().isEmpty()) {
+            List<Integer> lectureIds = null;
+            try {
+                lectureIds = objectMapper.readValue(assemblyDTO.getLecturerIds(), List.class);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+
+            List<Long> lectureIdLong = new ArrayList<>();
+
+            if (lectureIds != null && !lectureIds.isEmpty()) {
+                lectureIds.forEach(l -> lectureIdLong.add(Long.parseLong(l.toString())));
+            }
+
+            List<LecturerDTO> lecturers = lecturerReps.findByIdIn(lectureIdLong).stream()
+                    .map(lecturerMapper::to).collect(Collectors.toList());
+            assemblyDTO.setLecturerDTOS(lecturers);
+        }
 
         return assemblyDTO;
     }
@@ -101,18 +141,10 @@ public class AssemblyServiceImpl implements AssemblyService {
 
         if (!assemblyDTOS.isEmpty()) {
             List<Long> topicIds = assemblyDTOS.map(AssemblyDTO::getTopicId).toList();
-            List<Long> lectureIds = assemblyDTOS.map(AssemblyDTO::getLecturerId).toList();
-
-            Map<Long, LecturerDTO> lecturerDTOMap = lecturerReps.findByIdIn(lectureIds)
-                    .stream().map(lecturerMapper::to).collect(Collectors.toMap(LecturerDTO::getId, l -> l));
             Map<Long, TopicDTO> topicDTOMap = topicReps.findByIdIn(topicIds)
                     .stream().map(topicMapper::to).collect(Collectors.toMap(TopicDTO::getId, t -> t));
 
             assemblyDTOS.forEach(a -> {
-                if (!lecturerDTOMap.isEmpty() && lecturerDTOMap.containsKey(a.getLecturerId())) {
-                    a.setLecturerDTO(lecturerDTOMap.get(a.getLecturerId()));
-                }
-
                 if (!topicDTOMap.isEmpty() && topicDTOMap.containsKey(a.getTopicId())) {
                     a.setTopicDTO(topicDTOMap.get(a.getTopicId()));
                 }

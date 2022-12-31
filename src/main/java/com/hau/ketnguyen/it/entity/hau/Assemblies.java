@@ -11,12 +11,15 @@ import javax.persistence.Table;
 @Entity(name = "assembly")
 @Data
 public class Assemblies extends BaseEntity {
-    @Column(name = "lecturer_id")
-    private Long lecturerId;
+    @Column(name = "lecturer_ids")
+    private String lecturerIds;
 
     @Column(name = "topic_id")
     private Long topicId;
 
     @Column(name = "score")
     private Float score;
+
+    @Column(name = "name_assembly")
+    private String nameAssembly;
 }

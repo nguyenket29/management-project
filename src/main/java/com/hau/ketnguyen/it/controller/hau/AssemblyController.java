@@ -1,5 +1,6 @@
 package com.hau.ketnguyen.it.controller.hau;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.hau.ketnguyen.it.model.dto.hau.AssemblyDTO;
 import com.hau.ketnguyen.it.model.request.hau.SearchAssemblyRequest;
 import com.hau.ketnguyen.it.model.response.APIResponse;
@@ -20,12 +21,12 @@ public class AssemblyController {
     private final AssemblyService assemblyService;
 
     @PostMapping
-    public ResponseEntity<APIResponse<AssemblyDTO>> save(@RequestBody AssemblyDTO assemblyDTO) {
+    public ResponseEntity<APIResponse<AssemblyDTO>> save(@RequestBody AssemblyDTO assemblyDTO) throws JsonProcessingException {
         return ResponseEntity.ok(APIResponse.success(assemblyService.save(assemblyDTO)));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<APIResponse<AssemblyDTO>> edit(@PathVariable Long id,@RequestBody AssemblyDTO assemblyDTO) {
+    public ResponseEntity<APIResponse<AssemblyDTO>> edit(@PathVariable Long id,@RequestBody AssemblyDTO assemblyDTO) throws JsonProcessingException {
         return ResponseEntity.ok(APIResponse.success(assemblyService.edit(id, assemblyDTO)));
     }
 
@@ -36,7 +37,7 @@ public class AssemblyController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<APIResponse<AssemblyDTO>> findById(@PathVariable Long id) {
+    public ResponseEntity<APIResponse<AssemblyDTO>> findById(@PathVariable Long id) throws JsonProcessingException {
         return ResponseEntity.ok(APIResponse.success(assemblyService.findById(id)));
     }
 

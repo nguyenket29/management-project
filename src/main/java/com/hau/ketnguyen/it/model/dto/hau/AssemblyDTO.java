@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Builder
@@ -13,10 +14,13 @@ public class AssemblyDTO {
     private Date created;
     private String updatedBy;
     private Date updated;
-    private Long lecturerId;
+
+    private String nameAssembly;
+    private String lecturerIds;
+    private List<Long> idLectures;
     private Long topicId;
     private Float score;
 
     private TopicDTO topicDTO;
-    private LecturerDTO lecturerDTO;
+    private List<LecturerDTO> lecturerDTOS;
 }
