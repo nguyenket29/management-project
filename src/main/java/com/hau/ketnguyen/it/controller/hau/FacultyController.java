@@ -1,13 +1,9 @@
 package com.hau.ketnguyen.it.controller.hau;
 
-import com.hau.ketnguyen.it.controller.APIController;
-import com.hau.ketnguyen.it.model.dto.hau.CommentDTO;
 import com.hau.ketnguyen.it.model.dto.hau.FacultyDTO;
-import com.hau.ketnguyen.it.model.request.hau.SearchCommentRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchFacultyRequest;
 import com.hau.ketnguyen.it.model.response.APIResponse;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
-import com.hau.ketnguyen.it.service.CommentService;
 import com.hau.ketnguyen.it.service.FacultyService;
 import io.swagger.annotations.Api;
 import lombok.AllArgsConstructor;

@@ -4,13 +4,14 @@ import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.hau.Students;
-import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
+import com.hau.ketnguyen.it.entity.hau.UserInfo;
+import com.hau.ketnguyen.it.model.dto.auth.UserInfoDTO;
 import com.hau.ketnguyen.it.model.dto.hau.ClassDTO;
 import com.hau.ketnguyen.it.model.dto.hau.StudentDTO;
 import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
 import com.hau.ketnguyen.it.model.request.hau.SearchStudentRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
-import com.hau.ketnguyen.it.repository.auth.UserReps;
+import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
 import com.hau.ketnguyen.it.repository.hau.ClassReps;
 import com.hau.ketnguyen.it.repository.hau.StudentReps;
 import com.hau.ketnguyen.it.repository.hau.TopicReps;
@@ -18,7 +19,7 @@ import com.hau.ketnguyen.it.service.StudentService;
 import com.hau.ketnguyen.it.service.mapper.ClassMapper;
 import com.hau.ketnguyen.it.service.mapper.StudentMapper;
 import com.hau.ketnguyen.it.service.mapper.TopicMapper;
-import com.hau.ketnguyen.it.service.mapper.UserMapper;
+import com.hau.ketnguyen.it.service.mapper.UserInfoMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -39,14 +40,18 @@ public class StudentServiceImpl implements StudentService {
     private final StudentMapper studentMapper;
     private final ClassReps classReps;
     private final TopicReps topicReps;
-    private final UserReps userReps;
-    private final UserMapper userMapper;
+    private final UserInfoReps userInfoReps;
     private final ClassMapper classMapper;
     private final TopicMapper topicMapper;
+    private final UserInfoMapper userInfoMapper;
 
     @Override
     public StudentDTO save(StudentDTO studentDTO) {
-        return studentMapper.to(studentReps.save(studentMapper.from(studentDTO)));
+        Students students = studentReps.save(studentMapper.from(studentDTO));
+        UserInfo userInfo = setUserInfo(studentDTO);
+        userInfoReps.save(userInfo);
+
+        return studentMapper.to(students);
     }
 
     @Override
@@ -59,8 +64,23 @@ public class StudentServiceImpl implements StudentService {
 
         Students students = studentOptional.get();
         BeanUtil.copyNonNullProperties(studentDTO, students);
+        studentReps.save(students);
+        UserInfo userInfo = setUserInfo(studentDTO);
+        userInfoReps.save(userInfo);
 
-        return studentMapper.to(studentReps.save(students));
+        return studentMapper.to(students);
+    }
+
+    private UserInfo setUserInfo(StudentDTO studentDTO) {
+        UserInfo userInfo = new UserInfo();
+        userInfo.setAvatar(studentDTO.getAvatar());
+        userInfo.setFullName(studentDTO.getFullName());
+        userInfo.setGender(studentDTO.getGender());
+        userInfo.setAddress(studentDTO.getAddress());
+        userInfo.setTown(studentDTO.getTown());
+        userInfo.setDateOfBirth(studentDTO.getDateOfBirth());
+        userInfo.setPhoneNumber(studentDTO.getPhoneNumber());
+        return userInfo;
     }
 
     @Override
@@ -71,7 +91,13 @@ public class StudentServiceImpl implements StudentService {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
         }
 
+        Optional<UserInfo> userInfo = userInfoReps.findById(studentOptional.get().getUserInfoId());
+        if (userInfo.isEmpty()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin giảng viên");
+        }
+
         studentReps.delete(studentOptional.get());
+        userInfoReps.delete(userInfo.get());
     }
 
     @Override
@@ -82,8 +108,9 @@ public class StudentServiceImpl implements StudentService {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
         }
 
-        UserDTO userDTO = userReps.findById(studentOptional.get().getUserId())
-                .map(userMapper::to).orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy người dùng"));
+        UserInfoDTO userInfoDTO = userInfoReps.findById(studentOptional.get().getUserInfoId())
+                .map(userInfoMapper::to).orElseThrow(() ->
+                        APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin người dùng"));
         ClassDTO classDTO = classReps.findById(studentOptional.get().getClassId())
                 .map(classMapper::to).orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy lớp"));
         TopicDTO topicDTO = topicReps.findById(studentOptional.get().getTopicId())
@@ -91,7 +118,7 @@ public class StudentServiceImpl implements StudentService {
 
         StudentDTO studentDTO = studentMapper.to(studentOptional.get());
         studentDTO.setClassDTO(classDTO);
-        studentDTO.setUserDTO(userDTO);
+        studentDTO.setUserInfoDTO(userInfoDTO);
         studentDTO.setTopicDTO(topicDTO);
         return studentDTO;
     }
@@ -104,18 +131,18 @@ public class StudentServiceImpl implements StudentService {
         if (!page.isEmpty()) {
             List<Long> topicIds = page.map(StudentDTO::getTopicId).toList();
             List<Long> classIds = page.map(StudentDTO::getClassId).toList();
-            List<Integer> userIds = page.map(StudentDTO::getUserId).toList();
+            List<Long> userInfoIds = page.map(StudentDTO::getUserInfoId).toList();
 
-            Map<Integer, UserDTO> userDTOMap = userReps.findByIds(userIds).stream()
-                    .map(userMapper::to).collect(Collectors.toMap(UserDTO::getId, u -> u));
+            Map<Long, UserInfoDTO> userDTOMap = userInfoReps.findByIdIn(userInfoIds).stream()
+                    .map(userInfoMapper::to).collect(Collectors.toMap(UserInfoDTO::getId, u -> u));
             Map<Long, ClassDTO> classDTOMap = classReps.findByIdIn(classIds).stream()
                     .map(classMapper::to).collect(Collectors.toMap(ClassDTO::getId, u -> u));
             Map<Long, TopicDTO> topicDTOMap = topicReps.findByIdIn(topicIds).stream()
                     .map(topicMapper::to).collect(Collectors.toMap(TopicDTO::getId, u -> u));
 
             page.forEach(p -> {
-                if (!userDTOMap.isEmpty() && userDTOMap.containsKey(p.getUserId())) {
-                    p.setUserDTO(userDTOMap.get(p.getUserId()));
+                if (!userDTOMap.isEmpty() && userDTOMap.containsKey(p.getUserInfoId())) {
+                    p.setUserInfoDTO(userDTOMap.get(p.getUserInfoId()));
                 }
 
                 if (!classDTOMap.isEmpty() && classDTOMap.containsKey(p.getClassId())) {

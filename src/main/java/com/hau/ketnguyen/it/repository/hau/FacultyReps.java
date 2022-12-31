@@ -15,6 +15,7 @@ public interface FacultyReps extends CrudRepository<Faculties, Long> {
     @Query("SELECT c FROM faculties c " +
             "WHERE (:#{#request.code} IS NULL OR c.code LIKE %:#{#request.code}%) " +
             " AND (:#{#request.name} IS NULL OR c.name LIKE %:#{#request.name}%) " +
+            " AND (:#{#request.specialization} IS NULL OR c.specialization LIKE %:#{#request.specialization}%) " +
             " ORDER BY c.id desc")
     Page<Faculties> search(SearchFacultyRequest request, Pageable pageable);
     List<Faculties> findByIdIn(List<Long> ids);

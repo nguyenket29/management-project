@@ -19,8 +19,6 @@ public class UserInfoDTO {
     private Instant dateOfBirth;
     private String town;
     private short gender;
-    private String marriageStatus;
-    private Integer userId;
     private String address;
     private String phoneNumber;
 }

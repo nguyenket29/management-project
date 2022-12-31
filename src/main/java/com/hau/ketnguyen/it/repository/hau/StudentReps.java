@@ -9,9 +9,11 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface StudentReps extends CrudRepository<Students, Long> {
+    Optional<Students> findByUserId(Integer userId);
     List<Students> findByClassIdIn(List<Long> classIds);
 
     @Query("SELECT l FROM students l " +

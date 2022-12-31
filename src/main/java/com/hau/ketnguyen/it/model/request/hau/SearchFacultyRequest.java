@@ -6,5 +6,6 @@ import lombok.Data;
 public class SearchFacultyRequest extends BaseRequest {
     private String name;
     private String code;
+    private String specialization;
     private Long workplaceId;
 }

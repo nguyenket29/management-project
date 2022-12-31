@@ -2,6 +2,7 @@ package com.hau.ketnguyen.it.controller.auth;
 
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
 import com.hau.ketnguyen.it.model.dto.hau.AssemblyDTO;
+import com.hau.ketnguyen.it.model.request.auth.SignupRequest;
 import com.hau.ketnguyen.it.model.request.auth.UserRequest;
 import com.hau.ketnguyen.it.model.response.APIResponse;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
@@ -27,6 +28,11 @@ public class UserController  {
         return ResponseEntity.ok(APIResponse.success(userService.getAll(request)));
     }
 
+    @PostMapping
+    public ResponseEntity<APIResponse<Boolean>> create(SignupRequest request) {
+        return ResponseEntity.ok(APIResponse.success(userService.createUser(request)));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<APIResponse<UserDTO>> edit(@PathVariable Integer id, @RequestBody UserRequest userRequest) {
         return ResponseEntity.ok(APIResponse.success(userService.edit(id, userRequest)));
@@ -49,7 +55,7 @@ public class UserController  {
         return ResponseEntity.ok(APIResponse.success());
     }
 
-    @PostMapping
+    @PostMapping("/upload-avatar")
     public ResponseEntity<APIResponse<Void>> uploadAvatar(@RequestParam("fileUpload") MultipartFile fileUpload,
                                                              @RequestParam("filePath") String pathFile,
                                                              @RequestParam("shared") String shared) {

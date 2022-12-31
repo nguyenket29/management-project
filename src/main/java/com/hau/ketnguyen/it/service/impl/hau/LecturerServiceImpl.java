@@ -4,21 +4,21 @@ import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.hau.Lecturers;
+import com.hau.ketnguyen.it.entity.hau.UserInfo;
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
+import com.hau.ketnguyen.it.model.dto.auth.UserInfoDTO;
 import com.hau.ketnguyen.it.model.dto.hau.FacultyDTO;
 import com.hau.ketnguyen.it.model.dto.hau.LecturerDTO;
 import com.hau.ketnguyen.it.model.dto.hau.WorkplaceDTO;
 import com.hau.ketnguyen.it.model.request.hau.SearchLecturerRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
+import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
 import com.hau.ketnguyen.it.repository.auth.UserReps;
 import com.hau.ketnguyen.it.repository.hau.FacultyReps;
 import com.hau.ketnguyen.it.repository.hau.LecturerReps;
 import com.hau.ketnguyen.it.repository.hau.WorkplaceReps;
 import com.hau.ketnguyen.it.service.LecturerService;
-import com.hau.ketnguyen.it.service.mapper.FacultyMapper;
-import com.hau.ketnguyen.it.service.mapper.LecturerMapper;
-import com.hau.ketnguyen.it.service.mapper.UserMapper;
-import com.hau.ketnguyen.it.service.mapper.WorkplaceMapper;
+import com.hau.ketnguyen.it.service.mapper.*;
 import io.swagger.models.auth.In;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,14 +38,17 @@ import java.util.stream.Collectors;
 public class LecturerServiceImpl implements LecturerService {
     private final LecturerMapper lecturerMapper;
     private final LecturerReps lecturerReps;
-    private final UserReps userReps;
-    private final UserMapper userMapper;
     private final FacultyReps facultyReps;
     private final FacultyMapper facultyMapper;
+    private final UserInfoReps userInfoReps;
+    private final UserInfoMapper userInfoMapper;
 
     @Override
     public LecturerDTO save(LecturerDTO lecturerDTO) {
-        return lecturerMapper.to(lecturerReps.save(lecturerMapper.from(lecturerDTO)));
+        Lecturers lecturers = lecturerReps.save(lecturerMapper.from(lecturerDTO));
+        UserInfo userInfo = setUserInfo(lecturerDTO);
+        userInfoReps.save(userInfo);
+        return lecturerMapper.to(lecturers);
     }
 
     @Override
@@ -58,8 +61,22 @@ public class LecturerServiceImpl implements LecturerService {
 
         Lecturers lecturers = lecturersOptional.get();
         BeanUtil.copyNonNullProperties(lecturerDTO, lecturers);
+        lecturerReps.save(lecturers);
+        UserInfo userInfo = setUserInfo(lecturerDTO);
+        userInfoReps.save(userInfo);
+        return lecturerMapper.to(lecturers);
+    }
 
-        return lecturerMapper.to(lecturerReps.save(lecturers));
+    private UserInfo setUserInfo(LecturerDTO lecturerDTO) {
+        UserInfo userInfo = new UserInfo();
+        userInfo.setAvatar(lecturerDTO.getAvatar());
+        userInfo.setFullName(lecturerDTO.getFullName());
+        userInfo.setGender(lecturerDTO.getGender());
+        userInfo.setAddress(lecturerDTO.getAddress());
+        userInfo.setTown(lecturerDTO.getTown());
+        userInfo.setDateOfBirth(lecturerDTO.getDateOfBirth());
+        userInfo.setPhoneNumber(lecturerDTO.getPhoneNumber());
+        return userInfo;
     }
 
     @Override
@@ -70,6 +87,12 @@ public class LecturerServiceImpl implements LecturerService {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên");
         }
 
+        Optional<UserInfo> userInfo = userInfoReps.findById(lecturersOptional.get().getUserInfoId());
+        if (userInfo.isEmpty()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin giảng viên");
+        }
+
+        userInfoReps.delete(userInfo.get());
         lecturerReps.delete(lecturersOptional.get());
     }
 
@@ -81,13 +104,15 @@ public class LecturerServiceImpl implements LecturerService {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên");
         }
 
-        UserDTO userDTO = userReps.findById(lecturersOptional.get().getUserId())
-                .map(userMapper::to).orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy người dùng"));
+        UserInfoDTO userInfoDTO = userInfoReps.findById(lecturersOptional.get().getUserInfoId())
+                .map(userInfoMapper::to).orElseThrow(() ->
+                        APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin người dùng"));
         FacultyDTO facultyDTO = facultyReps.findById(lecturersOptional.get().getFacultyId())
-                .map(facultyMapper::to).orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy khoa"));
+                .map(facultyMapper::to).orElseThrow(() ->
+                        APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy khoa"));
 
         LecturerDTO lecturerDTO = lecturerMapper.to(lecturersOptional.get());
-        lecturerDTO.setUserDTO(userDTO);
+        lecturerDTO.setUserInfoDTO(userInfoDTO);
         lecturerDTO.setFacultyDTO(facultyDTO);
 
         return lecturerDTO;
@@ -99,17 +124,17 @@ public class LecturerServiceImpl implements LecturerService {
         Page<LecturerDTO> page = lecturerReps.search(request, pageable).map(lecturerMapper::to);
 
         if (!page.isEmpty()) {
-            List<Integer> userIds = page.map(LecturerDTO::getUserId).toList();
+            List<Long> userInfoIds = page.map(LecturerDTO::getUserInfoId).toList();
             List<Long> facultyIds = page.map(LecturerDTO::getFacultyId).toList();
 
-            Map<Integer, UserDTO> userDTOMap = userReps.findByIds(userIds).stream()
-                    .map(userMapper::to).collect(Collectors.toMap(UserDTO::getId, u -> u));
+            Map<Long, UserInfoDTO> userInfoDTOMap = userInfoReps.findByIdIn(userInfoIds).stream()
+                    .map(userInfoMapper::to).collect(Collectors.toMap(UserInfoDTO::getId, u -> u));
             Map<Long, FacultyDTO> facultyDTOMap = facultyReps.findByIdIn(facultyIds).stream()
                     .map(facultyMapper::to).collect(Collectors.toMap(FacultyDTO::getId, u -> u));
 
             page.forEach(p -> {
-                if (!userDTOMap.isEmpty() && userDTOMap.containsKey(p.getUserId())) {
-                    p.setUserDTO(userDTOMap.get(p.getUserId()));
+                if (!userInfoDTOMap.isEmpty() && userInfoDTOMap.containsKey(p.getUserInfoId())) {
+                    p.setUserInfoDTO(userInfoDTOMap.get(p.getUserInfoId()));
                 }
 
                 if (!facultyDTOMap.isEmpty() && facultyDTOMap.containsKey(p.getFacultyId())) {

@@ -6,6 +6,8 @@ import com.hau.ketnguyen.it.common.util.AuthorityUtil;
 import com.hau.ketnguyen.it.common.util.JwtTokenUtil;
 import com.hau.ketnguyen.it.entity.auth.CustomUser;
 import com.hau.ketnguyen.it.entity.auth.User;
+import com.hau.ketnguyen.it.entity.hau.Lecturers;
+import com.hau.ketnguyen.it.entity.hau.Students;
 import com.hau.ketnguyen.it.entity.hau.UserInfo;
 import com.hau.ketnguyen.it.model.dto.auth.RefreshTokenDTO;
 import com.hau.ketnguyen.it.model.request.auth.LoginRequest;
@@ -13,6 +15,7 @@ import com.hau.ketnguyen.it.model.response.JwtResponse;
 import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
 import com.hau.ketnguyen.it.repository.auth.UserReps;
 import com.hau.ketnguyen.it.service.RefreshTokenService;
+import com.hau.ketnguyen.it.service.impl.auth.AuthServiceimpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -35,20 +38,25 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import static com.hau.ketnguyen.it.common.enums.TypeUser.LECTURE;
+import static com.hau.ketnguyen.it.common.enums.TypeUser.STUDENT;
+
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenService refreshTokenService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final AuthServiceimpl authServiceimpl;
     private final JwtTokenUtil tokenUtil;
     private final UserInfoReps userInfoReps;
     private final UserReps userReps;
 
     public JWTAuthenticationFilter(AuthenticationManager authenticationManager, BCryptPasswordEncoder bCryptPasswordEncoder,
-                                   JwtTokenUtil tokenUtil, RefreshTokenService refreshTokenService, UserInfoReps userInfoReps, UserReps userReps) {
+                                   JwtTokenUtil tokenUtil, RefreshTokenService refreshTokenService, AuthServiceimpl authServiceimpl, UserInfoReps userInfoReps, UserReps userReps) {
         this.authenticationManager = authenticationManager;
         this.refreshTokenService = refreshTokenService;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
         this.tokenUtil = tokenUtil;
+        this.authServiceimpl = authServiceimpl;
         this.userInfoReps = userInfoReps;
         this.userReps = userReps;
         setRequiresAuthenticationRequestMatcher(new AntPathRequestMatcher("/login", "POST"));
@@ -82,20 +90,20 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         CustomUser user = (CustomUser) authResult.getPrincipal();
         User userEntity = userReps.findByUsernameAndStatus(user.getUsername(), User.Status.ACTIVE)
                 .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Username not found"));
-        UserInfo userInfo = userInfoReps.findByUserId(userEntity.getId())
-                .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Username not found."));
 
         Set<String> authorities = new HashSet<>();
         AuthorityUtil.authorityListToSet(user.getAuthorities()).forEach(au -> {
             authorities.add("ROLE_".concat(au));
         });
+
+        UserInfo userInfo = authServiceimpl.setUserInfo(userEntity);
         user.setFullName(userInfo.getFullName());
         user.setAvatar(userInfo.getAvatar());
 
         Optional<RefreshTokenDTO> refreshToken = refreshTokenService.findByUserId(user.getId());
         JwtResponse tokenResponse = null;
         String token = tokenUtil.generateToken(user.getUsername(), authorities,
-                user.getId(), user.getFullName(), user.getAvatar());
+                user.getId(), user.getFullName(), user.getAvatar(), user.getType());
         if (refreshToken.isPresent()) {
             refreshToken.get().setAccessToken(token);
             RefreshTokenDTO tokenDTO = refreshTokenService.update(refreshToken.get());

@@ -1,11 +1,12 @@
 package com.hau.ketnguyen.it.service.impl.auth;
 
-import com.hau.ketnguyen.it.common.enums.TypeUser;
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.AuthorityUtil;
 import com.hau.ketnguyen.it.common.util.JwtTokenUtil;
 import com.hau.ketnguyen.it.config.auth.Commons;
 import com.hau.ketnguyen.it.entity.auth.*;
+import com.hau.ketnguyen.it.entity.hau.Lecturers;
+import com.hau.ketnguyen.it.entity.hau.Students;
 import com.hau.ketnguyen.it.entity.hau.UserInfo;
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
 import com.hau.ketnguyen.it.model.request.auth.SignupRequest;
@@ -13,6 +14,8 @@ import com.hau.ketnguyen.it.model.request.auth.TokenRefreshRequest;
 import com.hau.ketnguyen.it.model.response.TokenRefreshResponse;
 import com.hau.ketnguyen.it.model.response.UserResponse;
 import com.hau.ketnguyen.it.repository.auth.*;
+import com.hau.ketnguyen.it.repository.hau.LecturerReps;
+import com.hau.ketnguyen.it.repository.hau.StudentReps;
 import com.hau.ketnguyen.it.service.*;
 import com.hau.ketnguyen.it.service.mapper.RefreshTokenMapper;
 import com.hau.ketnguyen.it.service.mapper.UserMapper;
@@ -38,6 +41,8 @@ import java.time.Instant;
 import java.util.*;
 
 import static com.hau.ketnguyen.it.common.enums.RoleEnums.Role.USER;
+import static com.hau.ketnguyen.it.common.enums.TypeUser.LECTURE;
+import static com.hau.ketnguyen.it.common.enums.TypeUser.STUDENT;
 
 @Service
 @Slf4j
@@ -55,13 +60,16 @@ public class AuthServiceimpl implements AuthService {
     private final UserService userService;
     private final UserInfoReps userInfoReps;
     private final ResetPasswordTokenService resetPasswordTokenService;
+    private final StudentReps studentReps;
+    private final LecturerReps lecturerReps;
     private final String portFe;
 
     public AuthServiceimpl(UserReps userReps, RefreshTokenService refreshToken, UserMapper userMapper,
                            JwtTokenUtil tokenUtil, RefreshTokenReps refreshTokenReps,
                            RefreshTokenMapper refreshTokenMapper, UserVerificationService userVerificationService,
                            EmailService emailService, UserVerificationReps userVerificationReps, RoleReps roleReps, UserService userService,
-                           UserInfoReps userInfoReps, ResetPasswordTokenService resetPasswordTokenService, @Value("${port-fe}") String portFe) {
+                           UserInfoReps userInfoReps, ResetPasswordTokenService resetPasswordTokenService,
+                           StudentReps studentReps, LecturerReps lecturerReps, @Value("${port-fe}") String portFe) {
         this.userReps = userReps;
         this.refreshToken = refreshToken;
         this.userMapper = userMapper;
@@ -75,6 +83,8 @@ public class AuthServiceimpl implements AuthService {
         this.userService = userService;
         this.userInfoReps = userInfoReps;
         this.resetPasswordTokenService = resetPasswordTokenService;
+        this.studentReps = studentReps;
+        this.lecturerReps = lecturerReps;
         this.portFe = portFe;
     }
 
@@ -90,8 +100,7 @@ public class AuthServiceimpl implements AuthService {
                 .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Refresh token not found."));
         User user = userReps.findById(refresh.getUserId())
                 .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Username not found."));
-        UserInfo userInfo = userInfoReps.findByUserId(user.getId())
-                .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Username not found."));
+        UserInfo userInfo = setUserInfo(user);
 
         Set<GrantedAuthority> authorities = new HashSet<>();
         Set<String> roles = new HashSet<>();
@@ -105,7 +114,7 @@ public class AuthServiceimpl implements AuthService {
         customUser.setAvatar(userInfo.getAvatar());
 
         String accessToken = tokenUtil.generateToken(customUser.getUsername(), roles,
-                customUser.getId(), customUser.getFullName(), customUser.getAvatar());
+                customUser.getId(), customUser.getFullName(), customUser.getAvatar(), customUser.getType());
 
         return refreshToken.findByRefreshToken(requestRefreshToken)
                 .map(refreshToken::verifyExpiration).map(u -> {
@@ -118,6 +127,30 @@ public class AuthServiceimpl implements AuthService {
                     }
                     return new TokenRefreshResponse(u.getAccessToken(), u.getRefreshToken());
                 }).orElseThrow(() -> APIException.from(HttpStatus.FORBIDDEN).withMessage("Refresh token is not in database!"));
+    }
+
+    public UserInfo setUserInfo(User userEntity) {
+        UserInfo userInfo = new UserInfo();
+        if (userEntity.getType().equalsIgnoreCase(STUDENT.name())) {
+            Optional<Students> studentOptional = studentReps.findByUserId(userEntity.getId());
+
+            if (studentOptional.isEmpty()) {
+                throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
+            }
+
+            userInfo = userInfoReps.findById(studentOptional.get().getUserInfoId())
+                    .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin sinh viên"));
+        } else if (userEntity.getType().equalsIgnoreCase(LECTURE.name())) {
+            Optional<Lecturers> lecturersOptional = lecturerReps.findByUserId(userEntity.getId());
+
+            if (lecturersOptional.isEmpty()) {
+                throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên");
+            }
+
+            userInfo = userInfoReps.findById(lecturersOptional.get().getUserInfoId())
+                    .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin giảng viên"));
+        }
+        return userInfo;
     }
 
     /**
@@ -133,17 +166,15 @@ public class AuthServiceimpl implements AuthService {
 
         if (userOpt.isPresent()) {
             User user = userOpt.get();
-            UserInfo userInfo = userInfoReps.findByUserId(user.getId())
-                    .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Username not found."));
+            UserInfo userInfo = setUserInfo(user);
 
             Set<String> roles = AuthorityUtil.authorityListToSet(customUser.getAuthorities());
 
             return UserResponse.builder()
-                    .id(userInfo.getUserId())
                     .email(user.getEmail())
                     .username(user.getUsername())
                     .status(user.getMapStatus().get(user.getStatus()))
-                    .type(user.getType().name())
+                    .type(user.getType())
                     .address(userInfo.getAddress())
                     .avatar(userInfo.getAvatar())
                     .town(userInfo.getTown())
@@ -152,7 +183,6 @@ public class AuthServiceimpl implements AuthService {
                     .dateOfBirth(userInfo.getDateOfBirth())
                     .gender(user.getMapGender().get(userInfo.getGender()))
                     .phoneNumber(userInfo.getPhoneNumber())
-                    .marriageStatus(userInfo.getMarriageStatus())
                     .build();
         }
         return null;
@@ -230,7 +260,6 @@ public class AuthServiceimpl implements AuthService {
         userDTO.ifPresent(u -> {
             try {
                 UserInfo userInfo = new UserInfo();
-                userInfo.setUserId(u.getId());
                 String code = UUID.randomUUID().toString();
                 userVerificationService.save(userDTO.get().getId(), code);
                 userInfoReps.save(userInfo);
@@ -314,10 +343,10 @@ public class AuthServiceimpl implements AuthService {
 
     @Override
     public void forgotPassword(String email, HttpServletRequest request) throws MessagingException {
-        UserDTO userDto = userReps.findByEmail(email).map(userMapper::to).orElseThrow(() ->
+        User user = userReps.findByEmail(email).orElseThrow(() ->
                 APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy người dùng với email: " + email));
-        UserInfo userInfo = userInfoReps.findByUserId(userDto.getId()).orElseThrow(() ->
-                APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin người dùng với email: " + email));
+        UserDTO userDto = userMapper.to(user);
+        UserInfo userInfo = setUserInfo(user);
 
         String token = UUID.randomUUID().toString();
         if (resetPasswordTokenService.createTokenResetPassword(userDto.getId(), token)) {

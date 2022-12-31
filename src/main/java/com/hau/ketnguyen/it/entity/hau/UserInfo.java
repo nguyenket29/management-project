@@ -33,12 +33,6 @@ public class UserInfo extends BaseEntity {
     @Column(name = "gender")
     private short gender;
 
-    @Column(name = "marriage_status")
-    private String marriageStatus;
-
-    @Column(name = "user_id")
-    private Integer userId;
-
     @Column(name = "address")
     private String address;
 

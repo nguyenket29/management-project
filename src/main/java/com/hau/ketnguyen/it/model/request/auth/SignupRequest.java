@@ -26,4 +26,5 @@ public class SignupRequest {
     private String confirmPassword;
 
     private String type;
+    private Long studentOrLectureId;
 }

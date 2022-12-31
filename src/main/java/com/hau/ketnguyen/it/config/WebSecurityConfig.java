@@ -9,6 +9,7 @@ import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
 import com.hau.ketnguyen.it.repository.auth.UserReps;
 import com.hau.ketnguyen.it.service.RefreshTokenService;
 import com.hau.ketnguyen.it.service.UserService;
+import com.hau.ketnguyen.it.service.impl.auth.AuthServiceimpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -28,15 +29,18 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private final RefreshTokenService refreshTokenService;
     private final UserService userService;
     private final EntryPointAuthenticationConfig entryPointConfig;
+    private final AuthServiceimpl authServiceimpl;
     private final UserReps userReps;
     private final UserInfoReps userInfoReps;
 
     public WebSecurityConfig(JwtTokenUtil tokenUtil, RefreshTokenService refreshTokenService, UserService userService,
-                             EntryPointAuthenticationConfig entryPointConfig, UserReps userReps, UserInfoReps userInfoReps) {
+                             EntryPointAuthenticationConfig entryPointConfig, AuthServiceimpl authServiceimpl,
+                             UserReps userReps, UserInfoReps userInfoReps) {
         this.tokenUtil = tokenUtil;
         this.refreshTokenService = refreshTokenService;
         this.userService = userService;
         this.entryPointConfig = entryPointConfig;
+        this.authServiceimpl = authServiceimpl;
         this.userReps = userReps;
         this.userInfoReps = userInfoReps;
     }
@@ -51,7 +55,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and().logout()
                 .and().csrf().disable()
                 .addFilter(new JWTAuthenticationFilter(authenticationManager(),
-                        bCryptPasswordEncoder(), tokenUtil, refreshTokenService, userInfoReps, userReps))
+                        bCryptPasswordEncoder(), tokenUtil, refreshTokenService, authServiceimpl, userInfoReps, userReps))
                 .addFilter(new JWTAuthorizationFilter(authenticationManager(), userService))
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and().httpBasic().authenticationEntryPoint(entryPointConfig);

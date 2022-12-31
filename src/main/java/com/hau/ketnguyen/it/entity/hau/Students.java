@@ -17,9 +17,15 @@ public class Students extends BaseEntity {
     @Column(name = "student_pas", columnDefinition = "boolean default false")
     private boolean stdPass;
 
+    @Column(name = "code_student")
+    private String codeStudent;
+
     @Column(name = "topic_id")
     private Long topicId;
 
     @Column(name = "class_id")
     private Long classId;
+
+    @Column(name = "user_info_id")
+    private Long userInfoId;
 }

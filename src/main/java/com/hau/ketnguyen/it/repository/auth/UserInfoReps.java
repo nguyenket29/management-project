@@ -10,8 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface UserInfoReps extends JpaRepository<UserInfo, Long> {
-    Optional<UserInfo> findByUserId(Integer userId);
-    List<UserInfo> findByUserIdIn(List<Integer> userIds);
+    List<UserInfo> findByIdIn(List<Long> userIds);
     @Query("select ui from UserInfo ui")
     List<UserInfo> getListUserInfo();
 }

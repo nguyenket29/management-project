@@ -8,7 +8,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import javax.swing.text.html.Option;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface LecturerReps extends CrudRepository<Lecturers, Long> {
@@ -28,4 +30,5 @@ public interface LecturerReps extends CrudRepository<Lecturers, Long> {
     Page<Lecturers> search(SearchLecturerRequest request, Pageable pageable);
 
     List<Lecturers> findByIdIn(List<Long> ids);
+    Optional<Lecturers> findByUserId(Integer userId);
 }

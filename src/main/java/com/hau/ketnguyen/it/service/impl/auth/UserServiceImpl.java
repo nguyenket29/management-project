@@ -6,19 +6,22 @@ import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.auth.CustomUser;
 import com.hau.ketnguyen.it.entity.auth.Role;
 import com.hau.ketnguyen.it.entity.auth.User;
+import com.hau.ketnguyen.it.entity.hau.Lecturers;
+import com.hau.ketnguyen.it.entity.hau.Students;
 import com.hau.ketnguyen.it.entity.hau.UserInfo;
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
-import com.hau.ketnguyen.it.model.dto.auth.UserInfoDTO;
+import com.hau.ketnguyen.it.model.request.auth.SignupRequest;
 import com.hau.ketnguyen.it.model.request.auth.UserRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.repository.auth.RoleReps;
 import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
 import com.hau.ketnguyen.it.repository.auth.UserReps;
+import com.hau.ketnguyen.it.repository.hau.LecturerReps;
+import com.hau.ketnguyen.it.repository.hau.StudentReps;
 import com.hau.ketnguyen.it.service.GoogleDriverFile;
 import com.hau.ketnguyen.it.service.UserService;
 import com.hau.ketnguyen.it.service.mapper.UserInfoMapper;
 import com.hau.ketnguyen.it.service.mapper.UserMapper;
-import io.swagger.models.auth.In;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -27,11 +30,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.hau.ketnguyen.it.common.enums.TypeUser.*;
 
 @Service
 @AllArgsConstructor
@@ -42,7 +48,84 @@ public class UserServiceImpl implements UserService {
     private final RoleReps roleReps;
     private final UserInfoReps userInfoReps;
     private final UserInfoMapper userInfoMapper;
+    private final StudentReps studentReps;
+    private final LecturerReps lecturerReps;
     private final GoogleDriverFile googleDriverFile;
+
+    @Override
+    public boolean createUser(SignupRequest signupRequest) {
+        User user = new User();
+
+        validRegister(signupRequest);
+
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        if (signupRequest.getType() != null) {
+            if (signupRequest.getType().equalsIgnoreCase(STUDENT.name())) {
+                user.setType(STUDENT.name());
+            } else if (signupRequest.getType().equalsIgnoreCase(LECTURE.name())) {
+                user.setType(LECTURE.name());
+                if (signupRequest.getStudentOrLectureId() != null) {
+
+                } else {
+                    throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Vui lòng chọn giảng viên để tạo tài khoản!");
+                }
+            } else {
+                user.setType(OTHER.name());
+            }
+        } else {
+            throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Vui lòng chọn tài khoản!");
+        }
+
+        user.setUsername(signupRequest.getUsername());
+        user.setEmail(signupRequest.getEmail());
+        user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
+        user.setStatus(User.Status.ACTIVE);
+        User userEntity = userReps.save(user);
+
+        if (userEntity.getId() > 0) {
+            if (signupRequest.getType().equalsIgnoreCase(STUDENT.name())) {
+                if (signupRequest.getStudentOrLectureId() != null) {
+                    Optional<Students> studentOptional = studentReps.findById(signupRequest.getStudentOrLectureId());
+
+                    if (studentOptional.isEmpty()) {
+                        throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
+                    }
+
+                    studentOptional.get().setUserId(userEntity.getId());
+                    studentReps.save(studentOptional.get());
+                } else {
+                    throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Vui lòng chọn sinh viên để tạo tài khoản!");
+                }
+            } else if (signupRequest.getType().equalsIgnoreCase(LECTURE.name())) {
+                Optional<Lecturers> lecturersOptional = lecturerReps.findById(signupRequest.getStudentOrLectureId());
+
+                if (lecturersOptional.isEmpty()) {
+                    throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên");
+                }
+
+                lecturersOptional.get().setUserId(userEntity.getId());
+                lecturerReps.save(lecturersOptional.get());
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    private void validRegister(SignupRequest signupRequest) {
+        if (userReps.existsByUsername(signupRequest.getUsername())) {
+            throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Username is existed.");
+        }
+
+        if (userReps.existsByEmail(signupRequest.getEmail())) {
+            throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Email is existed.");
+        }
+
+        if (signupRequest.getPassword() == null || signupRequest.getConfirmPassword() == null
+                || !signupRequest.getPassword().equals(signupRequest.getConfirmPassword())) {
+            throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Tài khoản hoặc mật khẩu không chnh xác!");
+        }
+    }
 
     /**
      * Tìm kiếm người dùng theo username và status
@@ -68,18 +151,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public PageDataResponse<UserDTO> getAll(UserRequest request) {
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
-        Map<Integer, UserInfoDTO> mapUserInfo = userInfoReps.getListUserInfo()
-                .stream().map(userInfoMapper::to).collect(Collectors.toMap(UserInfoDTO::getUserId, ui -> ui));
         Page<UserDTO> pageData = userReps.search(request, pageable).map(userMapper::to);
-
-        if (!pageData.isEmpty()) {
-            pageData.forEach(p -> {
-                if (mapUserInfo.containsKey(p.getId())) {
-                    p.setUserInfoDTO(mapUserInfo.get(p.getId()));
-                }
-            });
-        }
-
         return PageDataResponse.of(pageData);
     }
 
@@ -110,36 +182,15 @@ public class UserServiceImpl implements UserService {
             user.setRoles(roleSet);
         }
 
-        // update user info
-        UserInfo userInfo = userInfoReps.findByUserId(user.getId())
-                .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Username not found."));
-        userInfo.setGender(userRequest.getGender());
-        userInfo.setAddress(userRequest.getAddress());
-        userInfo.setAvatar(userRequest.getAvatar());
-        userInfo.setTown(userRequest.getTown());
-        userInfo.setDateOfBirth(userRequest.getDateOfBirth());
-        userInfo.setFullName(userRequest.getFullName());
-        userInfo.setMarriageStatus(userRequest.getMarriageStatus());
-        userInfo.setPhoneNumber(userRequest.getPhoneNumber());
-
-        UserDTO userDTO = userMapper.to(userReps.save(user));
-        UserInfoDTO userInfoDTO = userInfoMapper.to(userInfoReps.save(userInfo));
-
-        if (Objects.equals(userInfoDTO.getUserId(), userDTO.getId())) {
-            userDTO.setUserInfoDTO(userInfoDTO);
-        }
-
-        return userDTO;
+        return userMapper.to(userReps.save(user));
     }
 
     @Override
     public void deleteUser(List<Integer> userIds) {
         if (userIds != null && !userIds.isEmpty()) {
             List<User> users = userReps.findByIds(userIds);
-            List<UserInfo> userInfos = userInfoReps.findByUserIdIn(userIds);
-            if (!users.isEmpty() && !userInfos.isEmpty()) {
+            if (!users.isEmpty()) {
                 userReps.deleteAll(users);
-                userInfoReps.deleteAll(userInfos);
             }
         }
     }
@@ -147,20 +198,8 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserDTO> findById(List<Integer> userIds) {
         if (userIds != null && !userIds.isEmpty()) {
-            List<UserDTO> users = userReps.findByIds(userIds)
+            return userReps.findByIds(userIds)
                     .stream().map(userMapper::to).collect(Collectors.toList());
-            Map<Integer, UserInfoDTO> userInfos = userInfoReps.findByUserIdIn(userIds)
-                    .stream().map(userInfoMapper::to).collect(Collectors.toMap(UserInfoDTO::getUserId, u -> u));
-
-            if (!users.isEmpty()) {
-                users.forEach(u -> {
-                    if (!userInfos.isEmpty() && userInfos.containsKey(u.getId())) {
-                        u.setUserInfoDTO(userInfos.get(u.getId()));
-                    }
-                });
-            }
-
-            return users;
         }
         return null;
     }
@@ -186,15 +225,28 @@ public class UserServiceImpl implements UserService {
         CustomUser user = (CustomUser) authentication.getPrincipal();
         String fileId = googleDriverFile.uploadFile(file, filePath, isPublic);
         if (fileId != null) {
-            Optional<UserInfo> userInfoOptional = userInfoReps.findByUserId(user.getId());
+            UserInfo userInfo = new UserInfo();
+            if (user.getType().equalsIgnoreCase(STUDENT.name())) {
+                Optional<Students> studentOptional = studentReps.findByUserId(user.getId());
 
-            if (userInfoOptional.isEmpty()) {
-                throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy người dùng");
+                if (studentOptional.isEmpty()) {
+                    throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
+                }
+
+                userInfo = userInfoReps.findById(studentOptional.get().getUserInfoId())
+                        .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin sinh viên"));
+            } else if (user.getType().equalsIgnoreCase(LECTURE.name())) {
+                Optional<Lecturers> lecturersOptional = lecturerReps.findByUserId(user.getId());
+
+                if (lecturersOptional.isEmpty()) {
+                    throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên");
+                }
+
+                userInfo = userInfoReps.findById(lecturersOptional.get().getUserInfoId())
+                        .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin giảng viên"));
             }
 
-            UserInfo userInfo = userInfoOptional.get();
             userInfo.setAvatar(fileId);
-
             userInfoReps.save(userInfo);
         }
     }

@@ -15,20 +15,14 @@ import java.util.Optional;
 public interface UserReps extends JpaRepository<User, Integer> {
     Optional<User> findByUsernameAndStatus(String username, short status);
     Optional<User> findByEmail(String email);
+
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
     @Query("SELECT u FROM User u " +
-            " LEFT JOIN UserInfo ui " +
-            " ON u.id = ui.userId " +
             "WHERE (:#{#request.username} IS NULL OR u.username = :#{#request.username}) " +
             " AND (:#{#request.email} IS NULL OR u.email = :#{#request.email}) " +
-            " AND (:#{#request.fullName} IS NULL OR ui.fullName = :#{#request.fullName}) " +
-            " AND (:#{#request.address} IS NULL OR ui.address = :#{#request.address}) " +
-            " AND (:#{#request.phoneNumber} IS NULL OR ui.phoneNumber = :#{#request.phoneNumber}) " +
-            " AND (:#{#request.town} IS NULL OR ui.town = :#{#request.town}) " +
             " AND (:#{#request.type} IS NULL OR u.type = :#{#request.type}) " +
             " AND (:#{#request.status} IS NULL OR u.status = :#{#request.status}) " +
-            " AND (:#{#request.marriageStatus} IS NULL OR ui.marriageStatus = :#{#request.marriageStatus}) " +
             "ORDER BY u.id desc")
     Page<User> search(UserRequest request, Pageable pageable);
     @Query("SELECT u FROM User u WHERE (COALESCE(:ids, NULL) IS NULL OR u.id IN :ids)")

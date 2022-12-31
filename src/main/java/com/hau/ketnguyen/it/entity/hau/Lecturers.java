@@ -16,6 +16,9 @@ public class Lecturers extends BaseEntity {
     @Column(name = "user_id")
     private Integer userId;
 
+    @Column(name = "code_lecture")
+    private String codeLecture;
+
     //chức vụ
     @Column(name = "regency")
     private String regency;
@@ -26,4 +29,7 @@ public class Lecturers extends BaseEntity {
 
     @Column(name = "faculty_id")
     private Long facultyId;
+
+    @Column(name = "user_info_id")
+    private Long userInfoId;
 }
