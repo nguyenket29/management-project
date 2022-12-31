@@ -154,6 +154,6 @@ public class LecturerServiceImpl implements LecturerService {
             });
         }
 
-        return null;
+        return PageDataResponse.of(page);
     }
 }
