@@ -29,7 +29,7 @@ public class UserController  {
     }
 
     @PostMapping
-    public ResponseEntity<APIResponse<Boolean>> create(SignupRequest request) {
+    public ResponseEntity<APIResponse<Boolean>> create(@RequestBody SignupRequest request) {
         return ResponseEntity.ok(APIResponse.success(userService.createUser(request)));
     }
 
