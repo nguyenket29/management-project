@@ -61,10 +61,20 @@ public class LecturerServiceImpl implements LecturerService {
         }
 
         Lecturers lecturers = lecturersOptional.get();
+        Long userInfoId = lecturers.getUserInfoId();
         BeanUtil.copyNonNullProperties(lecturerDTO, lecturers);
         lecturerReps.save(lecturers);
+
+        Optional<UserInfo> userInfoOptional = userInfoReps.findById(userInfoId);
+
+        if (userInfoOptional.isEmpty()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin sinh viên");
+        }
+
         UserInfo userInfo = setUserInfo(lecturerDTO);
-        userInfoReps.save(userInfo);
+        BeanUtil.copyNonNullProperties(userInfo, userInfoOptional);
+        userInfoReps.save(userInfoOptional.get());
+
         return lecturerMapper.to(lecturers);
     }
 

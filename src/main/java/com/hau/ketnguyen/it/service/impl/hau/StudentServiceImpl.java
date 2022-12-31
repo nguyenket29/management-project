@@ -2,6 +2,7 @@ package com.hau.ketnguyen.it.service.impl.hau;
 
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.BeanUtil;
+import com.hau.ketnguyen.it.common.util.BeanUtils;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.hau.Students;
 import com.hau.ketnguyen.it.entity.hau.UserInfo;
@@ -63,10 +64,19 @@ public class StudentServiceImpl implements StudentService {
         }
 
         Students students = studentOptional.get();
+        Long userInfoId = students.getUserInfoId();
         BeanUtil.copyNonNullProperties(studentDTO, students);
         studentReps.save(students);
+
+        Optional<UserInfo> userInfoOptional = userInfoReps.findById(userInfoId);
+
+        if (userInfoOptional.isEmpty()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin sinh viên");
+        }
+
         UserInfo userInfo = setUserInfo(studentDTO);
-        userInfoReps.save(userInfo);
+        BeanUtil.copyNonNullProperties(userInfo, userInfoOptional);
+        userInfoReps.save(userInfoOptional.get());
 
         return studentMapper.to(students);
     }
