@@ -47,10 +47,10 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public StudentDTO save(StudentDTO studentDTO) {
-        Students students = studentReps.save(studentMapper.from(studentDTO));
         UserInfo userInfo = setUserInfo(studentDTO);
         userInfoReps.save(userInfo);
-
+        studentDTO.setUserInfoId(userInfo.getId());
+        Students students = studentReps.save(studentMapper.from(studentDTO));
         return studentMapper.to(students);
     }
 

@@ -45,9 +45,10 @@ public class LecturerServiceImpl implements LecturerService {
 
     @Override
     public LecturerDTO save(LecturerDTO lecturerDTO) {
-        Lecturers lecturers = lecturerReps.save(lecturerMapper.from(lecturerDTO));
         UserInfo userInfo = setUserInfo(lecturerDTO);
         userInfoReps.save(userInfo);
+        lecturerDTO.setUserInfoId(userInfo.getId());
+        Lecturers lecturers = lecturerReps.save(lecturerMapper.from(lecturerDTO));
         return lecturerMapper.to(lecturers);
     }
 
