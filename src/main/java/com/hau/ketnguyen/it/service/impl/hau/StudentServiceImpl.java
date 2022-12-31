@@ -75,7 +75,7 @@ public class StudentServiceImpl implements StudentService {
         }
 
         UserInfo userInfo = setUserInfo(studentDTO);
-        BeanUtil.copyNonNullProperties(userInfo, userInfoOptional);
+        BeanUtil.copyNonNullProperties(userInfo, userInfoOptional.get());
         userInfoReps.save(userInfoOptional.get());
 
         return studentMapper.to(students);

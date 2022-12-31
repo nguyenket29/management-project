@@ -72,7 +72,7 @@ public class LecturerServiceImpl implements LecturerService {
         }
 
         UserInfo userInfo = setUserInfo(lecturerDTO);
-        BeanUtil.copyNonNullProperties(userInfo, userInfoOptional);
+        BeanUtil.copyNonNullProperties(userInfo, userInfoOptional.get());
         userInfoReps.save(userInfoOptional.get());
 
         return lecturerMapper.to(lecturers);
