@@ -16,6 +16,7 @@ import com.hau.ketnguyen.it.repository.hau.AssemblyReps;
 import com.hau.ketnguyen.it.repository.hau.CommentReps;
 import com.hau.ketnguyen.it.repository.hau.TopicReps;
 import com.hau.ketnguyen.it.service.CommentService;
+import com.hau.ketnguyen.it.service.WebSocketService;
 import com.hau.ketnguyen.it.service.mapper.AssemblyMapper;
 import com.hau.ketnguyen.it.service.mapper.CommentMapper;
 import com.hau.ketnguyen.it.service.mapper.TopicMapper;
@@ -27,10 +28,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -43,10 +41,17 @@ public class CommentServiceImpl implements CommentService {
     private final TopicReps topicReps;
     private final UserMapper userMapper;
     private final TopicMapper topicMapper;
+    private final WebSocketService webSocketService;
 
     @Override
     public CommentDTO save(CommentDTO commentDTO) {
-        return commentMapper.to(commentReps.save(commentMapper.from(commentDTO)));
+        CommentDTO commentDto = commentMapper.to(commentReps.save(commentMapper.from(commentDTO)));
+
+        if (commentDto.getId() > 0) {
+            webSocketService.sendCommentToSocket();
+        }
+
+        return commentDto;
     }
 
     @Override
@@ -123,7 +128,10 @@ public class CommentServiceImpl implements CommentService {
         return PageDataResponse.of(page);
     }
 
-    public void sendCommentWebsocket() {
-
+    @Override
+    public List<Comments> findAll() {
+        List<Comments> comments = new ArrayList<>();
+        commentReps.findAll().iterator().forEachRemaining(comments::add);
+        return comments;
     }
 }

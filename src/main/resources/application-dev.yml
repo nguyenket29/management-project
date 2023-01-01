@@ -57,4 +57,12 @@ application:
     add-emails-in-to-address: ketnguyen2906@gmail.com
     add-emails-in-cc-address:
 
+logging:
+  level:
+    org:
+      springframework:
+        messaging: trace
+        web:
+          socket: trace
+
 
