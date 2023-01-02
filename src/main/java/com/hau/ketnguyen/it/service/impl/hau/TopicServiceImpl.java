@@ -110,6 +110,10 @@ public class TopicServiceImpl implements TopicService {
             request.setName(request.getName().toLowerCase());
         }
 
+        if (request.getDescription() != null) {
+            request.setDescription(request.getDescription().toLowerCase());
+        }
+
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
         Page<TopicDTO> page = topicReps.search(request, pageable).map(topicMapper::to);
 

@@ -16,6 +16,8 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
     @Query("SELECT c FROM topics c " +
             "WHERE (:#{#request.lecturerGuideId} IS NULL OR c.lecturerGuideId = :#{#request.lecturerGuideId}) " +
             " AND (:#{#request.name} IS NULL OR lower(c.name) LIKE %:#{#request.name}%) " +
+            " AND (:#{#request.description} IS NULL OR lower(c.description) LIKE %:#{#request.description}%) " +
+            " AND (:#{#request.status} IS NULL OR c.status = :#{#request.status}) " +
             " AND (:#{#request.lecturerCounterArgumentId} IS NULL OR c.lecturerCounterArgumentId = :#{#request.lecturerCounterArgumentId}) " +
             " AND (:#{#request.year} IS NULL OR c.year = :#{#request.year}) " +
             " ORDER BY c.id desc")
