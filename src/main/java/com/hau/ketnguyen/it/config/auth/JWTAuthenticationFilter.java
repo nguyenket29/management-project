@@ -99,6 +99,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         UserInfo userInfo = authServiceimpl.setUserInfo(userEntity);
         user.setFullName(userInfo.getFullName());
         user.setAvatar(userInfo.getAvatar());
+        user.setType(userEntity.getType());
 
         Optional<RefreshTokenDTO> refreshToken = refreshTokenService.findByUserId(user.getId());
         JwtResponse tokenResponse = null;
