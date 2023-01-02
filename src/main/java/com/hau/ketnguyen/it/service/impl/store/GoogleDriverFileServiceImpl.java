@@ -27,27 +27,7 @@ public class GoogleDriverFileServiceImpl implements GoogleDriverFile {
 
     @Override
     public PageDataResponse<GoogleDriverFileDTO> getAllFile() throws IOException, GeneralSecurityException {
-        List<GoogleDriverFileDTO> responseList = null;
-        List<File> files = googleFileManager.listEverything();
-        GoogleDriverFileDTO dto = null;
-
-        if (files != null) {
-            responseList = new ArrayList<>();
-            for (File f : files) {
-                dto = new GoogleDriverFileDTO();
-                if (f.getSize() != null) {
-                    dto.setId(f.getId());
-                    dto.setName(f.getName());
-                    dto.setThumbnailLink(f.getThumbnailLink());
-                    dto.setSize(ConvertByteToMB.getSize(f.getSize()));
-                    dto.setLink("https://drive.google.com/file/d/" + f.getId() + "/view?usp=sharing");
-                    dto.setShared(f.getShared());
-                    dto.setExportLink(f.getExportLinks());
-
-                    responseList.add(dto);
-                }
-            }
-        }
+        List<GoogleDriverFileDTO> responseList = getListFile();
         return PageDataResponse.of(String.valueOf(responseList.size()), responseList);
     }
 
@@ -78,5 +58,46 @@ public class GoogleDriverFileServiceImpl implements GoogleDriverFile {
         response.setContentType(file.getMimeType());
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getName() + "\"");
         googleFileManager.downloadFile(id, outputStream);
+    }
+
+    @Override
+    public GoogleDriverFileDTO findByIdFiled(String fileId) throws GeneralSecurityException, IOException {
+        List<GoogleDriverFileDTO> responseList = getListFile();
+
+        GoogleDriverFileDTO googleDriverFileDTO = null;
+        if (!responseList.isEmpty()) {
+            for (GoogleDriverFileDTO r : responseList) {
+                if (r.getId().equals(fileId)) {
+                    googleDriverFileDTO = r;
+                }
+            }
+        }
+
+        return googleDriverFileDTO;
+    }
+
+    private List<GoogleDriverFileDTO> getListFile() throws GeneralSecurityException, IOException {
+        List<GoogleDriverFileDTO> responseList = new ArrayList<>();
+        List<File> files = googleFileManager.listEverything();
+        GoogleDriverFileDTO dto = null;
+
+        if (files != null) {
+            responseList = new ArrayList<>();
+            for (File f : files) {
+                dto = new GoogleDriverFileDTO();
+                if (f.getSize() != null) {
+                    dto.setId(f.getId());
+                    dto.setName(f.getName());
+                    dto.setThumbnailLink(f.getThumbnailLink());
+                    dto.setSize(ConvertByteToMB.getSize(f.getSize()));
+                    dto.setLink("https://drive.google.com/file/d/" + f.getId() + "/view?usp=sharing");
+                    dto.setShared(f.getShared());
+
+                    responseList.add(dto);
+                }
+            }
+        }
+
+        return responseList;
     }
 }
