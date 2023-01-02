@@ -39,7 +39,7 @@ public class UserController  {
     }
 
     @DeleteMapping
-    public ResponseEntity<APIResponse<Void>> delete(List<Integer> ids) {
+    public ResponseEntity<APIResponse<Void>> delete(@RequestParam List<Integer> ids) {
         userService.deleteUser(ids);
         return ResponseEntity.ok(APIResponse.success());
     }

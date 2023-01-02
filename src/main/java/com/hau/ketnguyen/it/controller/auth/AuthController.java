@@ -4,6 +4,7 @@ import com.hau.ketnguyen.it.model.dto.auth.PasswordDTO;
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
 import com.hau.ketnguyen.it.model.request.auth.SignupRequest;
 import com.hau.ketnguyen.it.model.request.auth.TokenRefreshRequest;
+import com.hau.ketnguyen.it.model.request.auth.UserInfoRequest;
 import com.hau.ketnguyen.it.model.response.APIResponse;
 import com.hau.ketnguyen.it.model.response.TokenRefreshResponse;
 import com.hau.ketnguyen.it.model.response.UserResponse;
@@ -27,6 +28,11 @@ public class AuthController {
     @PostMapping("/refresh-token")
     public ResponseEntity<APIResponse<TokenRefreshResponse>> tokenRefresh(@RequestBody TokenRefreshRequest request) {
         return ResponseEntity.ok(APIResponse.success(authService.refreshToken(request)));
+    }
+
+    @PostMapping("/edit-user-info")
+    public ResponseEntity<APIResponse<UserResponse>> editUserInfo(@RequestBody UserInfoRequest request) {
+        return ResponseEntity.ok(APIResponse.success(authService.editUserInfo(request)));
     }
 
     @PostMapping("/forgot-password")

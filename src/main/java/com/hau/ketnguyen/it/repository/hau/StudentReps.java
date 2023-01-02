@@ -15,6 +15,7 @@ import java.util.Optional;
 public interface StudentReps extends CrudRepository<Students, Long> {
     Optional<Students> findByUserId(Integer userId);
     List<Students> findByClassIdIn(List<Long> classIds);
+    List<Students> findByUserIdIn(List<Integer> userIds);
 
     @Query("SELECT l FROM students l " +
             "LEFT JOIN User u ON l.userId = u.id " +

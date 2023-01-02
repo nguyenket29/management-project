@@ -2,6 +2,7 @@ package com.hau.ketnguyen.it.service.impl.auth;
 
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.AuthorityUtil;
+import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.JwtTokenUtil;
 import com.hau.ketnguyen.it.config.auth.Commons;
 import com.hau.ketnguyen.it.entity.auth.*;
@@ -11,6 +12,7 @@ import com.hau.ketnguyen.it.entity.hau.UserInfo;
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
 import com.hau.ketnguyen.it.model.request.auth.SignupRequest;
 import com.hau.ketnguyen.it.model.request.auth.TokenRefreshRequest;
+import com.hau.ketnguyen.it.model.request.auth.UserInfoRequest;
 import com.hau.ketnguyen.it.model.response.TokenRefreshResponse;
 import com.hau.ketnguyen.it.model.response.UserResponse;
 import com.hau.ketnguyen.it.repository.auth.*;
@@ -161,15 +163,44 @@ public class AuthServiceimpl implements AuthService {
     public UserResponse getInfo() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUser customUser = (CustomUser) authentication.getPrincipal();
-        Optional<User> userOpt = userService.findByUsernameAndStatus(customUser.getUsername(), User.Status.ACTIVE);
-
+        Optional<User> userOpt = userReps.findById(customUser.getId());
 
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             UserInfo userInfo = setUserInfo(user);
 
             Set<String> roles = AuthorityUtil.authorityListToSet(customUser.getAuthorities());
+            return UserResponse.builder()
+                    .email(user.getEmail())
+                    .username(user.getUsername())
+                    .status(user.getMapStatus().get(user.getStatus()))
+                    .type(user.getType())
+                    .address(userInfo.getAddress())
+                    .avatar(userInfo.getAvatar())
+                    .town(userInfo.getTown())
+                    .authorities(roles)
+                    .fullName(userInfo.getFullName())
+                    .dateOfBirth(userInfo.getDateOfBirth())
+                    .gender(user.getMapGender().get(userInfo.getGender()))
+                    .phoneNumber(userInfo.getPhoneNumber())
+                    .build();
+        }
+        return null;
+    }
 
+    @Override
+    public UserResponse editUserInfo(UserInfoRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUser customUser = (CustomUser) authentication.getPrincipal();
+        Optional<User> userOpt = userReps.findById(customUser.getId());
+
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            UserInfo userInfo = setUserInfo(user);
+            BeanUtil.copyNonNullProperties(request, userInfo);
+            userInfoReps.save(userInfo);
+
+            Set<String> roles = AuthorityUtil.authorityListToSet(customUser.getAuthorities());
             return UserResponse.builder()
                     .email(user.getEmail())
                     .username(user.getUsername())

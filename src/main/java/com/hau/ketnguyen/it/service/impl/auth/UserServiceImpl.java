@@ -189,8 +189,28 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(List<Integer> userIds) {
         if (userIds != null && !userIds.isEmpty()) {
             List<User> users = userReps.findByIds(userIds);
+            List<Long> userInfoIds = new ArrayList<>();
+            List<Students> students = studentReps.findByUserIdIn(userIds);
+            List<Lecturers> lecturers = lecturerReps.findByUserIdIn(userIds);
+
+            userInfoIds.addAll(students.stream().map(Students::getUserInfoId).collect(Collectors.toList()));
+            userInfoIds.addAll(lecturers.stream().map(Lecturers::getUserInfoId).collect(Collectors.toList()));
+            List<UserInfo> userInfos = userInfoReps.findByIdIn(userInfoIds);
+
             if (!users.isEmpty()) {
                 userReps.deleteAll(users);
+            }
+
+            if (!students.isEmpty()) {
+                studentReps.deleteAll(students);
+            }
+
+            if (!lecturers.isEmpty()) {
+                lecturerReps.deleteAll(lecturers);
+            }
+
+            if (!userInfos.isEmpty()) {
+                userInfoReps.deleteAll(userInfos);
             }
         }
     }
