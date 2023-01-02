@@ -69,6 +69,8 @@ public class FacultyServiceImpl implements FacultyService {
 
     @Override
     public PageDataResponse<FacultyDTO> getAll(SearchFacultyRequest request) {
+        setFacultyRequest(request);
+
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
         Page<FacultyDTO> facultiesPage = facultyReps.search(request, pageable).map(facultyMapper::to);
 
@@ -87,5 +89,19 @@ public class FacultyServiceImpl implements FacultyService {
         }
 
         return PageDataResponse.of(facultiesPage);
+    }
+
+    private void setFacultyRequest(SearchFacultyRequest request) {
+        if (request.getName() != null) {
+            request.setName(request.getName().toLowerCase());
+        }
+
+        if (request.getCode() != null) {
+            request.setCode(request.getCode().toLowerCase());
+        }
+
+        if (request.getSpecialization() != null) {
+            request.setSpecialization(request.getSpecialization().toLowerCase());
+        }
     }
 }

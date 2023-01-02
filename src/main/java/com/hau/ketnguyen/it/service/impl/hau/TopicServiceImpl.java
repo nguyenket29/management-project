@@ -106,6 +106,10 @@ public class TopicServiceImpl implements TopicService {
 
     @Override
     public PageDataResponse<TopicDTO> getAll(SearchTopicRequest request) {
+        if (request.getName() != null) {
+            request.setName(request.getName().toLowerCase());
+        }
+
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
         Page<TopicDTO> page = topicReps.search(request, pageable).map(topicMapper::to);
 

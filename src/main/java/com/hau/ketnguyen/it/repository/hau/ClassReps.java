@@ -16,8 +16,8 @@ import java.util.List;
 @Repository
 public interface ClassReps extends CrudRepository<Classes, Long> {
     @Query("SELECT c FROM classes c " +
-            "WHERE (:#{#request.code} IS NULL OR c.code LIKE %:#{#request.code}%) " +
-            " AND (:#{#request.name} IS NULL OR c.name LIKE %:#{#request.name}%) " +
+            "WHERE (:#{#request.code} IS NULL OR lower(c.code) LIKE %:#{#request.code}%) " +
+            " AND (:#{#request.name} IS NULL OR lower(c.name) LIKE %:#{#request.name}%) " +
             " AND (:#{#request.facultyId} IS NULL OR c.facultyId = :#{#request.facultyId}) " +
             " ORDER BY c.id desc")
     Page<Classes> search(SearchClassRequest request, Pageable pageable);

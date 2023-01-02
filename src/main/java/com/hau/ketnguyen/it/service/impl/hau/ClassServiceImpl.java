@@ -91,6 +91,14 @@ public class ClassServiceImpl implements ClassService {
 
     @Override
     public PageDataResponse<ClassDTO> getAll(SearchClassRequest request)  {
+        if (request.getName() != null) {
+            request.setName(request.getName().toLowerCase());
+        }
+
+        if (request.getCode() != null) {
+            request.setCode(request.getCode().toLowerCase());
+        }
+
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
         Page<ClassDTO> page = classReps.search(request, pageable).map(classMapper::to);
 

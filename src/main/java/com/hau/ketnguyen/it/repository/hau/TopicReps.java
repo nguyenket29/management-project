@@ -15,7 +15,7 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
     List<Topics> findByIdIn(List<Long> ids);
     @Query("SELECT c FROM topics c " +
             "WHERE (:#{#request.lecturerGuideId} IS NULL OR c.lecturerGuideId = :#{#request.lecturerGuideId}) " +
-            " AND (:#{#request.name} IS NULL OR c.name LIKE %:#{#request.name}%) " +
+            " AND (:#{#request.name} IS NULL OR lower(c.name) LIKE %:#{#request.name}%) " +
             " AND (:#{#request.lecturerCounterArgumentId} IS NULL OR c.lecturerCounterArgumentId = :#{#request.lecturerCounterArgumentId}) " +
             " AND (:#{#request.year} IS NULL OR c.year = :#{#request.year}) " +
             " ORDER BY c.id desc")

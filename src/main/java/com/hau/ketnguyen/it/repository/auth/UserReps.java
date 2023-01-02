@@ -19,8 +19,8 @@ public interface UserReps extends JpaRepository<User, Integer> {
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
     @Query("SELECT u FROM User u " +
-            "WHERE (:#{#request.username} IS NULL OR u.username = :#{#request.username}) " +
-            " AND (:#{#request.email} IS NULL OR u.email = :#{#request.email}) " +
+            "WHERE (:#{#request.username} IS NULL OR lower(u.username) LIKE %:#{#request.username}%) " +
+            " AND (:#{#request.email} IS NULL OR lower(u.email) LIKE %:#{#request.email}%) " +
             " AND (:#{#request.type} IS NULL OR u.type = :#{#request.type}) " +
             " AND (:#{#request.status} IS NULL OR u.status = :#{#request.status}) " +
             "ORDER BY u.id desc")

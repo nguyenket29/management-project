@@ -10,6 +10,7 @@ import com.hau.ketnguyen.it.model.dto.auth.UserInfoDTO;
 import com.hau.ketnguyen.it.model.dto.hau.ClassDTO;
 import com.hau.ketnguyen.it.model.dto.hau.StudentDTO;
 import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
+import com.hau.ketnguyen.it.model.request.hau.SearchLecturerRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchStudentRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
@@ -135,8 +136,9 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public PageDataResponse<StudentDTO> getAll(SearchStudentRequest request) {
+        setStudentRequest(request);
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
-        Page<StudentDTO> page = studentReps.search(request, pageable).map(studentMapper::to);
+         Page<StudentDTO> page = studentReps.search(request, pageable).map(studentMapper::to);
 
         if (!page.isEmpty()) {
             List<Long> topicIds = page.map(StudentDTO::getTopicId).toList();
@@ -166,5 +168,27 @@ public class StudentServiceImpl implements StudentService {
         }
 
         return PageDataResponse.of(page);
+    }
+
+    private void setStudentRequest(SearchStudentRequest request) {
+        if (request.getCodeStudent() != null) {
+            request.setCodeStudent(request.getCodeStudent().toLowerCase());
+        }
+
+        if (request.getAddress() != null) {
+            request.setAddress(request.getAddress().toLowerCase());
+        }
+
+        if (request.getEmail() != null) {
+            request.setEmail(request.getEmail().toLowerCase());
+        }
+
+        if (request.getFullName() != null) {
+            request.setFullName(request.getFullName().toLowerCase());
+        }
+
+        if (request.getPhoneNumber() != null) {
+            request.setPhoneNumber(request.getPhoneNumber().toLowerCase());
+        }
     }
 }

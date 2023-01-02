@@ -136,6 +136,10 @@ public class AssemblyServiceImpl implements AssemblyService {
 
     @Override
     public PageDataResponse<AssemblyDTO> getAll(SearchAssemblyRequest request) {
+        if (request.getNameAssembly() != null) {
+            request.setNameAssembly(request.getNameAssembly().toLowerCase());
+        }
+
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
         Page<AssemblyDTO> assemblyDTOS = assemblyReps.search(request, pageable).map(assemblyMapper::to);
 

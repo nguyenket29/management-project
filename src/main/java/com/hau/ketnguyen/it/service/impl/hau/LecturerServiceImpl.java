@@ -131,6 +131,7 @@ public class LecturerServiceImpl implements LecturerService {
 
     @Override
     public PageDataResponse<LecturerDTO> getAll(SearchLecturerRequest request) {
+        setLectureRequest(request);
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
         Page<LecturerDTO> page = lecturerReps.search(request, pageable).map(lecturerMapper::to);
 
@@ -156,4 +157,35 @@ public class LecturerServiceImpl implements LecturerService {
 
         return PageDataResponse.of(page);
     }
+
+    private void setLectureRequest(SearchLecturerRequest request) {
+        if (request.getCodeLecture() != null) {
+            request.setCodeLecture(request.getCodeLecture().toLowerCase());
+        }
+
+        if (request.getAddress() != null) {
+            request.setAddress(request.getAddress().toLowerCase());
+        }
+
+        if (request.getEmail() != null) {
+            request.setEmail(request.getEmail().toLowerCase());
+        }
+
+        if (request.getDegree() != null) {
+            request.setDegree(request.getDegree().toLowerCase());
+        }
+
+        if (request.getRegency() != null) {
+            request.setRegency(request.getRegency().toLowerCase());
+        }
+
+        if (request.getFullName() != null) {
+            request.setFullName(request.getFullName().toLowerCase());
+        }
+
+        if (request.getPhoneNumber() != null) {
+            request.setPhoneNumber(request.getPhoneNumber().toLowerCase());
+        }
+    }
+
 }

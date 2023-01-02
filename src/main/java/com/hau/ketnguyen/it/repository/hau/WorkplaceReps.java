@@ -13,10 +13,10 @@ import java.util.List;
 @Repository
 public interface WorkplaceReps extends CrudRepository<Workplaces, Long> {
     @Query("SELECT c FROM workplaces c " +
-            "WHERE (:#{#request.address} IS NULL OR c.address LIKE %:#{#request.address}%) " +
-            " AND (:#{#request.name} IS NULL OR c.name LIKE %:#{#request.name}%) " +
-            " AND (:#{#request.phoneNumber} IS NULL OR c.phoneNumber LIKE %:#{#request.phoneNumber}%) " +
-            " AND (:#{#request.email} IS NULL OR c.email LIKE %:#{#request.email}%) " +
+            "WHERE (:#{#request.address} IS NULL OR lower(c.address) LIKE %:#{#request.address}%) " +
+            " AND (:#{#request.name} IS NULL OR lower(c.name) LIKE %:#{#request.name}%) " +
+            " AND (:#{#request.phoneNumber} IS NULL OR lower(c.phoneNumber) LIKE %:#{#request.phoneNumber}%) " +
+            " AND (:#{#request.email} IS NULL OR lower(c.email) LIKE %:#{#request.email}%) " +
             " ORDER BY c.id desc")
     Page<Workplaces> search(SearchWorkplaceRequest request, Pageable pageable);
 

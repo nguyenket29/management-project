@@ -150,6 +150,14 @@ public class UserServiceImpl implements UserService {
      * */
     @Override
     public PageDataResponse<UserDTO> getAll(UserRequest request) {
+        if (request.getUsername() != null) {
+            request.setUsername(request.getUsername().toLowerCase());
+        }
+
+        if (request.getEmail() != null) {
+            request.setEmail(request.getEmail().toLowerCase());
+        }
+
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
         Page<UserDTO> pageData = userReps.search(request, pageable).map(userMapper::to);
         return PageDataResponse.of(pageData);

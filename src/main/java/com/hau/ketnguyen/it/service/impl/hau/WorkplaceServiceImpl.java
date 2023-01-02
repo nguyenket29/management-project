@@ -5,6 +5,7 @@ import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.hau.Workplaces;
 import com.hau.ketnguyen.it.model.dto.hau.WorkplaceDTO;
+import com.hau.ketnguyen.it.model.request.hau.SearchLecturerRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchWorkplaceRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.repository.hau.WorkplaceReps;
@@ -68,8 +69,27 @@ public class WorkplaceServiceImpl implements WorkplaceService {
 
     @Override
     public PageDataResponse<WorkplaceDTO> getAll(SearchWorkplaceRequest request) {
+        setWorkplaceRequest(request);
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
         Page<WorkplaceDTO> page = workplaceReps.search(request, pageable).map(workplaceMapper::to);
         return PageDataResponse.of(page);
+    }
+
+    private void setWorkplaceRequest(SearchWorkplaceRequest request) {
+        if (request.getAddress() != null) {
+            request.setAddress(request.getAddress().toLowerCase());
+        }
+
+        if (request.getEmail() != null) {
+            request.setEmail(request.getEmail().toLowerCase());
+        }
+
+        if (request.getName() != null) {
+            request.setName(request.getName().toLowerCase());
+        }
+
+        if (request.getPhoneNumber() != null) {
+            request.setPhoneNumber(request.getPhoneNumber().toLowerCase());
+        }
     }
 }
