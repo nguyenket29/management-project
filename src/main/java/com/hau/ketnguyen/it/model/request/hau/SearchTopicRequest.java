@@ -12,5 +12,6 @@ public class SearchTopicRequest extends BaseRequest {
     private Long srcCodeId;
     private Date year;
     private Float score;
-    private Long lecturerId;
+    private Long lecturerGuideId;
+    private Long lecturerCounterArgumentId;
 }

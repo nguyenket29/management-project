@@ -19,7 +19,10 @@ public class TopicDTO {
     private boolean status;
     private String description;
     private Date year;
-    private Float score;
-    private Long lecturerId;
-    private LecturerDTO lecturerDTO;
+    private Float scoreGuide;
+    private Float scoreCounterArgument;
+    private Long lecturerGuideId;
+    private Long lecturerCounterArgumentId;
+    private LecturerDTO lecturerGuideDTO;
+    private LecturerDTO lecturerCounterArgumentDTO;
 }

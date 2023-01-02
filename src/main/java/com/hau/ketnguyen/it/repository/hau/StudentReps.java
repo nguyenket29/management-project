@@ -21,7 +21,9 @@ public interface StudentReps extends CrudRepository<Students, Long> {
             "LEFT JOIN UserInfo ui ON l.userId = ui.id " +
             "WHERE (:#{#request.fullName} IS NULL OR ui.fullName LIKE %:#{#request.fullName}%) " +
             " AND (:#{#request.email} IS NULL OR u.email LIKE %:#{#request.email}%) " +
-            " AND (:#{#request.phoneNumber} IS NULL OR ui.phoneNumber LIKE %:#{#request.phoneNumber}%) " +
+            " AND (:#{#request.codeStudent} IS NULL OR l.codeStudent = :#{#request.codeStudent}) " +
+            " AND (:#{#request.stdPass} IS NULL OR l.stdPass = :#{#request.stdPass}) " +
+            " AND (:#{#request.phoneNumber} IS NULL OR ui.phoneNumber = :#{#request.phoneNumber}) " +
             " AND (:#{#request.address} IS NULL OR ui.address LIKE %:#{#request.address}%) " +
             " AND (:#{#request.topicId} IS NULL OR l.topicId = :#{#request.topicId}) " +
             " AND (:#{#request.classId} IS NULL OR l.classId = :#{#request.classId}) " +

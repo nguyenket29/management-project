@@ -3,9 +3,7 @@ package com.hau.ketnguyen.it.service.impl.hau;
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
-import com.hau.ketnguyen.it.entity.auth.CustomUser;
 import com.hau.ketnguyen.it.entity.hau.Topics;
-import com.hau.ketnguyen.it.entity.hau.UserInfo;
 import com.hau.ketnguyen.it.model.dto.hau.LecturerDTO;
 import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
 import com.hau.ketnguyen.it.model.request.hau.SearchTopicRequest;
@@ -21,15 +19,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -81,10 +74,31 @@ public class TopicServiceImpl implements TopicService {
         }
 
         TopicDTO topicDTO = topicMapper.to(topicsOptional.get());
-        if (topicDTO.getLecturerId() != null) {
-            LecturerDTO lecturerDTO = lecturerReps.findById(topicDTO.getLecturerId()).map(lecturerMapper::to)
-                    .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên"));
-            topicDTO.setLecturerDTO(lecturerDTO);
+        if (topicDTO.getLecturerGuideId() != null || topicDTO.getLecturerCounterArgumentId() != null) {
+            List<Long> lectureIds = new ArrayList<>();
+
+            if (topicDTO.getLecturerGuideId() != null) {
+                lectureIds.add(topicDTO.getLecturerGuideId());
+            }
+
+            if (topicDTO.getLecturerCounterArgumentId() != null) {
+                lectureIds.add(topicDTO.getLecturerCounterArgumentId());
+            }
+
+            Map<Long, LecturerDTO> lecturerDTO = lecturerReps.findByIdIn(lectureIds).stream()
+                    .map(lecturerMapper::to).collect(Collectors.toMap(LecturerDTO::getId, l -> l));
+
+            if (lecturerDTO.isEmpty()) {
+                throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên");
+            }
+
+            if (lecturerDTO.containsKey(topicDTO.getLecturerGuideId())) {
+                topicDTO.setLecturerGuideDTO(lecturerDTO.get(topicDTO.getLecturerGuideId()));
+            }
+
+            if (lecturerDTO.containsKey(topicDTO.getLecturerCounterArgumentId())) {
+                topicDTO.setLecturerCounterArgumentDTO(lecturerDTO.get(topicDTO.getLecturerCounterArgumentId()));
+            }
         }
 
         return topicDTO;
@@ -96,11 +110,21 @@ public class TopicServiceImpl implements TopicService {
         Page<TopicDTO> page = topicReps.search(request, pageable).map(topicMapper::to);
 
         if (!page.isEmpty()) {
-            List<Long> lectureIds = page.map(TopicDTO::getLecturerId).toList();
-            Map<Long, LecturerDTO> lecturerDTOMap = setLecture(lectureIds);
+            List<Long> lectureGuideIds = page.map(TopicDTO::getLecturerGuideId).stream().distinct().collect(Collectors.toList());
+            List<Long> lectureCounterArgumentIds = page.map(TopicDTO::getLecturerCounterArgumentId).stream().distinct().collect(Collectors.toList());
+
+            List<Long> lectureIds = new ArrayList<>();
+            lectureIds.addAll(lectureGuideIds);
+            lectureIds.addAll(lectureCounterArgumentIds);
+
+            Map<Long, LecturerDTO> lecturerDTOMap = setLecture(lectureIds.stream().distinct().collect(Collectors.toList()));
             page.forEach(p -> {
-                if (lecturerDTOMap.containsKey(p.getLecturerId())) {
-                    p.setLecturerDTO(lecturerDTOMap.get(p.getLecturerId()));
+                if (p.getLecturerGuideId() != null && lecturerDTOMap.containsKey(p.getLecturerGuideId())) {
+                    p.setLecturerGuideDTO(lecturerDTOMap.get(p.getLecturerGuideId()));
+                }
+
+                if (p.getLecturerCounterArgumentId() != null && lecturerDTOMap.containsKey(p.getLecturerCounterArgumentId())) {
+                    p.setLecturerCounterArgumentDTO(lecturerDTOMap.get(p.getLecturerCounterArgumentId()));
                 }
             });
         }

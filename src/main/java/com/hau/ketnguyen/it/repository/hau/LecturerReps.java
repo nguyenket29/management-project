@@ -19,9 +19,10 @@ public interface LecturerReps extends CrudRepository<Lecturers, Long> {
             "LEFT JOIN UserInfo ui ON l.userId = ui.id " +
             "WHERE (:#{#request.degree} IS NULL OR l.degree LIKE %:#{#request.degree}%) " +
             " AND (:#{#request.regency} IS NULL OR l.regency LIKE %:#{#request.regency}%) " +
+            " AND (:#{#request.codeLecture} IS NULL OR l.codeLecture = :#{#request.codeLecture}) " +
             " AND (:#{#request.fullName} IS NULL OR ui.fullName LIKE %:#{#request.fullName}%) " +
             " AND (:#{#request.email} IS NULL OR u.email LIKE %:#{#request.email}%) " +
-            " AND (:#{#request.phoneNumber} IS NULL OR ui.phoneNumber LIKE %:#{#request.phoneNumber}%) " +
+            " AND (:#{#request.phoneNumber} IS NULL OR ui.phoneNumber = :#{#request.phoneNumber}) " +
             " AND (:#{#request.address} IS NULL OR ui.address LIKE %:#{#request.address}%) " +
             " AND (:#{#request.facultyId} IS NULL OR l.facultyId = :#{#request.facultyId}) " +
             " AND (:#{#request.dateOfBirth} IS NULL OR ui.dateOfBirth = :#{#request.dateOfBirth}) " +

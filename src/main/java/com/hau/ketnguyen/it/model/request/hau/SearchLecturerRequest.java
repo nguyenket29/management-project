@@ -8,6 +8,7 @@ import java.util.Date;
 
 @Data
 public class SearchLecturerRequest extends BaseRequest {
+    private String codeLecture;
     private String fullName;
     private Short gender;
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)

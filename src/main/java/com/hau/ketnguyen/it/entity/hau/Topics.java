@@ -32,9 +32,15 @@ public class Topics extends BaseEntity {
     @Column(name = "status", columnDefinition = "boolean default false")
     private boolean status;
 
-    @Column(name = "score")
-    private Float score;
+    @Column(name = "score_guide", columnDefinition = "float default 0")
+    private Float scoreGuide;
 
-    @Column(name = "lecturer_id")
-    private Long lecturerId;
+    @Column(name = "score_counter_argument", columnDefinition = "float default 0")
+    private Float scoreCounterArgument;
+
+    @Column(name = "lecturer_guide_id")
+    private Long lecturerGuideId;
+
+    @Column(name = "lecturer_counter_argument_id")
+    private Long lecturerCounterArgumentId;
 }
