@@ -175,6 +175,10 @@ public class LecturerServiceImpl implements LecturerService {
             request.setDegree(request.getDegree().toLowerCase());
         }
 
+        if (request.getTown() != null) {
+            request.setTown(request.getTown().toLowerCase());
+        }
+
         if (request.getRegency() != null) {
             request.setRegency(request.getRegency().toLowerCase());
         }

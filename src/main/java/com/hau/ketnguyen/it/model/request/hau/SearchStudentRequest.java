@@ -12,6 +12,7 @@ public class SearchStudentRequest extends BaseRequest {
     private Short gender;
     private Instant dateOfBirth;
     private String address;
+    private String town;
     private String codeStudent;
     private Boolean stdPass;
     private String email;

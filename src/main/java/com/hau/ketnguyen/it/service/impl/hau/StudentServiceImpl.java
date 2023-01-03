@@ -179,6 +179,10 @@ public class StudentServiceImpl implements StudentService {
             request.setAddress(request.getAddress().toLowerCase());
         }
 
+        if (request.getTown() != null) {
+            request.setTown(request.getTown().toLowerCase());
+        }
+
         if (request.getEmail() != null) {
             request.setEmail(request.getEmail().toLowerCase());
         }

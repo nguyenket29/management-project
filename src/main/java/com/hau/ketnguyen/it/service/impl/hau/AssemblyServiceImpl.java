@@ -6,12 +6,15 @@ import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.hau.Assemblies;
+import com.hau.ketnguyen.it.entity.hau.Lecturers;
 import com.hau.ketnguyen.it.entity.hau.Topics;
+import com.hau.ketnguyen.it.entity.hau.UserInfo;
 import com.hau.ketnguyen.it.model.dto.hau.AssemblyDTO;
 import com.hau.ketnguyen.it.model.dto.hau.LecturerDTO;
 import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
 import com.hau.ketnguyen.it.model.request.hau.SearchAssemblyRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
+import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
 import com.hau.ketnguyen.it.repository.hau.AssemblyReps;
 import com.hau.ketnguyen.it.repository.hau.LecturerReps;
 import com.hau.ketnguyen.it.repository.hau.TopicReps;
@@ -26,10 +29,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -42,6 +42,7 @@ public class AssemblyServiceImpl implements AssemblyService {
     private final TopicMapper topicMapper;
     private final LecturerReps lecturerReps;
     private final LecturerMapper lecturerMapper;
+    private final UserInfoReps userInfoReps;
 
     @Override
     public AssemblyDTO save(AssemblyDTO assemblyDTO) {
@@ -115,7 +116,9 @@ public class AssemblyServiceImpl implements AssemblyService {
         if (assemblyDTO.getLecturerIds() != null && !assemblyDTO.getLecturerIds().isEmpty()) {
             List<Integer> lectureIds = null;
             try {
-                lectureIds = objectMapper.readValue(assemblyDTO.getLecturerIds(), List.class);
+                if (assemblyDTO.getLecturerIds() != null) {
+                    lectureIds = objectMapper.readValue(assemblyDTO.getLecturerIds(), List.class);
+                }
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
@@ -126,9 +129,7 @@ public class AssemblyServiceImpl implements AssemblyService {
                 lectureIds.forEach(l -> lectureIdLong.add(Long.parseLong(l.toString())));
             }
 
-            List<LecturerDTO> lecturers = lecturerReps.findByIdIn(lectureIdLong).stream()
-                    .map(lecturerMapper::to).collect(Collectors.toList());
-            assemblyDTO.setLecturerDTOS(lecturers);
+            assemblyDTO.setLecturerDTOS(new ArrayList<>(setLecture(lectureIdLong).values()));
         }
 
         return assemblyDTO;
@@ -136,6 +137,7 @@ public class AssemblyServiceImpl implements AssemblyService {
 
     @Override
     public PageDataResponse<AssemblyDTO> getAll(SearchAssemblyRequest request) {
+        ObjectMapper objectMapper = new ObjectMapper();
         if (request.getNameAssembly() != null) {
             request.setNameAssembly(request.getNameAssembly().toLowerCase());
         }
@@ -148,13 +150,82 @@ public class AssemblyServiceImpl implements AssemblyService {
             Map<Long, TopicDTO> topicDTOMap = topicReps.findByIdIn(topicIds)
                     .stream().map(topicMapper::to).collect(Collectors.toMap(TopicDTO::getId, t -> t));
 
+            Map<Long, List<Long>> mapTopicLectrueIds = new HashMap<>();
+            List<Long> idLectures = new ArrayList<>();
+            assemblyDTOS.forEach(l -> {
+                List<Integer> lectureIds = null;
+                try {
+                    if (l.getLecturerIds() != null) {
+                        lectureIds = objectMapper.readValue(l.getLecturerIds(), List.class);
+                    }
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+
+                List<Long> lectureIdLong = new ArrayList<>();
+
+                if (lectureIds != null && !lectureIds.isEmpty()) {
+                    lectureIds.forEach(i -> lectureIdLong.add(Long.parseLong(i.toString())));
+                }
+
+                idLectures.addAll(lectureIdLong);
+                mapTopicLectrueIds.put(l.getId(), lectureIdLong);
+            });
+
+            Map<Long, LecturerDTO> lecturerDTOMap = setLecture(idLectures);
+            Map<Long, List<LecturerDTO>> mapTopicWithLectureDTO = new HashMap<>();
+            if (!mapTopicLectrueIds.isEmpty()) {
+                mapTopicLectrueIds.forEach((k, v) -> {
+                    if (v != null && !v.isEmpty()) {
+                        List<LecturerDTO> list = new ArrayList<>();
+                        v.forEach(i -> {
+                            if (!lecturerDTOMap.isEmpty() && lecturerDTOMap.containsKey(i)) {
+                                list.add(lecturerDTOMap.get(i));
+                            }
+                        });
+                        mapTopicWithLectureDTO.put(k, list);
+                    }
+                });
+            }
+
             assemblyDTOS.forEach(a -> {
                 if (!topicDTOMap.isEmpty() && topicDTOMap.containsKey(a.getTopicId())) {
                     a.setTopicDTO(topicDTOMap.get(a.getTopicId()));
+                }
+
+                if (!mapTopicWithLectureDTO.isEmpty() && mapTopicWithLectureDTO.containsKey(a.getTopicId())) {
+                    a.setLecturerDTOS(mapTopicWithLectureDTO.get(a.getTopicId()));
                 }
             });
         }
 
         return PageDataResponse.of(assemblyDTOS);
+    }
+
+    private Map<Long, LecturerDTO> setLecture(List<Long> lectureIds) {
+        return getLongLecturerDTOMap(lectureIds, lecturerReps, lecturerMapper, userInfoReps);
+    }
+
+    static Map<Long, LecturerDTO> getLongLecturerDTOMap(List<Long> lectureIds, LecturerReps lecturerReps, LecturerMapper lecturerMapper, UserInfoReps userInfoReps) {
+        Map<Long, LecturerDTO> lecturerDTOMap = new HashMap<>();
+        if (lectureIds != null && !lectureIds.isEmpty()) {
+            List<Lecturers> lecturers = lecturerReps.findByIdIn(lectureIds);
+            lecturerDTOMap = lecturers.stream().map(lecturerMapper::to)
+                    .collect(Collectors.toMap(LecturerDTO::getId, l -> l));
+
+            if (!lecturers.isEmpty()) {
+                List<Long> userIdInfos = lecturers.stream().map(Lecturers::getUserInfoId).distinct().collect(Collectors.toList());
+                Map<Long, String> userInfos = userInfoReps.findByIdIn(userIdInfos).stream()
+                        .collect(Collectors.toMap(UserInfo::getId, UserInfo::getFullName));
+                lecturerDTOMap.forEach((k, v) -> {
+                    if (v != null) {
+                        if (!userInfos.isEmpty() && userInfos.containsKey(v.getUserInfoId())) {
+                            v.setFullName(userInfos.get(v.getUserInfoId()));
+                        }
+                    }
+                });
+            }
+        }
+        return lecturerDTOMap;
     }
 }

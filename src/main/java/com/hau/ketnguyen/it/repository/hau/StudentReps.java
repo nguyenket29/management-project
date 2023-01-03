@@ -26,6 +26,7 @@ public interface StudentReps extends CrudRepository<Students, Long> {
             " AND (:#{#request.stdPass} IS NULL OR l.stdPass = :#{#request.stdPass}) " +
             " AND (:#{#request.phoneNumber} IS NULL OR lower(ui.phoneNumber) = :#{#request.phoneNumber}) " +
             " AND (:#{#request.address} IS NULL OR lower(ui.address) LIKE %:#{#request.address}%) " +
+            " AND (:#{#request.town} IS NULL OR lower(ui.town) LIKE %:#{#request.town}%) " +
             " AND (:#{#request.topicId} IS NULL OR l.topicId = :#{#request.topicId}) " +
             " AND (:#{#request.classId} IS NULL OR l.classId = :#{#request.classId}) " +
             " AND (:#{#request.dateOfBirth} IS NULL OR ui.dateOfBirth = :#{#request.dateOfBirth}) " +
