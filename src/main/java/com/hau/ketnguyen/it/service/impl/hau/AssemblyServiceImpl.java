@@ -193,8 +193,8 @@ public class AssemblyServiceImpl implements AssemblyService {
                     a.setTopicDTO(topicDTOMap.get(a.getTopicId()));
                 }
 
-                if (!mapTopicWithLectureDTO.isEmpty() && mapTopicWithLectureDTO.containsKey(a.getTopicId())) {
-                    a.setLecturerDTOS(mapTopicWithLectureDTO.get(a.getTopicId()));
+                if (!mapTopicWithLectureDTO.isEmpty() && mapTopicWithLectureDTO.containsKey(a.getId())) {
+                    a.setLecturerDTOS(mapTopicWithLectureDTO.get(a.getId()));
                 }
             });
         }
