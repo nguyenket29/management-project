@@ -57,11 +57,11 @@ public class AuthController {
         return ResponseEntity.ok(APIResponse.success(authService.verifyAccount(code)));
     }
 
-    @GetMapping("/forgot-password")
-    public ResponseEntity<APIResponse<Boolean>> forgotPassword(@RequestParam String email, HttpServletRequest request) throws MessagingException {
-        authService.forgotPassword(email, request);
-        return ResponseEntity.ok(APIResponse.success());
-    }
+//    @GetMapping("/forgot-password")
+//    public ResponseEntity<APIResponse<Boolean>> forgotPassword(@RequestParam String email, HttpServletRequest request) throws MessagingException {
+//        authService.forgotPassword(email, request);
+//        return ResponseEntity.ok(APIResponse.success());
+//    }
 
     @GetMapping("/account")
     public ResponseEntity<APIResponse<UserResponse>> getAccount() {

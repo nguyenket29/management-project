@@ -29,11 +29,11 @@ public class UserResponse {
     private String avatar;
     private Instant dateOfBirth;
     private String town;
-    private String gender;
+    private Short gender;
     private String marriageStatus;
     private String address;
     private String phoneNumber;
-    private String status;
+    private Short status;
     private String type;
     private Set<String> authorities;
 }

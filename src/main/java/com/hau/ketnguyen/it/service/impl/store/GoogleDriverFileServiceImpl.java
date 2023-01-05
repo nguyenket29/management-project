@@ -13,10 +13,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 @Service
@@ -53,11 +55,13 @@ public class GoogleDriverFileServiceImpl implements GoogleDriverFile {
     }
 
     @Override
-    public void downloadFile(String id, OutputStream outputStream, HttpServletResponse response) throws IOException, GeneralSecurityException {
+    public byte[] downloadFile(String id, OutputStream outputStream, HttpServletResponse response) throws IOException, GeneralSecurityException {
         File file = googleFileManager.getFileById(id);
         response.setContentType(file.getMimeType());
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getName() + "\"");
         googleFileManager.downloadFile(id, outputStream);
+        outputStream = new ByteArrayOutputStream();
+        return ((ByteArrayOutputStream) outputStream).toByteArray();
     }
 
     @Override

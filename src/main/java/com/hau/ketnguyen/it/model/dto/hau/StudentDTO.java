@@ -1,6 +1,5 @@
 package com.hau.ketnguyen.it.model.dto.hau;
 
-import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
 import com.hau.ketnguyen.it.model.dto.auth.UserInfoDTO;
 import lombok.Builder;
 import lombok.Data;

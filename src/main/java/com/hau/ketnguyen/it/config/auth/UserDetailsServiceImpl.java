@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -25,8 +26,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userService.findByUsernameAndStatus(username, User.Status.ACTIVE).orElseThrow(
-                () -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Username not found!"));
+        Optional<User> userOptional = userService.findByUsernameAndStatus(username, User.Status.ACTIVE);
+
+        if (userOptional.isEmpty()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Tài khoản đã bị xóa hoặc khóa, vui lòng liên hệ quản trị viên!");
+        }
+
+        User user = userOptional.get();
+
         List<GrantedAuthority> authorites = user.getRoles()
                 .stream().map(role -> {
                     if (role != null) {

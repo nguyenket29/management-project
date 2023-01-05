@@ -13,4 +13,6 @@ public interface UserInfoReps extends JpaRepository<UserInfo, Long> {
     List<UserInfo> findByIdIn(List<Long> userIds);
     @Query("select ui from UserInfo ui")
     List<UserInfo> getListUserInfo();
+
+    Optional<UserInfo> findByUserId(Integer userId);
 }

@@ -132,8 +132,8 @@ public class AuthServiceimpl implements AuthService {
     }
 
     public UserInfo setUserInfo(User userEntity) {
-        UserInfo userInfo = new UserInfo();
-        if (userEntity.getType().equalsIgnoreCase(STUDENT.name())) {
+        UserInfo userInfo;
+        if (userEntity.getType() != null && userEntity.getType().equalsIgnoreCase(STUDENT.name())) {
             Optional<Students> studentOptional = studentReps.findByUserId(userEntity.getId());
 
             if (studentOptional.isEmpty()) {
@@ -142,7 +142,7 @@ public class AuthServiceimpl implements AuthService {
 
             userInfo = userInfoReps.findById(studentOptional.get().getUserInfoId())
                     .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin sinh viên"));
-        } else if (userEntity.getType().equalsIgnoreCase(LECTURE.name())) {
+        } else if (userEntity.getType() != null && userEntity.getType().equalsIgnoreCase(LECTURE.name())) {
             Optional<Lecturers> lecturersOptional = lecturerReps.findByUserId(userEntity.getId());
 
             if (lecturersOptional.isEmpty()) {
@@ -151,6 +151,16 @@ public class AuthServiceimpl implements AuthService {
 
             userInfo = userInfoReps.findById(lecturersOptional.get().getUserInfoId())
                     .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin giảng viên"));
+        } else {
+            Optional<UserInfo> userInfoOptional = userInfoReps.findByUserId(userEntity.getId());
+
+            if (userInfoOptional.isPresent()) {
+                userInfo = userInfoOptional.get();
+            } else {
+                userInfo = new UserInfo();
+                userInfo.setUserId(userEntity.getId());
+                userInfoReps.save(userInfo);
+            }
         }
         return userInfo;
     }
@@ -173,7 +183,7 @@ public class AuthServiceimpl implements AuthService {
             return UserResponse.builder()
                     .email(user.getEmail())
                     .username(user.getUsername())
-                    .status(user.getMapStatus().get(user.getStatus()))
+                    .status(user.getStatus())
                     .type(user.getType())
                     .address(userInfo.getAddress())
                     .avatar(userInfo.getAvatar())
@@ -181,7 +191,7 @@ public class AuthServiceimpl implements AuthService {
                     .authorities(roles)
                     .fullName(userInfo.getFullName())
                     .dateOfBirth(userInfo.getDateOfBirth())
-                    .gender(user.getMapGender().get(userInfo.getGender()))
+                    .gender(userInfo.getGender())
                     .phoneNumber(userInfo.getPhoneNumber())
                     .build();
         }
@@ -204,7 +214,7 @@ public class AuthServiceimpl implements AuthService {
             return UserResponse.builder()
                     .email(user.getEmail())
                     .username(user.getUsername())
-                    .status(user.getMapStatus().get(user.getStatus()))
+                    .status(user.getStatus())
                     .type(user.getType())
                     .address(userInfo.getAddress())
                     .avatar(userInfo.getAvatar())
@@ -212,7 +222,7 @@ public class AuthServiceimpl implements AuthService {
                     .authorities(roles)
                     .fullName(userInfo.getFullName())
                     .dateOfBirth(userInfo.getDateOfBirth())
-                    .gender(user.getMapGender().get(userInfo.getGender()))
+                    .gender(userInfo.getGender())
                     .phoneNumber(userInfo.getPhoneNumber())
                     .build();
         }

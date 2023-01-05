@@ -38,4 +38,7 @@ public class UserInfo extends BaseEntity {
 
     @Column(name = "phone_number")
     private String phoneNumber;
+
+    @Column(name = "user_id")
+    private Integer userId;
 }

@@ -46,19 +46,11 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
             return;
         }
 
-//        String method = request.getMethod();
-//        String path = request.getServletPath();
         UsernamePasswordAuthenticationToken authentication = getAuthentication(token);
         if (authentication == null) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Thông tin xác thực không hợp lệ");
             return;
         }
-
-//        String username = authentication.getName();
-//        if (!checkPermission(username, path)) {
-//            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Path không hợp lệ");
-//            return;
-//        }
 
         log.info("\n\n ===>>> When before update SecurityContextHolder. Authentication: {} \n\n",
                 JsonUtil.toJson(SecurityContextHolder.getContext().getAuthentication()));
@@ -133,72 +125,6 @@ public class JWTAuthorizationFilter extends BasicAuthenticationFilter {
 
         return grantedAuthorities;
     }
-
-    /*private boolean checkPermission(String username, String path) throws APIException {
-        if (StringUtil.isEmpty(username)) {
-            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("===>>> Tài khoản không hợp lệ!");
-        }
-        if (StringUtil.isEmpty(path)) {
-            return false;
-        }
-
-        User user = userService.findByUsernameAndStatus(username, User.Status.ACTIVE)
-                .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("===>>> Tài khoản không tồn tại!"));
-
-        if (CollectionUtils.isEmpty(user.getGroups())) {
-            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("===>>> Tài khoản không hợp lệ!");
-        }
-
-        List<Role> roles = new ArrayList<>();
-        user.getRoles().forEach(r -> {
-            if (r.getPath().equals(path)) {
-                roles.add(r);
-            }
-        });
-
-        boolean valid = false;
-        if (!roles.isEmpty()) {
-            valid = user.getGroups()
-                    .stream()
-                    .anyMatch(ug -> ug.getGroup().getRoles().containsAll(roles));
-        }
-        return valid;
-    }*/
-
-    /*private Set<String> getRoles(String username, String method, String path) throws APIException {
-        if (StringUtil.isEmpty(username)) {
-            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("===>>> Tài khoản không hợp lệ!");
-        }
-        User user = userService.findByUsernameAndStatus(username, User.Status.ACTIVE)
-                .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND)
-                        .withMessage("===>>> Tài khoản không tồn tại!"));
-        Set<String> roles = new HashSet<String>();
-        roles.add(Commons.DEFAULT_ROLE);
-
-        if (!CollectionUtils.isEmpty(user.getGroups())) {
-            List<Group> groups = user.getGroups()
-                    .stream()
-                    .map(UserGroup::getGroup)
-                    .collect(Collectors.toList());
-
-            groups.forEach(g -> roles.addAll(getRoles(g, method, path)));
-        }
-        return roles;
-    }*/
-
-    /*private Set<String> getRoles(Group group, String method, String path) {
-        Set<String> roles = new HashSet<>();
-        if (!CollectionUtils.isEmpty(group.getRoles())) {
-            group.getRoles().forEach(r -> {
-                if (Objects.nonNull(path) && Objects.nonNull(method)) {
-                    if (Objects.equals(r.getPath(), path)) {
-                        roles.add(r.getCode());
-                    }
-                }
-            });
-        }
-        return roles;
-    }*/
 
     private Set<String> getRoles(String username) {
         Set<String> roles = new HashSet<>();
