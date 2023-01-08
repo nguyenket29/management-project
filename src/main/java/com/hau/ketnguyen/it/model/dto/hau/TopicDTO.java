@@ -16,7 +16,7 @@ public class TopicDTO {
     private String name;
     private Integer stdNumber;
     private String fileId;
-    private boolean status;
+    private Boolean status;
     private String description;
     private Date year;
     private Float scoreGuide;

@@ -30,7 +30,7 @@ public class Topics extends BaseEntity {
     private String description;
 
     @Column(name = "status", columnDefinition = "boolean default false")
-    private boolean status;
+    private Boolean status;
 
     @Column(name = "score_guide", columnDefinition = "float default 0")
     private Float scoreGuide;
