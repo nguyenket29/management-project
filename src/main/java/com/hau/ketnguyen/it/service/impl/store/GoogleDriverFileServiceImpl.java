@@ -55,6 +55,22 @@ public class GoogleDriverFileServiceImpl implements GoogleDriverFile {
     }
 
     @Override
+    public List<String> uploadMultiFile(MultipartFile[] file, String filePath, boolean isPublic) {
+        String type = "";
+        String role = "";
+        if (isPublic) {
+            // Public file of folder for everyone
+            type = "anyone";
+            role = "reader";
+        } else {
+            // Private
+            type = "private";
+            role = "private";
+        }
+        return googleFileManager.uploadMultiFile(file, filePath, type, role);
+    }
+
+    @Override
     public byte[] downloadFile(String id, OutputStream outputStream, HttpServletResponse response) throws IOException, GeneralSecurityException {
         File file = googleFileManager.getFileById(id);
         response.setContentType(file.getMimeType());

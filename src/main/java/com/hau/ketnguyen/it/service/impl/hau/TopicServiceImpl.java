@@ -113,7 +113,7 @@ public class TopicServiceImpl implements TopicService {
             }
         }
 
-        Map<Long, List<Long>> fileIdsLong = mapTopicIdWithListFileId(Collections.singletonList(id));
+        Map<Long, List<String>> fileIdsLong = mapTopicIdWithListFileId(Collections.singletonList(id));
 
         if (!fileIdsLong.isEmpty() && fileIdsLong.containsKey(id)) {
             topicDTO.setFileIds(fileIdsLong.get(id));
@@ -122,27 +122,22 @@ public class TopicServiceImpl implements TopicService {
         return topicDTO;
     }
 
-    private Map<Long, List<Long>> mapTopicIdWithListFileId(List<Long> topicIds) {
+    private Map<Long, List<String>> mapTopicIdWithListFileId(List<Long> topicIds) {
         ObjectMapper objectMapper = new ObjectMapper();
-        Map<Long, List<Long>> map = new HashMap<>();
+        Map<Long, List<String>> map = new HashMap<>();
 
         List<Topics> topics = topicReps.findByIdIn(topicIds);
         if (!topics.isEmpty()) {
             topics.forEach(t -> {
-                List<Long> fileIdsLong = new ArrayList<>();
+                List<String> fileIds = new ArrayList<>();
                 if (t.getFileId() != null && !t.getFileId().isEmpty()) {
-                    List<Integer> fileTopicIds = null;
                     try {
-                        fileTopicIds = objectMapper.readValue(t.getFileId(), List.class);
+                        fileIds = objectMapper.readValue(t.getFileId(), List.class);
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);
                     }
-
-                    if (fileTopicIds != null && !fileTopicIds.isEmpty()) {
-                        fileTopicIds.forEach(l -> fileIdsLong.add(Long.parseLong(l.toString())));
-                    }
                 }
-                map.put(t.getId(), fileIdsLong);
+                map.put(t.getId(), fileIds);
             });
         }
 
@@ -172,7 +167,7 @@ public class TopicServiceImpl implements TopicService {
             lectureIds.addAll(lectureCounterArgumentIds);
 
             Map<Long, LecturerDTO> lecturerDTOMap = setLecture(lectureIds.stream().distinct().collect(Collectors.toList()));
-            Map<Long, List<Long>> mapFileIds = mapTopicIdWithListFileId(topicIds);
+            Map<Long, List<String>> mapFileIds = mapTopicIdWithListFileId(topicIds);
             page.forEach(p -> {
                 if (p.getLecturerGuideId() != null && lecturerDTOMap.containsKey(p.getLecturerGuideId())) {
                     p.setLecturerGuideDTO(lecturerDTOMap.get(p.getLecturerGuideId()));
@@ -196,20 +191,25 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Override
-    public void uploadFile(MultipartFile[] file, Long topicId) throws IOException {
+    public void uploadFile(MultipartFile[] file, String filePath, boolean isPublic, Long topicId) {
         ObjectMapper objectMapper = new ObjectMapper();
-        List<Long> fileIds = fileService.uploadFile(file);
-        String fileId = objectMapper.writeValueAsString(fileIds);
+        List<String> fileIds = googleDriverFile.uploadMultiFile(file, filePath, isPublic);
+        if (fileIds != null && !fileIds.isEmpty()) {
+            Optional<Topics> topicsOptional = topicReps.findById(topicId);
 
-        Optional<Topics> topicsOptional = topicReps.findById(topicId);
+            if (topicsOptional.isEmpty()) {
+                throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đề tài");
+            }
 
-        if (topicsOptional.isEmpty()) {
-            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đề tài");
+            Topics topic = topicsOptional.get();
+            String fileId = null;
+            try {
+                fileId = objectMapper.writeValueAsString(fileIds);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            topic.setFileId(fileId);
+            topicReps.save(topic);
         }
-
-        Topics topic = topicsOptional.get();
-        topic.setFileId(fileId);
-
-        topicReps.save(topic);
     }
 }

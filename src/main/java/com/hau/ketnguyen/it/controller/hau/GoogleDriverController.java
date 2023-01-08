@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.List;
 
 @RestController
 @Api(value = "Google Driver Controller", description = "Các APIs quản lý tệp lưu trên gg driver")
@@ -55,6 +56,21 @@ public class GoogleDriverController {
             pathFile = "Root";
         }
         return ResponseEntity.ok(APIResponse.success(googleDriveFileService.uploadFile(fileUpload, pathFile, Boolean.parseBoolean(shared))));
+    }
+
+    // Upload file to public
+    @PostMapping(value = "/upload/multi-file",
+            consumes = {MediaType.MULTIPART_FORM_DATA_VALUE},
+            produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<APIResponse<List<String>>> uploadMultiFile(@RequestParam("fileUpload") MultipartFile[] fileUpload,
+                                                             @RequestParam("filePath") String pathFile,
+                                                             @RequestParam("shared") String shared) {
+        System.out.println(pathFile);
+        if (pathFile.equals("")) {
+            // Save to default folder if the user does not select a folder to save - you can change it
+            pathFile = "Root";
+        }
+        return ResponseEntity.ok(APIResponse.success(googleDriveFileService.uploadMultiFile(fileUpload, pathFile, Boolean.parseBoolean(shared))));
     }
 
     // Delete file by id

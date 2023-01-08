@@ -12,8 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-
 @RestController
 @Api(value = "Topic Controller", description = "Các APIs quản lý đề tài")
 @RequestMapping("/topics")
@@ -49,9 +47,11 @@ public class TopicController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<APIResponse<Void>> uploadAvatar(@RequestParam("file") MultipartFile[] file,
-                                                          @RequestParam("topicId") Long topicId) throws IOException {
-        topicService.uploadFile(file, topicId);
+    public ResponseEntity<APIResponse<Void>> uploadAvatar(@RequestParam("fileUpload") MultipartFile[] fileUpload,
+                                                          @RequestParam("filePath") String pathFile,
+                                                          @RequestParam("shared") String shared,
+                                                          @RequestParam("topicId") Long topicId) {
+        topicService.uploadFile(fileUpload, pathFile, Boolean.parseBoolean(shared), topicId);
         return ResponseEntity.ok(APIResponse.success());
     }
 }

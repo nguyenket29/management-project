@@ -12,6 +12,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.GeneralSecurityException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -100,6 +102,51 @@ public class GoogleFileManager {
 
                 return uploadFile.getId();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // Upload Multi file
+    public List<String> uploadMultiFile(MultipartFile[] files, String folderName, String type, String role) {
+        try {
+            List<String> fileIds = new ArrayList<>();
+            String folderId = getFolderId(folderName);
+            if (files.length > 0) {
+                Arrays.asList(files).forEach(file -> {
+                    if (null != file) {
+                        File fileMetadata = new File();
+                        fileMetadata.setParents(Collections.singletonList(folderId));
+                        fileMetadata.setName(file.getOriginalFilename());
+                        File uploadFile = null;
+                        try {
+                            uploadFile = googleDriverConfig.getInstance()
+                                    .files()
+                                    .create(fileMetadata, new InputStreamContent(
+                                            file.getContentType(),
+                                            new ByteArrayInputStream(file.getBytes()))
+                                    )
+                                    .setFields("id").execute();
+                        } catch (IOException | GeneralSecurityException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                        if (!type.equals("private") && !role.equals("private")) {
+                            // Call Set Permission drive
+                            try {
+                                googleDriverConfig.getInstance().permissions().create(uploadFile.getId(), setPermission(type, role)).execute();
+                            } catch (IOException | GeneralSecurityException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+
+                        fileIds.add(uploadFile.getId());
+                    }
+                });
+            }
+
+            return fileIds;
         } catch (Exception e) {
             e.printStackTrace();
         }
