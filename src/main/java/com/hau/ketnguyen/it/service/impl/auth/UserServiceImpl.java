@@ -273,6 +273,9 @@ public class UserServiceImpl implements UserService {
 
             userInfo = userInfoReps.findById(lecturersOptional.get().getUserInfoId())
                     .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin giảng viên"));
+        } else {
+            userInfo = userInfoReps.findByUserId(user.getId())
+                    .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin tài khoản"));
         }
 
         userInfo.setAvatar(fileId);
