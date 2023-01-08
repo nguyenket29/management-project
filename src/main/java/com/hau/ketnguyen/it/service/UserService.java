@@ -8,6 +8,7 @@ import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import io.swagger.models.auth.In;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,6 +20,6 @@ public interface UserService {
     void deleteUser(List<Integer> userIds);
     List<UserDTO> findById(List<Integer> userIds);
     void addRoleToUser(List<Integer> roleIds, List<Integer> userIds);
-    void uploadAvatar(MultipartFile file, String filePath, boolean isPublic);
+    void uploadAvatar(MultipartFile[] file) throws IOException;
     void inActive(Integer userId, boolean check);
 }

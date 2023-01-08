@@ -38,6 +38,8 @@ inventory:
   logs:
     path: ./logs/development
 
+upload.path: ./uploads/
+
 port-fe: 8080
 
 application:

@@ -27,6 +27,7 @@ target/
 /.nb-gradle/
 build/
 tokens/*
+uploads/*
 !**/src/main/**/build/
 !**/src/test/**/build/
 

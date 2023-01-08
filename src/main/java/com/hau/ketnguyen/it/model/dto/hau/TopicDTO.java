@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 @Builder
@@ -25,4 +26,6 @@ public class TopicDTO {
     private Long lecturerCounterArgumentId;
     private LecturerDTO lecturerGuideDTO;
     private LecturerDTO lecturerCounterArgumentDTO;
+
+    private List<Long> fileIds;
 }

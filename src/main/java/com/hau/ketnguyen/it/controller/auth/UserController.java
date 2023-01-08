@@ -1,19 +1,18 @@
 package com.hau.ketnguyen.it.controller.auth;
 
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
-import com.hau.ketnguyen.it.model.dto.hau.AssemblyDTO;
 import com.hau.ketnguyen.it.model.request.auth.SignupRequest;
 import com.hau.ketnguyen.it.model.request.auth.UserRequest;
 import com.hau.ketnguyen.it.model.response.APIResponse;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.service.UserService;
 import io.swagger.annotations.Api;
-import io.swagger.models.auth.In;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -56,10 +55,8 @@ public class UserController  {
     }
 
     @PostMapping("/upload-avatar")
-    public ResponseEntity<APIResponse<Void>> uploadAvatar(@RequestParam("fileUpload") MultipartFile fileUpload,
-                                                             @RequestParam("filePath") String pathFile,
-                                                             @RequestParam("shared") String shared) {
-        userService.uploadAvatar(fileUpload, pathFile, Boolean.parseBoolean(shared));
+    public ResponseEntity<APIResponse<Void>> uploadAvatar(@RequestParam("file") MultipartFile[] file) throws IOException {
+        userService.uploadAvatar(file);
         return ResponseEntity.ok(APIResponse.success());
     }
 }

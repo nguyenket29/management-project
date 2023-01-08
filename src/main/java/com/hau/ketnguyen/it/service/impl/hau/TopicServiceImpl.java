@@ -1,5 +1,7 @@
 package com.hau.ketnguyen.it.service.impl.hau;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
@@ -13,6 +15,7 @@ import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
 import com.hau.ketnguyen.it.repository.hau.LecturerReps;
 import com.hau.ketnguyen.it.repository.hau.TopicReps;
+import com.hau.ketnguyen.it.service.FileService;
 import com.hau.ketnguyen.it.service.GoogleDriverFile;
 import com.hau.ketnguyen.it.service.TopicService;
 import com.hau.ketnguyen.it.service.mapper.LecturerMapper;
@@ -25,6 +28,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -40,6 +45,7 @@ public class TopicServiceImpl implements TopicService {
     private final LecturerMapper lecturerMapper;
     private final UserInfoReps userInfoReps;
     private final GoogleDriverFile googleDriverFile;
+    private final FileService fileService;
 
     @Override
     public TopicDTO save(TopicDTO topicDTO) {
@@ -73,6 +79,7 @@ public class TopicServiceImpl implements TopicService {
 
     @Override
     public TopicDTO findById(Long id) {
+        ObjectMapper objectMapper = new ObjectMapper();
         Optional<Topics> topicsOptional = topicReps.findById(id);
 
         if (topicsOptional.isEmpty()) {
@@ -106,7 +113,40 @@ public class TopicServiceImpl implements TopicService {
             }
         }
 
+        Map<Long, List<Long>> fileIdsLong = mapTopicIdWithListFileId(Collections.singletonList(id));
+
+        if (!fileIdsLong.isEmpty() && fileIdsLong.containsKey(id)) {
+            topicDTO.setFileIds(fileIdsLong.get(id));
+        }
+
         return topicDTO;
+    }
+
+    private Map<Long, List<Long>> mapTopicIdWithListFileId(List<Long> topicIds) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<Long, List<Long>> map = new HashMap<>();
+
+        List<Topics> topics = topicReps.findByIdIn(topicIds);
+        if (!topics.isEmpty()) {
+            topics.forEach(t -> {
+                List<Long> fileIdsLong = new ArrayList<>();
+                if (t.getFileId() != null && !t.getFileId().isEmpty()) {
+                    List<Integer> fileTopicIds = null;
+                    try {
+                        fileTopicIds = objectMapper.readValue(t.getFileId(), List.class);
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    if (fileTopicIds != null && !fileTopicIds.isEmpty()) {
+                        fileTopicIds.forEach(l -> fileIdsLong.add(Long.parseLong(l.toString())));
+                    }
+                }
+                map.put(t.getId(), fileIdsLong);
+            });
+        }
+
+        return map;
     }
 
     @Override
@@ -123,6 +163,7 @@ public class TopicServiceImpl implements TopicService {
         Page<TopicDTO> page = topicReps.search(request, pageable).map(topicMapper::to);
 
         if (!page.isEmpty()) {
+            List<Long> topicIds = page.map(TopicDTO::getId).toList();
             List<Long> lectureGuideIds = page.map(TopicDTO::getLecturerGuideId).stream().distinct().collect(Collectors.toList());
             List<Long> lectureCounterArgumentIds = page.map(TopicDTO::getLecturerCounterArgumentId).stream().distinct().collect(Collectors.toList());
 
@@ -131,6 +172,7 @@ public class TopicServiceImpl implements TopicService {
             lectureIds.addAll(lectureCounterArgumentIds);
 
             Map<Long, LecturerDTO> lecturerDTOMap = setLecture(lectureIds.stream().distinct().collect(Collectors.toList()));
+            Map<Long, List<Long>> mapFileIds = mapTopicIdWithListFileId(topicIds);
             page.forEach(p -> {
                 if (p.getLecturerGuideId() != null && lecturerDTOMap.containsKey(p.getLecturerGuideId())) {
                     p.setLecturerGuideDTO(lecturerDTOMap.get(p.getLecturerGuideId()));
@@ -138,6 +180,10 @@ public class TopicServiceImpl implements TopicService {
 
                 if (p.getLecturerCounterArgumentId() != null && lecturerDTOMap.containsKey(p.getLecturerCounterArgumentId())) {
                     p.setLecturerCounterArgumentDTO(lecturerDTOMap.get(p.getLecturerCounterArgumentId()));
+                }
+
+                if (!mapFileIds.isEmpty() && mapFileIds.containsKey(p.getId())) {
+                    p.setFileIds(mapFileIds.get(p.getId()));
                 }
             });
         }
@@ -150,19 +196,20 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Override
-    public void uploadFile(MultipartFile file, String filePath, boolean isPublic, Long topicId) {
-        String fileId = googleDriverFile.uploadFile(file, filePath, isPublic);
-        if (fileId != null) {
-            Optional<Topics> topicsOptional = topicReps.findById(topicId);
+    public void uploadFile(MultipartFile[] file, Long topicId) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Long> fileIds = fileService.uploadFile(file);
+        String fileId = objectMapper.writeValueAsString(fileIds);
 
-            if (topicsOptional.isEmpty()) {
-                throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đề tài");
-            }
+        Optional<Topics> topicsOptional = topicReps.findById(topicId);
 
-            Topics topic = topicsOptional.get();
-            topic.setFileId(fileId);
-
-            topicReps.save(topic);
+        if (topicsOptional.isEmpty()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đề tài");
         }
+
+        Topics topic = topicsOptional.get();
+        topic.setFileId(fileId);
+
+        topicReps.save(topic);
     }
 }
