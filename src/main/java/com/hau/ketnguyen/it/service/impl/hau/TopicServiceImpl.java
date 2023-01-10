@@ -9,7 +9,9 @@ import com.hau.ketnguyen.it.entity.hau.Lecturers;
 import com.hau.ketnguyen.it.entity.hau.Topics;
 import com.hau.ketnguyen.it.entity.hau.UserInfo;
 import com.hau.ketnguyen.it.model.dto.hau.LecturerDTO;
+import com.hau.ketnguyen.it.model.dto.hau.StatisticalDTO;
 import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
+import com.hau.ketnguyen.it.model.request.auth.SearchRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchTopicRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
@@ -211,5 +213,27 @@ public class TopicServiceImpl implements TopicService {
             topic.setFileId(fileId);
             topicReps.save(topic);
         }
+    }
+
+    @Override
+    public PageDataResponse<StatisticalDTO> getStatistical(SearchRequest request) {
+        Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
+        List<StatisticalDTO> page = topicReps.getStatistical(pageable).stream().map(u -> {
+            StatisticalDTO statisticalDTO = new StatisticalDTO();
+            statisticalDTO.setNameTopic(u.getNameTopic());
+            statisticalDTO.setNameClass(u.getNameClass());
+            statisticalDTO.setNameStudent(u.getNameStudent());
+            statisticalDTO.setTopicYear(u.getTopicYear());
+            statisticalDTO.setScoreAssembly(u.getScoreAssembly());
+            statisticalDTO.setScoreGuide(u.getScoreGuide());
+            statisticalDTO.setScoreCounterArgument(u.getScoreCounterArgument());
+            float avg = (u.getScoreAssembly() + u.getScoreGuide() + u.getScoreCounterArgument()) / 3;
+            statisticalDTO.setScoreMedium(avg);
+            return statisticalDTO;
+        }).collect(Collectors.toList());
+
+        Long total = topicReps.getStatisticalTotal();
+
+        return PageDataResponse.of(String.valueOf(total), page);
     }
 }

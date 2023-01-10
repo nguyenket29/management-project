@@ -1,6 +1,8 @@
 package com.hau.ketnguyen.it.controller.hau;
 
+import com.hau.ketnguyen.it.model.dto.hau.StatisticalDTO;
 import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
+import com.hau.ketnguyen.it.model.request.auth.SearchRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchTopicRequest;
 import com.hau.ketnguyen.it.model.response.APIResponse;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
@@ -11,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @Api(value = "Topic Controller", description = "Các APIs quản lý đề tài")
@@ -44,6 +48,11 @@ public class TopicController {
     @GetMapping
     public ResponseEntity<APIResponse<PageDataResponse<TopicDTO>>> getAll(SearchTopicRequest request) {
         return ResponseEntity.ok(APIResponse.success(topicService.getAll(request)));
+    }
+
+    @GetMapping("/statistical-score")
+    public ResponseEntity<APIResponse<PageDataResponse<StatisticalDTO>>> getScoreByTopic(SearchRequest request) {
+        return ResponseEntity.ok(APIResponse.success(topicService.getStatistical(request)));
     }
 
     @PostMapping("/upload")
