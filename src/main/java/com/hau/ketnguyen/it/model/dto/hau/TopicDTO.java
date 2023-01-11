@@ -26,6 +26,8 @@ public class TopicDTO {
     private Long lecturerCounterArgumentId;
     private LecturerDTO lecturerGuideDTO;
     private LecturerDTO lecturerCounterArgumentDTO;
+    private Long categoryId;
+    private String categoryName;
 
     private List<String> fileIds;
 }

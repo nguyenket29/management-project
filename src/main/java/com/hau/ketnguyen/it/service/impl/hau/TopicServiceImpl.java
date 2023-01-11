@@ -5,9 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
-import com.hau.ketnguyen.it.entity.hau.Lecturers;
+import com.hau.ketnguyen.it.entity.hau.Categories;
 import com.hau.ketnguyen.it.entity.hau.Topics;
-import com.hau.ketnguyen.it.entity.hau.UserInfo;
 import com.hau.ketnguyen.it.model.dto.hau.LecturerDTO;
 import com.hau.ketnguyen.it.model.dto.hau.StatisticalDTO;
 import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
@@ -15,9 +14,9 @@ import com.hau.ketnguyen.it.model.request.auth.SearchRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchTopicRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
+import com.hau.ketnguyen.it.repository.hau.CategoryReps;
 import com.hau.ketnguyen.it.repository.hau.LecturerReps;
 import com.hau.ketnguyen.it.repository.hau.TopicReps;
-import com.hau.ketnguyen.it.service.FileService;
 import com.hau.ketnguyen.it.service.GoogleDriverFile;
 import com.hau.ketnguyen.it.service.TopicService;
 import com.hau.ketnguyen.it.service.mapper.LecturerMapper;
@@ -30,8 +29,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -47,7 +44,7 @@ public class TopicServiceImpl implements TopicService {
     private final LecturerMapper lecturerMapper;
     private final UserInfoReps userInfoReps;
     private final GoogleDriverFile googleDriverFile;
-    private final FileService fileService;
+    private final CategoryReps categoryReps;
 
     @Override
     public TopicDTO save(TopicDTO topicDTO) {
@@ -161,6 +158,7 @@ public class TopicServiceImpl implements TopicService {
 
         if (!page.isEmpty()) {
             List<Long> topicIds = page.map(TopicDTO::getId).toList();
+            List<Long> categoryIds = page.map(TopicDTO::getCategoryId).toList();
             List<Long> lectureGuideIds = page.map(TopicDTO::getLecturerGuideId).stream().distinct().collect(Collectors.toList());
             List<Long> lectureCounterArgumentIds = page.map(TopicDTO::getLecturerCounterArgumentId).stream().distinct().collect(Collectors.toList());
 
@@ -170,6 +168,7 @@ public class TopicServiceImpl implements TopicService {
 
             Map<Long, LecturerDTO> lecturerDTOMap = setLecture(lectureIds.stream().distinct().collect(Collectors.toList()));
             Map<Long, List<String>> mapFileIds = mapTopicIdWithListFileId(topicIds);
+            Map<Long, String> mapCategoryName = mapTopicWithCategoryName(categoryIds);
             page.forEach(p -> {
                 if (p.getLecturerGuideId() != null && lecturerDTOMap.containsKey(p.getLecturerGuideId())) {
                     p.setLecturerGuideDTO(lecturerDTOMap.get(p.getLecturerGuideId()));
@@ -181,6 +180,10 @@ public class TopicServiceImpl implements TopicService {
 
                 if (!mapFileIds.isEmpty() && mapFileIds.containsKey(p.getId())) {
                     p.setFileIds(mapFileIds.get(p.getId()));
+                }
+
+                if (!mapCategoryName.isEmpty() && mapCategoryName.containsKey(p.getCategoryId())) {
+                    p.setCategoryName(mapCategoryName.get(p.getCategoryId()));
                 }
             });
         }
@@ -213,6 +216,16 @@ public class TopicServiceImpl implements TopicService {
             topic.setFileId(fileId);
             topicReps.save(topic);
         }
+    }
+
+    private Map<Long, String> mapTopicWithCategoryName(List<Long> categoryIds) {
+        Map<Long, String> mapIdCategoryWithCategoryName = new HashMap<>();
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            mapIdCategoryWithCategoryName = categoryReps.findByIdIn(categoryIds)
+                    .stream().collect(Collectors.toMap(Categories::getId, Categories::getName));
+        }
+
+        return mapIdCategoryWithCategoryName;
     }
 
     @Override

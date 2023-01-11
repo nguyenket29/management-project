@@ -43,4 +43,7 @@ public class Topics extends BaseEntity {
 
     @Column(name = "lecturer_counter_argument_id")
     private Long lecturerCounterArgumentId;
+
+    @Column(name = "category_id")
+    private Long categoryId;
 }
