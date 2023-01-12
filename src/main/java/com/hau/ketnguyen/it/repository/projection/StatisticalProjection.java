@@ -9,5 +9,7 @@ public interface StatisticalProjection {
     Date getTopicYear();
     Float getScoreGuide();
     Float getScoreCounterArgument();
+    Float getScoreProcessOne();
+    Float getScoreProcessTwo();
     Float getScoreAssembly();
 }

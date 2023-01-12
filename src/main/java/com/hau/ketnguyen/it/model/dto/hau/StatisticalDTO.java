@@ -10,8 +10,10 @@ public class StatisticalDTO {
     private String nameStudent;
     private String nameClass;
     private Date topicYear;
-    private Float scoreGuide;
-    private Float scoreCounterArgument;
-    private Float scoreAssembly;
-    private Float scoreMedium;
+    private Float scoreGuide = (float) 0;
+    private Float scoreCounterArgument = (float) 0;
+    private Float scoreProcessOne = (float) 0;
+    private Float scoreProcessTwo = (float) 0;
+    private Float scoreAssembly = (float) 0;
+    private Float scoreMedium = (float) 0;
 }
