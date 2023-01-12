@@ -240,6 +240,8 @@ public class TopicServiceImpl implements TopicService {
             statisticalDTO.setScoreAssembly(u.getScoreAssembly());
             statisticalDTO.setScoreGuide(u.getScoreGuide());
             statisticalDTO.setScoreCounterArgument(u.getScoreCounterArgument());
+            statisticalDTO.setScoreProcessOne(u.getScoreProcessOne());
+            statisticalDTO.setScoreProcessTwo(u.getScoreProcessTwo());
             float avg = (u.getScoreAssembly() + u.getScoreGuide() + u.getScoreCounterArgument()) / 3;
             statisticalDTO.setScoreMedium(avg);
             return statisticalDTO;

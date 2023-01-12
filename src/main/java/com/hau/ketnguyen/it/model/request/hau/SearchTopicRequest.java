@@ -18,4 +18,5 @@ public class SearchTopicRequest extends BaseRequest {
     private Float score;
     private Long lecturerGuideId;
     private Long lecturerCounterArgumentId;
+    private Long categoryId;
 }
