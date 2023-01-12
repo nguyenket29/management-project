@@ -38,6 +38,12 @@ public class Topics extends BaseEntity {
     @Column(name = "score_counter_argument", columnDefinition = "float default 0")
     private Float scoreCounterArgument;
 
+    @Column(name = "score_process_one", columnDefinition = "float default 0")
+    private Float scoreProcessOne;
+
+    @Column(name = "score_process_two", columnDefinition = "float default 0")
+    private Float scoreProcessTwo;
+
     @Column(name = "lecturer_guide_id")
     private Long lecturerGuideId;
 

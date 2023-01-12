@@ -26,6 +26,8 @@ public class TopicDTO {
     private Long lecturerCounterArgumentId;
     private LecturerDTO lecturerGuideDTO;
     private LecturerDTO lecturerCounterArgumentDTO;
+    private Float scoreProcessOne;
+    private Float scoreProcessTwo;
     private Long categoryId;
     private String categoryName;
 
