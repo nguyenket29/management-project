@@ -1,23 +1,24 @@
 package com.hau.ketnguyen.it.service.impl.hau;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
-import com.hau.ketnguyen.it.entity.hau.Lecturers;
-import com.hau.ketnguyen.it.entity.hau.UserInfo;
+import com.hau.ketnguyen.it.entity.auth.CustomUser;
+import com.hau.ketnguyen.it.entity.hau.*;
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
 import com.hau.ketnguyen.it.model.dto.auth.UserInfoDTO;
-import com.hau.ketnguyen.it.model.dto.hau.FacultyDTO;
-import com.hau.ketnguyen.it.model.dto.hau.LecturerDTO;
-import com.hau.ketnguyen.it.model.dto.hau.WorkplaceDTO;
+import com.hau.ketnguyen.it.model.dto.hau.*;
 import com.hau.ketnguyen.it.model.request.hau.SearchLecturerRequest;
+import com.hau.ketnguyen.it.model.request.hau.SearchStudentTopicRequest;
+import com.hau.ketnguyen.it.model.request.hau.SearchTopicRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
 import com.hau.ketnguyen.it.repository.auth.UserReps;
-import com.hau.ketnguyen.it.repository.hau.FacultyReps;
-import com.hau.ketnguyen.it.repository.hau.LecturerReps;
-import com.hau.ketnguyen.it.repository.hau.WorkplaceReps;
+import com.hau.ketnguyen.it.repository.hau.*;
 import com.hau.ketnguyen.it.service.LecturerService;
+import com.hau.ketnguyen.it.service.TopicService;
 import com.hau.ketnguyen.it.service.mapper.*;
 import io.swagger.models.auth.In;
 import lombok.AllArgsConstructor;
@@ -25,12 +26,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.hau.ketnguyen.it.service.impl.hau.AssemblyServiceImpl.getLongLecturerDTOMap;
 
 @Slf4j
 @Service
@@ -42,6 +46,11 @@ public class LecturerServiceImpl implements LecturerService {
     private final FacultyMapper facultyMapper;
     private final UserInfoReps userInfoReps;
     private final UserInfoMapper userInfoMapper;
+    private final TopicReps topicReps;
+    private final TopicService topicService;
+    private final StudentTopicReps studentTopicReps;
+    private final StudentTopicMapper studentTopicMapper;
+    private final StudentReps studentReps;
 
     @Override
     public LecturerDTO save(LecturerDTO lecturerDTO) {
@@ -192,4 +201,105 @@ public class LecturerServiceImpl implements LecturerService {
         }
     }
 
+    @Override
+    public PageDataResponse<TopicDTO> getListTopicCounterArgument(SearchTopicRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUser user = (CustomUser) authentication.getPrincipal();
+
+        Optional<Lecturers> lecturersOptional = lecturerReps.findByUserId(user.getId());
+        if (lecturersOptional.isEmpty()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên hướng dẫn");
+        }
+
+        request.setLecturerGuideId(lecturersOptional.get().getId());
+        return topicService.getAll(request);
+    }
+
+    @Override
+    public PageDataResponse<TopicDTO> getListTopicGuide(SearchTopicRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUser user = (CustomUser) authentication.getPrincipal();
+
+        Optional<Lecturers> lecturersOptional = lecturerReps.findByUserId(user.getId());
+        if (lecturersOptional.isEmpty()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên hướng dẫn");
+        }
+
+        request.setLecturerCounterArgumentId(lecturersOptional.get().getId());
+        return topicService.getAll(request);
+    }
+
+    @Override
+    public PageDataResponse<StudentTopicDTO> getListStudentRegistryTopic(SearchStudentTopicRequest request) {
+        Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUser user = (CustomUser) authentication.getPrincipal();
+
+        Optional<Lecturers> lecturersOptional = lecturerReps.findByUserId(user.getId());
+        if (lecturersOptional.isEmpty()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên hướng dẫn");
+        }
+
+        List<Topics> topics = topicReps.findByLecturerGuideIdIn(Collections.singletonList(lecturersOptional.get().getId()));
+
+        List<Long> topicIds = new ArrayList<>();
+        Map<Long, String> mapTopicName = new HashMap<>();
+        if (!CollectionUtils.isEmpty(topics)) {
+            topicIds = topics.stream().map(Topics::getId).collect(Collectors.toList());
+            mapTopicName = topics.stream().collect(Collectors.toMap(Topics::getId, Topics::getName));
+            request.setTopicIds(topicIds);
+        }
+
+        Page<StudentTopicDTO> studentTopics = studentTopicReps.search(request, pageable).map(studentTopicMapper::to);
+        if (!CollectionUtils.isEmpty(studentTopics.toList())) {
+            List<Long> studentIds = studentTopics.stream().map(StudentTopicDTO::getStudentId).collect(Collectors.toList());
+            List<Students> students = studentReps.findByIdIn(studentIds);
+
+            Map<Long, String> mapStudentName = new HashMap<>();
+            if (!CollectionUtils.isEmpty(students)) {
+                List<Long> userInfoIds = students.stream().map(Students::getUserInfoId).collect(Collectors.toList());
+                Map<Long, String> mapUserInfoIdWithName = userInfoReps.findByIdIn(userInfoIds)
+                        .stream().collect(Collectors.toMap(UserInfo::getId, UserInfo::getFullName));
+                if (!CollectionUtils.isEmpty(mapUserInfoIdWithName)) {
+                    students.forEach(s -> {
+                        if (mapUserInfoIdWithName.containsKey(s.getUserInfoId())) {
+                            mapStudentName.put(s.getId(), mapUserInfoIdWithName.get(s.getUserInfoId()));
+                        }
+                    });
+                }
+            }
+
+            for (StudentTopicDTO s : studentTopics) {
+                if (!CollectionUtils.isEmpty(mapTopicName) && mapTopicName.containsKey(s.getTopicId())) {
+                    s.setTopicName(mapTopicName.get(s.getTopicId()));
+                }
+
+                if (!CollectionUtils.isEmpty(mapStudentName) && mapStudentName.containsKey(s.getStudentId())) {
+                    s.setStudentName(mapStudentName.get(s.getStudentId()));
+                }
+            }
+        }
+
+        return PageDataResponse.of(studentTopics);
+    }
+
+    @Override
+    public void approveTopicForStudent(Long topicId, Long studentId) {
+        Optional<Topics> topicsOptional = topicReps.findById(topicId);
+
+        if (topicsOptional.isEmpty()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đề tài");
+        }
+        topicsOptional.get().setStatus(true);
+
+        Optional<Students> studentOptional = studentReps.findById(studentId);
+
+        if (studentOptional.isEmpty()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
+        }
+        studentOptional.get().setTopicId(topicsOptional.get().getId());
+
+        topicReps.save(topicsOptional.get());
+        studentReps.save(studentOptional.get());
+    }
 }

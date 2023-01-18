@@ -1,15 +1,21 @@
 package com.hau.ketnguyen.it.controller.hau;
 
 import com.hau.ketnguyen.it.model.dto.hau.StudentDTO;
+import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
 import com.hau.ketnguyen.it.model.request.hau.SearchStudentRequest;
+import com.hau.ketnguyen.it.model.request.hau.SearchTopicStudentRequest;
 import com.hau.ketnguyen.it.model.response.APIResponse;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.service.StudentService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.License;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @Api(value = "Student Controller", description = "Các APIs quản lý sinh viên")
@@ -38,6 +44,25 @@ public class StudentController {
     @GetMapping("/{id}")
     public ResponseEntity<APIResponse<StudentDTO>> findById(@PathVariable Long id) {
         return ResponseEntity.ok(APIResponse.success(studentService.findById(id)));
+    }
+
+    @GetMapping("/registry-topic")
+    @ApiOperation(value = "API sinh viên đăng ký đề tài")
+    public ResponseEntity<APIResponse<Void>> registryTopic(@RequestParam Long topicId, @RequestParam boolean registry) {
+        studentService.studentRegistryTopic(topicId, registry);
+        return ResponseEntity.ok(APIResponse.success());
+    }
+
+    @GetMapping("/get-list-topic-registry")
+    @ApiOperation(value = "API lấy danh sách đề tài sinh viên đã đăng ký")
+    public ResponseEntity<APIResponse<PageDataResponse<TopicDTO>>> getListRegistryTopic(SearchTopicStudentRequest request) {
+        return ResponseEntity.ok(APIResponse.success(studentService.getListTopicRegistry(request)));
+    }
+
+    @GetMapping("/get-list-topic-approved")
+    @ApiOperation(value = "API lấy danh sách đề tài sinh viên đã đăng ký đã được duyệt")
+    public ResponseEntity<APIResponse<PageDataResponse<TopicDTO>>> getListRegistryTopicApproved(SearchTopicStudentRequest request) {
+        return ResponseEntity.ok(APIResponse.success(studentService.getTopicOfStudentApproved(request)));
     }
 
     @GetMapping

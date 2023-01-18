@@ -30,6 +30,7 @@ public class TopicDTO {
     private Float scoreProcessTwo;
     private Long categoryId;
     private String categoryName;
+    private boolean studentRegistry;
 
     private List<String> fileIds;
 }

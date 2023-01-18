@@ -1,38 +1,38 @@
 package com.hau.ketnguyen.it.service.impl.hau;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.BeanUtil;
-import com.hau.ketnguyen.it.common.util.BeanUtils;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
-import com.hau.ketnguyen.it.entity.hau.Students;
-import com.hau.ketnguyen.it.entity.hau.UserInfo;
+import com.hau.ketnguyen.it.entity.auth.CustomUser;
+import com.hau.ketnguyen.it.entity.hau.*;
 import com.hau.ketnguyen.it.model.dto.auth.UserInfoDTO;
 import com.hau.ketnguyen.it.model.dto.hau.ClassDTO;
+import com.hau.ketnguyen.it.model.dto.hau.LecturerDTO;
 import com.hau.ketnguyen.it.model.dto.hau.StudentDTO;
 import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
-import com.hau.ketnguyen.it.model.request.hau.SearchLecturerRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchStudentRequest;
+import com.hau.ketnguyen.it.model.request.hau.SearchTopicStudentRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
-import com.hau.ketnguyen.it.repository.hau.ClassReps;
-import com.hau.ketnguyen.it.repository.hau.StudentReps;
-import com.hau.ketnguyen.it.repository.hau.TopicReps;
+import com.hau.ketnguyen.it.repository.hau.*;
 import com.hau.ketnguyen.it.service.StudentService;
-import com.hau.ketnguyen.it.service.mapper.ClassMapper;
-import com.hau.ketnguyen.it.service.mapper.StudentMapper;
-import com.hau.ketnguyen.it.service.mapper.TopicMapper;
-import com.hau.ketnguyen.it.service.mapper.UserInfoMapper;
+import com.hau.ketnguyen.it.service.mapper.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.hau.ketnguyen.it.service.impl.hau.AssemblyServiceImpl.getLongLecturerDTOMap;
 
 @Service
 @AllArgsConstructor
@@ -46,6 +46,10 @@ public class StudentServiceImpl implements StudentService {
     private final ClassMapper classMapper;
     private final TopicMapper topicMapper;
     private final UserInfoMapper userInfoMapper;
+    private final StudentTopicReps studentTopicReps;
+    private final LecturerReps lecturerReps;
+    private final LecturerMapper lecturerMapper;
+    private final CategoryReps categoryReps;
 
     @Override
     public StudentDTO save(StudentDTO studentDTO) {
@@ -194,5 +198,150 @@ public class StudentServiceImpl implements StudentService {
         if (request.getPhoneNumber() != null) {
             request.setPhoneNumber(request.getPhoneNumber().toLowerCase());
         }
+    }
+
+    @Override
+    public void studentRegistryTopic(Long topicId, boolean registry) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUser user = (CustomUser) authentication.getPrincipal();
+
+        if (topicId != null) {
+            Optional<Students> students = studentReps.findByUserId(user.getId());
+
+            if (students.isEmpty()) {
+                throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
+            }
+
+            StudentTopic studentTopic = new StudentTopic();
+            studentTopic.setTopicId(topicId);
+            studentTopic.setStudentId(students.get().getId());
+            studentTopic.setStatus(registry);
+            studentTopicReps.save(studentTopic);
+        }
+    }
+
+    @Override
+    public PageDataResponse<TopicDTO> getListTopicRegistry(SearchTopicStudentRequest request) {
+        Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUser user = (CustomUser) authentication.getPrincipal();
+
+        Optional<Students> students = studentReps.findByUserId(user.getId());
+
+        if (students.isEmpty()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
+        }
+
+        List<StudentTopic> studentTopics =
+                studentTopicReps.findByStudentIdIn(Collections.singletonList(students.get().getId()));
+
+        Map<Long, Boolean> mapTopicStatusStudentRegistry = studentTopics.stream()
+                .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatus));
+        List<Long> topicIds = studentTopics.stream().map(StudentTopic::getTopicId).distinct().collect(Collectors.toList());
+        request.setTopicIds(topicIds);
+        Page<TopicDTO> page = topicReps.getListByTopicIds(request, pageable).map(topicMapper::to);
+        setTopicDTO(page, topicIds, mapTopicStatusStudentRegistry);
+
+        return PageDataResponse.of(page);
+    }
+
+    private void setTopicDTO(Page<TopicDTO> topicDTOS, List<Long> topicIds, Map<Long, Boolean> mapTopicStatusStudentRegistry) {
+        if (!CollectionUtils.isEmpty(topicDTOS.toList())) {
+            List<Long> categoryIds = topicDTOS.stream().map(TopicDTO::getCategoryId).collect(Collectors.toList());
+            List<Long> lectureGuideIds = topicDTOS.stream().map(TopicDTO::getLecturerGuideId).distinct().collect(Collectors.toList());
+            List<Long> lectureCounterArgumentIds = topicDTOS.stream()
+                    .map(TopicDTO::getLecturerCounterArgumentId).distinct().collect(Collectors.toList());
+
+            List<Long> lectureIds = new ArrayList<>();
+            lectureIds.addAll(lectureGuideIds);
+            lectureIds.addAll(lectureCounterArgumentIds);
+
+            Map<Long, LecturerDTO> lecturerDTOMap = setLecture(lectureIds.stream().distinct().collect(Collectors.toList()));
+            Map<Long, List<String>> mapFileIds = mapTopicIdWithListFileId(topicIds);
+            Map<Long, String> mapCategoryName = mapTopicWithCategoryName(categoryIds);
+
+            topicDTOS.forEach(p -> {
+                if (p.getLecturerGuideId() != null && lecturerDTOMap.containsKey(p.getLecturerGuideId())) {
+                    p.setLecturerGuideDTO(lecturerDTOMap.get(p.getLecturerGuideId()));
+                }
+
+                if (p.getLecturerCounterArgumentId() != null && lecturerDTOMap.containsKey(p.getLecturerCounterArgumentId())) {
+                    p.setLecturerCounterArgumentDTO(lecturerDTOMap.get(p.getLecturerCounterArgumentId()));
+                }
+
+                if (!mapFileIds.isEmpty() && mapFileIds.containsKey(p.getId())) {
+                    p.setFileIds(mapFileIds.get(p.getId()));
+                }
+
+                if (!mapCategoryName.isEmpty() && mapCategoryName.containsKey(p.getCategoryId())) {
+                    p.setCategoryName(mapCategoryName.get(p.getCategoryId()));
+                }
+
+                if (!CollectionUtils.isEmpty(mapTopicStatusStudentRegistry)
+                        && mapTopicStatusStudentRegistry.containsKey(p.getId())) {
+                    p.setStudentRegistry(mapTopicStatusStudentRegistry.get(p.getId()));
+                }
+            });
+        }
+    }
+
+    private Map<Long, LecturerDTO> setLecture(List<Long> lectureIds) {
+        return getLongLecturerDTOMap(lectureIds, lecturerReps, lecturerMapper, userInfoReps);
+    }
+
+    private Map<Long, String> mapTopicWithCategoryName(List<Long> categoryIds) {
+        Map<Long, String> mapIdCategoryWithCategoryName = new HashMap<>();
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            mapIdCategoryWithCategoryName = categoryReps.findByIdIn(categoryIds)
+                    .stream().collect(Collectors.toMap(Categories::getId, Categories::getName));
+        }
+
+        return mapIdCategoryWithCategoryName;
+    }
+
+    private Map<Long, List<String>> mapTopicIdWithListFileId(List<Long> topicIds) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<Long, List<String>> map = new HashMap<>();
+
+        List<Topics> topics = topicReps.findByIdIn(topicIds);
+        if (!topics.isEmpty()) {
+            topics.forEach(t -> {
+                List<String> fileIds = new ArrayList<>();
+                if (t.getFileId() != null && !t.getFileId().isEmpty()) {
+                    try {
+                        fileIds = objectMapper.readValue(t.getFileId(), List.class);
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                map.put(t.getId(), fileIds);
+            });
+        }
+
+        return map;
+    }
+
+    @Override
+    public PageDataResponse<TopicDTO> getTopicOfStudentApproved(SearchTopicStudentRequest request) {
+        Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUser user = (CustomUser) authentication.getPrincipal();
+
+        Optional<Students> students = studentReps.findByUserId(user.getId());
+
+        if (students.isEmpty()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
+        }
+
+        List<StudentTopic> studentTopics =
+                studentTopicReps.findByStudentIdInAndStatusIsTrue(Collections.singletonList(students.get().getId()));
+        Map<Long, Boolean> mapTopicStatusStudentRegistry = studentTopics.stream()
+                .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatus));
+        List<Long> topicIds = studentTopics.stream().map(StudentTopic::getTopicId).distinct().collect(Collectors.toList());
+        request.setTopicIds(topicIds);
+        Page<TopicDTO> topicDTOS = topicReps.getListByTopicIds(request, pageable).map(topicMapper::to);
+        setTopicDTO(topicDTOS, topicIds, mapTopicStatusStudentRegistry);
+
+        return PageDataResponse.of(topicDTOS);
     }
 }

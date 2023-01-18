@@ -1,11 +1,16 @@
 package com.hau.ketnguyen.it.controller.hau;
 
 import com.hau.ketnguyen.it.model.dto.hau.LecturerDTO;
+import com.hau.ketnguyen.it.model.dto.hau.StudentTopicDTO;
+import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
 import com.hau.ketnguyen.it.model.request.hau.SearchLecturerRequest;
+import com.hau.ketnguyen.it.model.request.hau.SearchStudentTopicRequest;
+import com.hau.ketnguyen.it.model.request.hau.SearchTopicRequest;
 import com.hau.ketnguyen.it.model.response.APIResponse;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.service.LecturerService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +43,31 @@ public class LecturerController {
     @GetMapping("/{id}")
     public ResponseEntity<APIResponse<LecturerDTO>> findById(@PathVariable Long id) {
         return ResponseEntity.ok(APIResponse.success(lecturerService.findById(id)));
+    }
+
+    @GetMapping("/get-list-topic-counter")
+    @ApiOperation(value = "Lấy danh sách đề tài mà giảng viên đó phản biện")
+    public ResponseEntity<APIResponse<PageDataResponse<TopicDTO>>> getListTopicCounterArgument(SearchTopicRequest request) {
+        return ResponseEntity.ok(APIResponse.success(lecturerService.getListTopicCounterArgument(request)));
+    }
+
+    @GetMapping("/get-list-topic-guide")
+    @ApiOperation(value = "Lấy danh sách đề tài mà giảng viên đó hướng dẫn")
+    public ResponseEntity<APIResponse<PageDataResponse<TopicDTO>>> getListTopicGuide(SearchTopicRequest request) {
+        return ResponseEntity.ok(APIResponse.success(lecturerService.getListTopicGuide(request)));
+    }
+
+    @GetMapping("/get-list-topic")
+    @ApiOperation(value = "Lấy danh sách đề tài mà giảng viên đó hướng dẫn đực sinh viên đăng ký")
+    public ResponseEntity<APIResponse<PageDataResponse<StudentTopicDTO>>> getListStudentRegistryTopic(SearchStudentTopicRequest request) {
+        return ResponseEntity.ok(APIResponse.success(lecturerService.getListStudentRegistryTopic(request)));
+    }
+
+    @GetMapping("/approve-topic")
+    @ApiOperation(value = "Giảng viên duyệt đề tài cho sinh viên")
+    public ResponseEntity<APIResponse<Void>> approveTopicForStudent(@RequestParam Long topicId, @RequestParam Long studentId) {
+        lecturerService.approveTopicForStudent(topicId, studentId);
+        return ResponseEntity.ok(APIResponse.success());
     }
 
     @GetMapping

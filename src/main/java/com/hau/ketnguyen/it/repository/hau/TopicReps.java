@@ -1,7 +1,9 @@
 package com.hau.ketnguyen.it.repository.hau;
 
 import com.hau.ketnguyen.it.entity.hau.Topics;
+import com.hau.ketnguyen.it.model.request.hau.SearchStudentTopicRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchTopicRequest;
+import com.hau.ketnguyen.it.model.request.hau.SearchTopicStudentRequest;
 import com.hau.ketnguyen.it.repository.projection.StatisticalProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +16,8 @@ import java.util.List;
 @Repository
 public interface TopicReps extends CrudRepository<Topics, Long> {
     List<Topics> findByIdIn(List<Long> ids);
+    List<Topics> findByLecturerGuideIdIn(List<Long> lectureGuideIds);
+
     @Query("SELECT c FROM topics c " +
             "WHERE (:#{#request.lecturerGuideId} IS NULL OR c.lecturerGuideId = :#{#request.lecturerGuideId}) " +
             " AND (:#{#request.name} IS NULL OR lower(c.name) LIKE %:#{#request.name}%) " +
@@ -39,4 +43,9 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
             "from students s, topics t, classes c, assembly a, user_info ui " +
             "where s.topic_id = t.id AND s.class_id = c.id AND t.id = a.topic_id AND ui.id = s.user_info_id) as totals", nativeQuery = true)
     Long getStatisticalTotal();
+
+    @Query("select t from topics t " +
+            "where (coalesce(:#{#request.topicIds}, NULL) IS NULL OR t.id IN :#{#request.topicIds}) " +
+            "and (:#{#request.topicName} IS NULL OR lower(t.name) LIKE %:#{#request.topicName}%) ")
+    Page<Topics> getListByTopicIds(SearchTopicStudentRequest request, Pageable pageable);
 }

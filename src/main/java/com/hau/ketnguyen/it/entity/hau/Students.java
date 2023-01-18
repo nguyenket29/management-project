@@ -15,7 +15,7 @@ public class Students extends BaseEntity {
     private Integer userId;
 
     @Column(name = "student_pas", columnDefinition = "boolean default false")
-    private boolean stdPass;
+    private boolean stdPass = false;
 
     @Column(name = "code_student")
     private String codeStudent;
