@@ -56,13 +56,13 @@ public class StudentController {
     @GetMapping("/get-list-topic-registry")
     @ApiOperation(value = "API lấy danh sách đề tài sinh viên đã đăng ký")
     public ResponseEntity<APIResponse<PageDataResponse<TopicDTO>>> getListRegistryTopic(SearchTopicStudentRequest request) {
-        return ResponseEntity.ok(APIResponse.success(studentService.getListTopicRegistry(request)));
+        return ResponseEntity.ok(APIResponse.success(studentService.getTopicOfStudentApproved(request)));
     }
 
     @GetMapping("/get-list-topic-approved")
     @ApiOperation(value = "API lấy danh sách đề tài sinh viên đã đăng ký đã được duyệt")
     public ResponseEntity<APIResponse<PageDataResponse<TopicDTO>>> getListRegistryTopicApproved(SearchTopicStudentRequest request) {
-        return ResponseEntity.ok(APIResponse.success(studentService.getTopicOfStudentApproved(request)));
+        return ResponseEntity.ok(APIResponse.success(studentService.getListTopicRegistry(request)));
     }
 
     @GetMapping

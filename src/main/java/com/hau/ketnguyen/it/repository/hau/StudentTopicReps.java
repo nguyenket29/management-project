@@ -9,12 +9,14 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface StudentTopicReps extends CrudRepository<StudentTopic, Long> {
-    List<StudentTopic> findByStudentIdIn(List<Long> studentIds);
+    List<StudentTopic> findByStudentIdInAndStatusIsFalse(List<Long> studentIds);
     List<StudentTopic> findByStudentIdInAndStatusIsTrue(List<Long> studentIds);
     List<StudentTopic> findByTopicIdIn(List<Long> topicIds);
+    Optional<StudentTopic> findByStudentIdAndTopicId(Long studentId, Long topicId);
 
     @Query("SELECT st FROM student_topics st " +
             "WHERE (COALESCE(:#{#request.topicIds}, NULL) IS NULL OR st.topicId IN :#{#request.topicIds}) " +

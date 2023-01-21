@@ -45,7 +45,7 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
     Long getStatisticalTotal();
 
     @Query("select t from topics t " +
-            "where (coalesce(:#{#request.topicIds}, NULL) IS NULL OR t.id IN :#{#request.topicIds}) " +
+            "where (t.id IN :#{#request.topicIds}) " +
             "and (:#{#request.topicName} IS NULL OR lower(t.name) LIKE %:#{#request.topicName}%) ")
     Page<Topics> getListByTopicIds(SearchTopicStudentRequest request, Pageable pageable);
 }

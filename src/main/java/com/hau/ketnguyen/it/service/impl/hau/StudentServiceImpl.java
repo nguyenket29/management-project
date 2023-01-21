@@ -233,7 +233,7 @@ public class StudentServiceImpl implements StudentService {
         }
 
         List<StudentTopic> studentTopics =
-                studentTopicReps.findByStudentIdIn(Collections.singletonList(students.get().getId()));
+                studentTopicReps.findByStudentIdInAndStatusIsFalse(Collections.singletonList(students.get().getId()));
 
         Map<Long, Boolean> mapTopicStatusStudentRegistry = studentTopics.stream()
                 .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatus));

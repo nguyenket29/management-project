@@ -285,20 +285,28 @@ public class LecturerServiceImpl implements LecturerService {
 
     @Override
     public void approveTopicForStudent(Long topicId, Long studentId) {
-        Optional<Topics> topicsOptional = topicReps.findById(topicId);
+        // cập nhật lại danh sách đăng ký đề tài
+        Optional<StudentTopic> studentTopicOptional = studentTopicReps.findByStudentIdAndTopicId(studentId, topicId);
+        if (studentTopicOptional.isEmpty()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Sinh viên chưa đăng ký đề tài này");
+        }
+        studentTopicOptional.get().setStatus(true);
 
+        // cập nhật lại danh sách đề tài
+        Optional<Topics> topicsOptional = topicReps.findById(topicId);
         if (topicsOptional.isEmpty()) {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đề tài");
         }
         topicsOptional.get().setStatus(true);
 
+        // cập nhật lại sinh viên đã đăng ký đề tài
         Optional<Students> studentOptional = studentReps.findById(studentId);
-
         if (studentOptional.isEmpty()) {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
         }
         studentOptional.get().setTopicId(topicsOptional.get().getId());
 
+        studentTopicReps.save(studentTopicOptional.get());
         topicReps.save(topicsOptional.get());
         studentReps.save(studentOptional.get());
     }
