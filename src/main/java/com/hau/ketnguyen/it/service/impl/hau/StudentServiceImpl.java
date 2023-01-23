@@ -215,7 +215,7 @@ public class StudentServiceImpl implements StudentService {
             StudentTopic studentTopic = new StudentTopic();
             studentTopic.setTopicId(topicId);
             studentTopic.setStudentId(students.get().getId());
-            studentTopic.setStatus(registry);
+            studentTopic.setStatus(!registry);
             studentTopicReps.save(studentTopic);
         }
     }
