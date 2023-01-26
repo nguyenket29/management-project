@@ -17,6 +17,10 @@ import java.util.List;
 public interface TopicReps extends CrudRepository<Topics, Long> {
     List<Topics> findByIdIn(List<Long> ids);
     List<Topics> findByLecturerGuideIdIn(List<Long> lectureGuideIds);
+    @Query("SELECT c FROM topics c WHERE " +
+            " (COALESCE(:lectureIds, NULL) IS NULL OR c.lecturerCounterArgumentId IN :lectureIds) " +
+            " AND (COALESCE(:lectureIds, NULL) IS NULL OR c.lecturerGuideId IN :lectureIds)")
+    List<Topics> checkTopicWhenRemoveUser(List<Long> lectureIds);
 
     @Query("SELECT c FROM topics c " +
             "WHERE (:#{#request.lecturerGuideId} IS NULL OR c.lecturerGuideId = :#{#request.lecturerGuideId}) " +

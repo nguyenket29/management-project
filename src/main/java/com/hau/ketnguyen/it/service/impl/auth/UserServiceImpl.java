@@ -1,6 +1,5 @@
 package com.hau.ketnguyen.it.service.impl.auth;
 
-import com.hau.ketnguyen.it.common.enums.TypeUser;
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.auth.CustomUser;
@@ -8,6 +7,7 @@ import com.hau.ketnguyen.it.entity.auth.Role;
 import com.hau.ketnguyen.it.entity.auth.User;
 import com.hau.ketnguyen.it.entity.hau.Lecturers;
 import com.hau.ketnguyen.it.entity.hau.Students;
+import com.hau.ketnguyen.it.entity.hau.Topics;
 import com.hau.ketnguyen.it.entity.hau.UserInfo;
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
 import com.hau.ketnguyen.it.model.request.auth.SignupRequest;
@@ -18,10 +18,10 @@ import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
 import com.hau.ketnguyen.it.repository.auth.UserReps;
 import com.hau.ketnguyen.it.repository.hau.LecturerReps;
 import com.hau.ketnguyen.it.repository.hau.StudentReps;
+import com.hau.ketnguyen.it.repository.hau.TopicReps;
 import com.hau.ketnguyen.it.service.FileService;
 import com.hau.ketnguyen.it.service.GoogleDriverFile;
 import com.hau.ketnguyen.it.service.UserService;
-import com.hau.ketnguyen.it.service.mapper.UserInfoMapper;
 import com.hau.ketnguyen.it.service.mapper.UserMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,9 +33,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -53,6 +53,7 @@ public class UserServiceImpl implements UserService {
     private final StudentReps studentReps;
     private final LecturerReps lecturerReps;
     private final GoogleDriverFile googleDriverFile;
+    private final TopicReps topicReps;
 
     @Override
     public boolean createUser(SignupRequest signupRequest) {
@@ -135,7 +136,7 @@ public class UserServiceImpl implements UserService {
      * @Param: username
      * @Param: status
      * @Return: User
-     * */
+     */
     @Override
     @Cacheable("users")
     public Optional<User> findByUsernameAndStatus(String username, short status) {
@@ -148,8 +149,7 @@ public class UserServiceImpl implements UserService {
      *
      * @Param: request
      * @Return: PageDataResponse<UserDTO>
-     *
-     * */
+     */
     @Override
     public PageDataResponse<UserDTO> getAll(UserRequest request) {
         if (request.getUsername() != null) {
@@ -171,7 +171,7 @@ public class UserServiceImpl implements UserService {
      * @Param: userId
      * @RequestBody: UserDTO
      * @Return: UserDTO
-     * */
+     */
     @Override
     public UserDTO edit(Integer userId, UserRequest userRequest) {
         Optional<User> userOptional = userReps.findById(userId);
@@ -207,6 +207,16 @@ public class UserServiceImpl implements UserService {
             userInfoIds.addAll(lecturers.stream().map(Lecturers::getUserInfoId).collect(Collectors.toList()));
             List<UserInfo> userInfos = userInfoReps.findByIdIn(userInfoIds);
 
+            // Kiểm tra nếu giáo viên hoặc sinh vieen đó đang thực hiện or hướng dẫn đề tài thì k xóa
+            List<Long> lectureIds = lecturers.stream().map(Lecturers::getId).collect(Collectors.toList());
+            List<Topics> topics = topicReps.checkTopicWhenRemoveUser(lectureIds);
+            if (topics != null && !topics.isEmpty()) {
+                throw APIException.from(HttpStatus.BAD_REQUEST)
+                        .withMessage("Sinh viên hoặc giáo viên đang thực hiện hoặc hướng dẫn đồ án, không thể xóa!");
+            }
+
+            checkStudent(students);
+
             if (!users.isEmpty()) {
                 userReps.deleteAll(users);
             }
@@ -222,6 +232,17 @@ public class UserServiceImpl implements UserService {
             if (!userInfos.isEmpty()) {
                 userInfoReps.deleteAll(userInfos);
             }
+        }
+    }
+
+    private void checkStudent(List<Students> students) {
+        if (!CollectionUtils.isEmpty(students)) {
+            students.forEach(s -> {
+                if (s.getTopicId() != null) {
+                    throw APIException.from(HttpStatus.BAD_REQUEST)
+                            .withMessage("Sinh viên hoặc giáo viên đang thực hiện hoặc hướng dẫn đồ án, không thể xóa!");
+                }
+            });
         }
     }
 
