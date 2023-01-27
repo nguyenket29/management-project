@@ -5,7 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
+import com.hau.ketnguyen.it.entity.auth.CustomUser;
 import com.hau.ketnguyen.it.entity.hau.Categories;
+import com.hau.ketnguyen.it.entity.hau.StudentTopic;
+import com.hau.ketnguyen.it.entity.hau.Students;
 import com.hau.ketnguyen.it.entity.hau.Topics;
 import com.hau.ketnguyen.it.model.dto.hau.LecturerDTO;
 import com.hau.ketnguyen.it.model.dto.hau.StatisticalDTO;
@@ -14,9 +17,7 @@ import com.hau.ketnguyen.it.model.request.auth.SearchRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchTopicRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
-import com.hau.ketnguyen.it.repository.hau.CategoryReps;
-import com.hau.ketnguyen.it.repository.hau.LecturerReps;
-import com.hau.ketnguyen.it.repository.hau.TopicReps;
+import com.hau.ketnguyen.it.repository.hau.*;
 import com.hau.ketnguyen.it.service.GoogleDriverFile;
 import com.hau.ketnguyen.it.service.TopicService;
 import com.hau.ketnguyen.it.service.mapper.LecturerMapper;
@@ -26,7 +27,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
@@ -45,6 +49,8 @@ public class TopicServiceImpl implements TopicService {
     private final UserInfoReps userInfoReps;
     private final GoogleDriverFile googleDriverFile;
     private final CategoryReps categoryReps;
+    private final StudentTopicReps studentTopicReps;
+    private final StudentReps studentReps;
 
     @Override
     public TopicDTO save(TopicDTO topicDTO) {
@@ -78,7 +84,6 @@ public class TopicServiceImpl implements TopicService {
 
     @Override
     public TopicDTO findById(Long id) {
-        ObjectMapper objectMapper = new ObjectMapper();
         Optional<Topics> topicsOptional = topicReps.findById(id);
 
         if (topicsOptional.isEmpty()) {
@@ -113,9 +118,15 @@ public class TopicServiceImpl implements TopicService {
         }
 
         Map<Long, List<String>> fileIdsLong = mapTopicIdWithListFileId(Collections.singletonList(id));
+        Map<Long, Boolean> getStatusRegistryTopicByCurrentUser = getStatusRegistryTopicByCurrentUser();
 
         if (!fileIdsLong.isEmpty() && fileIdsLong.containsKey(id)) {
             topicDTO.setFileIds(fileIdsLong.get(id));
+        }
+
+        if (!CollectionUtils.isEmpty(getStatusRegistryTopicByCurrentUser)
+                && getStatusRegistryTopicByCurrentUser.containsKey(topicDTO.getId())) {
+            topicDTO.setStudentRegistry(getStatusRegistryTopicByCurrentUser.get(topicDTO.getId()));
         }
 
         return topicDTO;
@@ -155,6 +166,7 @@ public class TopicServiceImpl implements TopicService {
 
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
         Page<TopicDTO> page = topicReps.search(request, pageable).map(topicMapper::to);
+        Map<Long, Boolean> getStatusRegistryTopicByCurrentUser = getStatusRegistryTopicByCurrentUser();
 
         if (!page.isEmpty()) {
             List<Long> topicIds = page.map(TopicDTO::getId).toList();
@@ -185,10 +197,32 @@ public class TopicServiceImpl implements TopicService {
                 if (!mapCategoryName.isEmpty() && mapCategoryName.containsKey(p.getCategoryId())) {
                     p.setCategoryName(mapCategoryName.get(p.getCategoryId()));
                 }
+
+                if (!CollectionUtils.isEmpty(getStatusRegistryTopicByCurrentUser)
+                        && getStatusRegistryTopicByCurrentUser.containsKey(p.getId())) {
+                    p.setStudentRegistry(getStatusRegistryTopicByCurrentUser.get(p.getId()));
+                }
             });
         }
 
         return PageDataResponse.of(page);
+    }
+
+    private Map<Long, Boolean> getStatusRegistryTopicByCurrentUser() {
+        Map<Long, Boolean> map = new HashMap<>();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUser customUser = (CustomUser) authentication.getPrincipal();
+
+        Optional<Students> students = studentReps.findByUserId(customUser.getId());
+
+        if (students.isPresent()) {
+            List<StudentTopic> studentTopics = studentTopicReps.findByStudentId(students.get().getId());
+            if (!CollectionUtils.isEmpty(studentTopics)) {
+                studentTopics.forEach(s -> map.put(s.getTopicId(), s.getStatus()));
+            }
+        }
+
+        return map;
     }
 
     private Map<Long, LecturerDTO> setLecture(List<Long> lectureIds) {
