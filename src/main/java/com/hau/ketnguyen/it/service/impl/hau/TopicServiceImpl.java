@@ -230,7 +230,7 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Override
-    public void uploadFile(MultipartFile[] file, String filePath, boolean isPublic, Long topicId) {
+    public List<String> uploadFile(MultipartFile[] file, String filePath, boolean isPublic, Long topicId) {
         ObjectMapper objectMapper = new ObjectMapper();
         List<String> fileIds = googleDriverFile.uploadMultiFile(file, filePath, isPublic);
         if (fileIds != null && !fileIds.isEmpty()) {
@@ -250,6 +250,7 @@ public class TopicServiceImpl implements TopicService {
             topic.setFileId(fileId);
             topicReps.save(topic);
         }
+        return fileIds;
     }
 
     private Map<Long, String> mapTopicWithCategoryName(List<Long> categoryIds) {

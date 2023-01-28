@@ -56,11 +56,10 @@ public class TopicController {
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<APIResponse<Void>> uploadAvatar(@RequestParam("fileUpload") MultipartFile[] fileUpload,
+    public ResponseEntity<APIResponse<List<String>>> uploadAvatar(@RequestParam("fileUpload") MultipartFile[] fileUpload,
                                                           @RequestParam("filePath") String pathFile,
                                                           @RequestParam("shared") String shared,
                                                           @RequestParam("topicId") Long topicId) {
-        topicService.uploadFile(fileUpload, pathFile, Boolean.parseBoolean(shared), topicId);
-        return ResponseEntity.ok(APIResponse.success());
+        return ResponseEntity.ok(APIResponse.success(topicService.uploadFile(fileUpload, pathFile, Boolean.parseBoolean(shared), topicId)));
     }
 }

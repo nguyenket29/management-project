@@ -1,11 +1,16 @@
 package com.hau.ketnguyen.it.common.util;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -22,6 +27,61 @@ import java.util.Base64;
 public final class HashHelper {
     private final static int GCM_IV_LENGTH = 12;
     private final static int GCM_TAG_LENGTH = 16;
+    private static final String DEFAULT_URL_ENCODING = "UTF-8";
+    private static final char[] BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".toCharArray();
+
+    public static String encodeHex(byte[] input) {
+        return new String(Hex.encodeHex(input));
+    }
+
+    public static byte[] decodeHex(String input) {
+        try {
+            return Hex.decodeHex(input.toCharArray());
+        } catch (DecoderException e) {
+            return "".getBytes();
+        }
+    }
+
+    public static String encodeBase64(byte[] input) {
+        return new String(Base64.getEncoder().encodeToString(input));
+    }
+
+    public static String encodeBase64(String input) {
+        try {
+            return new String(Base64.getEncoder().encodeToString(input.getBytes(DEFAULT_URL_ENCODING)));
+        } catch (UnsupportedEncodingException e) {
+            return "";
+        }
+    }
+
+    public static byte[] decodeBase64(String input) {
+        return Base64.getDecoder().decode(input.getBytes());
+    }
+
+    public static String decodeBase64String(String input) {
+        try {
+            return new String(Base64.getDecoder().decode(input.getBytes()), DEFAULT_URL_ENCODING);
+        } catch (UnsupportedEncodingException e) {
+            return "";
+        }
+    }
+
+    public static String urlEncode(String part) {
+        try {
+            return URLEncoder.encode(part, DEFAULT_URL_ENCODING);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String urlDecode(String part) {
+
+        try {
+            return URLDecoder.decode(part, DEFAULT_URL_ENCODING);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static String aesEncrypt(String privateString, String secretKey) {
         try {

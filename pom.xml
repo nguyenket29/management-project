@@ -124,6 +124,19 @@
 			<version>3.0.11.RELEASE</version>
 		</dependency>
 
+		<!-- POI Excel -->
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi</artifactId>
+			<version>4.0.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+			<version>4.0.0</version>
+		</dependency>
+
 		<!-- GG Drive API -->
 		<dependency>
 			<groupId>com.google.api-client</groupId>

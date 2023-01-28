@@ -10,6 +10,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface TopicService extends GenericService<TopicDTO, SearchTopicRequest> {
-    void uploadFile(MultipartFile[] file, String filePath, boolean isPublic, Long topicId);
+    List<String> uploadFile(MultipartFile[] file, String filePath, boolean isPublic, Long topicId);
     PageDataResponse<StatisticalDTO> getStatistical(SearchRequest request);
 }
