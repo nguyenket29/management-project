@@ -1,9 +1,7 @@
 package com.hau.ketnguyen.it.controller.hau;
 
 import com.hau.ketnguyen.it.model.request.auth.UserRequest;
-import com.hau.ketnguyen.it.model.request.hau.SearchCategoryRequest;
-import com.hau.ketnguyen.it.model.request.hau.SearchFacultyRequest;
-import com.hau.ketnguyen.it.model.request.hau.SearchWorkplaceRequest;
+import com.hau.ketnguyen.it.model.request.hau.*;
 import com.hau.ketnguyen.it.model.response.APIResponse;
 import com.hau.ketnguyen.it.service.ExcelService;
 import io.swagger.annotations.Api;
@@ -55,6 +53,38 @@ public class ExcelController {
     public ResponseEntity<APIResponse<Void>> exportExcelWorkplace(SearchWorkplaceRequest request, HttpServletResponse response)
             throws Exception {
         excelService.exportWorkplace(request, response);
+        return ResponseEntity.ok(APIResponse.success());
+    }
+
+    @GetMapping("/assembly")
+    @ApiOperation(value = "Export Assembly")
+    public ResponseEntity<APIResponse<Void>> exportExcelAssembly(SearchAssemblyRequest request, HttpServletResponse response)
+            throws Exception {
+        excelService.exportAssembly(request, response);
+        return ResponseEntity.ok(APIResponse.success());
+    }
+
+    @GetMapping("/class")
+    @ApiOperation(value = "Export Class")
+    public ResponseEntity<APIResponse<Void>> exportExcelClass(SearchClassRequest request, HttpServletResponse response)
+            throws Exception {
+        excelService.exportClass(request, response);
+        return ResponseEntity.ok(APIResponse.success());
+    }
+
+    @GetMapping("/lecture")
+    @ApiOperation(value = "Export Lecture")
+    public ResponseEntity<APIResponse<Void>> exportExcelLecture(SearchLecturerRequest request, HttpServletResponse response)
+            throws Exception {
+        excelService.exportLecture(request, response);
+        return ResponseEntity.ok(APIResponse.success());
+    }
+
+    @GetMapping("/student")
+    @ApiOperation(value = "Export User")
+    public ResponseEntity<APIResponse<Void>> exportExcelStudent(SearchStudentRequest request, HttpServletResponse response)
+            throws Exception {
+        excelService.exportStudent(request, response);
         return ResponseEntity.ok(APIResponse.success());
     }
 }

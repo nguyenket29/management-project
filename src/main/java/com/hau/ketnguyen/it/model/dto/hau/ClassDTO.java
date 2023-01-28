@@ -14,8 +14,8 @@ public class ClassDTO {
     private Date created;
     private String updatedBy;
     private Date updated;
-    private String name;
     private String code;
+    private String name;
     private Integer stdNumber;
     private Long facultyId;
     private List<StudentDTO> stds;

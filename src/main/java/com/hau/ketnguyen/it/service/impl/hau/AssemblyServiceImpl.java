@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
+import com.hau.ketnguyen.it.common.util.StringUtils;
 import com.hau.ketnguyen.it.entity.hau.Assemblies;
 import com.hau.ketnguyen.it.entity.hau.Lecturers;
 import com.hau.ketnguyen.it.entity.hau.Topics;
@@ -116,7 +117,7 @@ public class AssemblyServiceImpl implements AssemblyService {
         if (assemblyDTO.getLecturerIds() != null && !assemblyDTO.getLecturerIds().isEmpty()) {
             List<Integer> lectureIds = null;
             try {
-                if (assemblyDTO.getLecturerIds() != null) {
+                if (!StringUtils.isNullOrEmpty(assemblyDTO.getLecturerIds())) {
                     lectureIds = objectMapper.readValue(assemblyDTO.getLecturerIds(), List.class);
                 }
             } catch (JsonProcessingException e) {
@@ -155,7 +156,7 @@ public class AssemblyServiceImpl implements AssemblyService {
             assemblyDTOS.forEach(l -> {
                 List<Integer> lectureIds = null;
                 try {
-                    if (l.getLecturerIds() != null) {
+                    if (!StringUtils.isNullOrEmpty(l.getLecturerIds())) {
                         lectureIds = objectMapper.readValue(l.getLecturerIds(), List.class);
                     }
                 } catch (JsonProcessingException e) {

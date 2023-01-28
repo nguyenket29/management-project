@@ -1,28 +1,21 @@
 package com.hau.ketnguyen.it.service.impl.hau;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hau.ketnguyen.it.common.anotations.Reflections;
 import com.hau.ketnguyen.it.common.util.ExportExcelUtil;
+import com.hau.ketnguyen.it.common.util.StringUtils;
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
-import com.hau.ketnguyen.it.model.dto.excel.CategoryExcelDTO;
-import com.hau.ketnguyen.it.model.dto.excel.FacultyExcelDTO;
-import com.hau.ketnguyen.it.model.dto.excel.UserExcelDTO;
-import com.hau.ketnguyen.it.model.dto.excel.WorkplaceExcelDTO;
-import com.hau.ketnguyen.it.model.dto.hau.CategoryDTO;
-import com.hau.ketnguyen.it.model.dto.hau.FacultyDTO;
-import com.hau.ketnguyen.it.model.dto.hau.WorkplaceDTO;
+import com.hau.ketnguyen.it.model.dto.auth.UserInfoDTO;
+import com.hau.ketnguyen.it.model.dto.excel.*;
+import com.hau.ketnguyen.it.model.dto.hau.*;
 import com.hau.ketnguyen.it.model.request.auth.UserRequest;
-import com.hau.ketnguyen.it.model.request.hau.SearchCategoryRequest;
-import com.hau.ketnguyen.it.model.request.hau.SearchFacultyRequest;
-import com.hau.ketnguyen.it.model.request.hau.SearchWorkplaceRequest;
+import com.hau.ketnguyen.it.model.request.hau.*;
+import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
 import com.hau.ketnguyen.it.repository.auth.UserReps;
-import com.hau.ketnguyen.it.repository.hau.CategoryReps;
-import com.hau.ketnguyen.it.repository.hau.FacultyReps;
-import com.hau.ketnguyen.it.repository.hau.WorkplaceReps;
+import com.hau.ketnguyen.it.repository.hau.*;
 import com.hau.ketnguyen.it.service.*;
-import com.hau.ketnguyen.it.service.mapper.CategoryMapper;
-import com.hau.ketnguyen.it.service.mapper.FacultyMapper;
-import com.hau.ketnguyen.it.service.mapper.UserMapper;
-import com.hau.ketnguyen.it.service.mapper.WorkplaceMapper;
+import com.hau.ketnguyen.it.service.mapper.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Row;
@@ -35,10 +28,14 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.hau.ketnguyen.it.service.impl.hau.AssemblyServiceImpl.getLongLecturerDTOMap;
+
 @Slf4j
 @Service
 @AllArgsConstructor
 public class ExcelServiceImpl implements ExcelService {
+    private final UserInfoReps userInfoReps;
+    private final UserInfoMapper userInfoMapper;
     private final WorkplaceService workplaceService;
     private final WorkplaceMapper workplaceMapper;
     private final WorkplaceReps workplaceReps;
@@ -51,6 +48,21 @@ public class ExcelServiceImpl implements ExcelService {
     private final CategoryService categoryService;
     private final CategoryMapper categoryMapper;
     private final CategoryReps categoryReps;
+    private final ClassService classService;
+    private final ClassMapper classMapper;
+    private final ClassReps classReps;
+    private final LecturerReps lecturerReps;
+    private final LecturerMapper lecturerMapper;
+    private final LecturerService lecturerService;
+    private final AssemblyService assemblyService;
+    private final AssemblyReps assemblyReps;
+    private final AssemblyMapper assemblyMapper;
+    private final StudentReps studentReps;
+    private final StudentMapper studentMapper;
+    private final StudentService studentService;
+    private final TopicReps topicReps;
+    private final TopicMapper topicMapper;
+    private final TopicService topicService;
 
     @Override
     public void exportCategory(SearchCategoryRequest request, HttpServletResponse response) throws Exception {
@@ -135,6 +147,220 @@ public class ExcelServiceImpl implements ExcelService {
         exportExcel(response, "Export Workplace",
                 "Workplace", "workplace_export", WorkplaceExcelDTO.class.getDeclaredFields(),
                 Arrays.asList(workplaceExcelDTOS.toArray()), headerListNew);
+    }
+
+    @Override
+    public void exportClass(SearchClassRequest request, HttpServletResponse response) throws Exception {
+        long count = classReps.count();
+        request.setSize((int) count);
+        List<ClassDTO> classDTOS = classService.getAll(request).getData()
+                .stream().sorted(Comparator.comparingLong(ClassDTO::getId)).collect(Collectors.toList());
+        List<ClassExcelDTO> classExcelDTOS = classMapper.toExcel(classDTOS);
+
+        if (!CollectionUtils.isEmpty(classDTOS)) {
+            List<Long> facultyIds = classDTOS.stream().map(ClassDTO::getFacultyId).collect(Collectors.toList());
+            Map<Long, FacultyDTO> facultyDTOMap = facultyReps.findByIdIn(facultyIds)
+                    .stream().map(facultyMapper::to).collect(Collectors.toMap(FacultyDTO::getId, f -> f));
+
+            if (!CollectionUtils.isEmpty(classExcelDTOS)) {
+                classDTOS.forEach(c -> classExcelDTOS.forEach(cx -> {
+                    if (Objects.equals(c.getCode(), cx.getCode())) {
+                        if (!CollectionUtils.isEmpty(facultyDTOMap) && facultyDTOMap.containsKey(c.getFacultyId())) {
+                            cx.setFacultyName(facultyDTOMap.get(c.getFacultyId()).getName());
+                        }
+                    }
+                }));
+            }
+
+            List<String> headerListNew = Arrays.asList("Mã Lớp", "Tên Lớp", "Khoa", "Số lượng");
+
+            exportExcel(response, "Export Class",
+                    "Class", "class_export", ClassExcelDTO.class.getDeclaredFields(),
+                    Arrays.asList(classExcelDTOS.toArray()), headerListNew);
+        }
+    }
+
+    public Map<Short, String> getMapGender() {
+        Map<Short, String> mapStatus = new HashMap<>();
+        mapStatus.put((short) 0, "Nam");
+        mapStatus.put((short) 1, "Nữ");
+        mapStatus.put((short) 2, "Khác");
+        return mapStatus;
+    }
+
+    @Override
+    public void exportLecture(SearchLecturerRequest request, HttpServletResponse response) throws Exception {
+        long count = lecturerReps.count();
+        request.setSize((int) count);
+        List<LecturerDTO> lecturerDTOS = lecturerService.getAll(request).getData()
+                .stream().sorted(Comparator.comparingLong(LecturerDTO::getId)).collect(Collectors.toList());
+        List<LectureExcelDTO> lectureExcelDTOS = lecturerMapper.toExcel(lecturerDTOS);
+
+        if (!CollectionUtils.isEmpty(lecturerDTOS)) {
+            List<Long> userInfoIds = lecturerDTOS.stream().map(LecturerDTO::getUserInfoId).collect(Collectors.toList());
+            List<Long> facultyIds = lecturerDTOS.stream().map(LecturerDTO::getFacultyId).collect(Collectors.toList());
+
+            Map<Long, UserInfoDTO> userInfoDTOMap = userInfoReps.findByIdIn(userInfoIds).stream()
+                    .map(userInfoMapper::to).collect(Collectors.toMap(UserInfoDTO::getId, u -> u));
+            Map<Long, FacultyDTO> facultyDTOMap = facultyReps.findByIdIn(facultyIds).stream()
+                    .map(facultyMapper::to).collect(Collectors.toMap(FacultyDTO::getId, u -> u));
+
+            if (!CollectionUtils.isEmpty(lectureExcelDTOS)) {
+                lecturerDTOS.forEach(l -> lectureExcelDTOS.forEach(lx -> {
+                    if (Objects.equals(l.getCodeLecture(), lx.getCodeLecture())) {
+                        if (!CollectionUtils.isEmpty(userInfoDTOMap) && userInfoDTOMap.containsKey(l.getUserInfoId())) {
+                            lx.setFullName(userInfoDTOMap.get(l.getUserInfoId()).getFullName());
+                            lx.setGender(getMapGender().get(userInfoDTOMap.get(l.getUserInfoId()).getGender()));
+                            lx.setDateOfBirth(userInfoDTOMap.get(l.getUserInfoId()).getDateOfBirth());
+                            lx.setAddress(userInfoDTOMap.get(l.getUserInfoId()).getAddress());
+                            lx.setTown(userInfoDTOMap.get(l.getUserInfoId()).getTown());
+                        }
+
+                        if (!CollectionUtils.isEmpty(facultyDTOMap) && facultyDTOMap.containsKey(l.getFacultyId())) {
+                            lx.setFacultyName(facultyDTOMap.get(l.getFacultyId()).getName());
+                        }
+                    }
+                }));
+            }
+
+            List<String> headerListNew = Arrays.asList("Mã giáo viên", "Họ và tên", "Giới tính", "Ngày sinh",
+                    "Địa chỉ", "Bằng cấp", "Đơn vị", "Chức vụ", "Quê quán");
+
+            exportExcel(response, "Export Lecture",
+                    "Danh sách giảng viên", "lecture_export", LectureExcelDTO.class.getDeclaredFields(),
+                    Arrays.asList(lectureExcelDTOS.toArray()), headerListNew);
+        }
+    }
+
+    @Override
+    public void exportAssembly(SearchAssemblyRequest request, HttpServletResponse response) throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+        long count = assemblyReps.count();
+        request.setSize((int) count);
+        List<AssemblyDTO> assemblyDTOS = assemblyService.getAll(request).getData()
+                .stream().sorted(Comparator.comparingLong(AssemblyDTO::getId)).collect(Collectors.toList());
+        List<AssemblyExcelDTO> assemblyExcelDTOS = assemblyMapper.toExcel(assemblyDTOS);
+
+        if (!CollectionUtils.isEmpty(assemblyDTOS)) {
+            List<Long> topicIds = assemblyDTOS.stream().map(AssemblyDTO::getTopicId).collect(Collectors.toList());
+            Map<Long, TopicDTO> topicDTOMap = topicReps.findByIdIn(topicIds)
+                    .stream().map(topicMapper::to).collect(Collectors.toMap(TopicDTO::getId, t -> t));
+
+            Map<Long, List<Long>> mapTopicLectrueIds = new HashMap<>();
+            List<Long> idLectures = new ArrayList<>();
+            assemblyDTOS.forEach(l -> {
+                List<Integer> lectureIds = null;
+                try {
+                    if (!StringUtils.isNullOrEmpty(l.getLecturerIds())) {
+                        lectureIds = objectMapper.readValue(l.getLecturerIds(), List.class);
+                    }
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+
+                List<Long> lectureIdLong = new ArrayList<>();
+
+                if (lectureIds != null && !lectureIds.isEmpty()) {
+                    lectureIds.forEach(i -> lectureIdLong.add(Long.parseLong(i.toString())));
+                }
+
+                idLectures.addAll(lectureIdLong);
+                mapTopicLectrueIds.put(l.getId(), lectureIdLong);
+            });
+
+            Map<Long, LecturerDTO> lecturerDTOMap = setLecture(idLectures);
+            Map<Long, List<LecturerDTO>> mapTopicWithLectureDTO = new HashMap<>();
+            if (!mapTopicLectrueIds.isEmpty()) {
+                mapTopicLectrueIds.forEach((k, v) -> {
+                    if (v != null && !v.isEmpty()) {
+                        List<LecturerDTO> list = new ArrayList<>();
+                        v.forEach(i -> {
+                            if (!lecturerDTOMap.isEmpty() && lecturerDTOMap.containsKey(i)) {
+                                list.add(lecturerDTOMap.get(i));
+                            }
+                        });
+                        mapTopicWithLectureDTO.put(k, list);
+                    }
+                });
+            }
+
+            if (!CollectionUtils.isEmpty(assemblyExcelDTOS)) {
+                assemblyDTOS.forEach(a -> assemblyExcelDTOS.forEach(ax -> {
+                    if (Objects.equals(a.getNameAssembly(), ax.getNameAssembly())) {
+                        if (!topicDTOMap.isEmpty() && topicDTOMap.containsKey(a.getTopicId())) {
+                            ax.setTopicName(topicDTOMap.get(a.getTopicId()).getName());
+                        }
+
+                        if (!mapTopicWithLectureDTO.isEmpty() && mapTopicWithLectureDTO.containsKey(a.getId())) {
+                            List<String> lecturerNames = mapTopicWithLectureDTO.get(a.getId())
+                                    .stream().map(LecturerDTO::getFullName).collect(Collectors.toList());
+                            ax.setLecturerNames(lecturerNames);
+                        }
+                    }
+                }));
+            }
+
+            List<String> headerListNew = Arrays.asList("Tên hội đồng", "Giáo viên", "Đồ án", "Điểm");
+
+            exportExcel(response, "Export Assembly",
+                    "Danh sách hội đồng", "assembly_export", AssemblyExcelDTO.class.getDeclaredFields(),
+                    Arrays.asList(assemblyExcelDTOS.toArray()), headerListNew);
+        }
+    }
+
+    private Map<Long, LecturerDTO> setLecture(List<Long> lectureIds) {
+        return getLongLecturerDTOMap(lectureIds, lecturerReps, lecturerMapper, userInfoReps);
+    }
+
+    @Override
+    public void exportStudent(SearchStudentRequest request, HttpServletResponse response) throws Exception {
+        long count = studentReps.count();
+        request.setSize((int) count);
+        List<StudentDTO> studentDTOS = studentService.getAll(request).getData()
+                .stream().sorted(Comparator.comparingLong(StudentDTO::getId)).collect(Collectors.toList());
+        List<StudentExcelDTO> studentExcelDTOS = studentMapper.toExcel(studentDTOS);
+
+        if (!CollectionUtils.isEmpty(studentDTOS)) {
+            List<Long> userInfoIds = studentDTOS.stream().map(StudentDTO::getUserInfoId).collect(Collectors.toList());
+            List<Long> topicIds = studentDTOS.stream().map(StudentDTO::getClassId).collect(Collectors.toList());
+            List<Long> classIds = studentDTOS.stream().map(StudentDTO::getTopicId).collect(Collectors.toList());
+
+            Map<Long, UserInfoDTO> userInfoDTOMap = userInfoReps.findByIdIn(userInfoIds).stream()
+                    .map(userInfoMapper::to).collect(Collectors.toMap(UserInfoDTO::getId, u -> u));
+            Map<Long, ClassDTO> classDTOMap = classReps.findByIdIn(classIds).stream()
+                    .map(classMapper::to).collect(Collectors.toMap(ClassDTO::getId, u -> u));
+            Map<Long, TopicDTO> topicDTOMap = topicReps.findByIdIn(topicIds).stream()
+                    .map(topicMapper::to).collect(Collectors.toMap(TopicDTO::getId, u -> u));
+
+            if (!CollectionUtils.isEmpty(studentExcelDTOS)) {
+                studentDTOS.forEach(s -> studentExcelDTOS.forEach(sx -> {
+                    if (Objects.equals(s.getCodeStudent(), sx.getCodeStudent())) {
+                        if (!CollectionUtils.isEmpty(userInfoDTOMap) && userInfoDTOMap.containsKey(s.getUserInfoId())) {
+                            sx.setFullName(userInfoDTOMap.get(s.getUserInfoId()).getFullName());
+                            sx.setGender(getMapGender().get(userInfoDTOMap.get(s.getUserInfoId()).getGender()));
+                            sx.setDateOfBirth(userInfoDTOMap.get(s.getUserInfoId()).getDateOfBirth());
+                            sx.setAddress(userInfoDTOMap.get(s.getUserInfoId()).getAddress());
+                            sx.setTown(userInfoDTOMap.get(s.getUserInfoId()).getTown());
+                        }
+
+                        if (!CollectionUtils.isEmpty(classDTOMap) && classDTOMap.containsKey(s.getClassId())) {
+                            sx.setClassName(classDTOMap.get(s.getClassId()).getName());
+                        }
+
+                        if (!CollectionUtils.isEmpty(topicDTOMap) && topicDTOMap.containsKey(s.getTopicId())) {
+                            sx.setTopicName(topicDTOMap.get(s.getTopicId()).getName());
+                        }
+                    }
+                }));
+            }
+
+            List<String> headerListNew = Arrays.asList("Mã sinh viên", "Họ và tên", "Giới tính",
+                    "Ngày sinh", "Địa chỉ", "Quê quán", "Lớp", "Đề tài");
+
+            exportExcel(response, "Export Student",
+                    "Danh sách sinh viên", "student_export", StudentExcelDTO.class.getDeclaredFields(),
+                    Arrays.asList(studentExcelDTOS.toArray()), headerListNew);
+        }
     }
 
     public Map<Short, String> getMapStatus() {
