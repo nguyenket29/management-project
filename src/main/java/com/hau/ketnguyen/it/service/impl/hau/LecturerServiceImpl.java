@@ -1,26 +1,27 @@
 package com.hau.ketnguyen.it.service.impl.hau;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.auth.CustomUser;
 import com.hau.ketnguyen.it.entity.hau.*;
-import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
 import com.hau.ketnguyen.it.model.dto.auth.UserInfoDTO;
-import com.hau.ketnguyen.it.model.dto.hau.*;
+import com.hau.ketnguyen.it.model.dto.hau.FacultyDTO;
+import com.hau.ketnguyen.it.model.dto.hau.LecturerDTO;
+import com.hau.ketnguyen.it.model.dto.hau.StudentTopicDTO;
+import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
 import com.hau.ketnguyen.it.model.request.hau.SearchLecturerRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchStudentTopicRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchTopicRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
-import com.hau.ketnguyen.it.repository.auth.UserReps;
 import com.hau.ketnguyen.it.repository.hau.*;
 import com.hau.ketnguyen.it.service.LecturerService;
 import com.hau.ketnguyen.it.service.TopicService;
-import com.hau.ketnguyen.it.service.mapper.*;
-import io.swagger.models.auth.In;
+import com.hau.ketnguyen.it.service.mapper.FacultyMapper;
+import com.hau.ketnguyen.it.service.mapper.LecturerMapper;
+import com.hau.ketnguyen.it.service.mapper.StudentTopicMapper;
+import com.hau.ketnguyen.it.service.mapper.UserInfoMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -33,8 +34,6 @@ import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-import static com.hau.ketnguyen.it.service.impl.hau.AssemblyServiceImpl.getLongLecturerDTOMap;
 
 @Slf4j
 @Service
@@ -290,7 +289,7 @@ public class LecturerServiceImpl implements LecturerService {
         if (studentTopicOptional.isEmpty()) {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Sinh viên chưa đăng ký đề tài này");
         }
-        studentTopicOptional.get().setStatus(true);
+        studentTopicOptional.get().setStatusApprove(true);
 
         // cập nhật lại danh sách đề tài
         Optional<Topics> topicsOptional = topicReps.findById(topicId);

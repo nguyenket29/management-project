@@ -13,9 +13,9 @@ import java.util.Optional;
 
 @Repository
 public interface StudentTopicReps extends CrudRepository<StudentTopic, Long> {
-    List<StudentTopic> findByStudentIdInAndStatusIsFalse(List<Long> studentIds);
+    List<StudentTopic> findByStudentIdInAndStatusApproveIsFalse(List<Long> studentIds);
     List<StudentTopic> findByStudentIdInAndStatusRegistryIsTrue(List<Long> studentIds);
-    List<StudentTopic> findByStudentIdInAndStatusIsTrue(List<Long> studentIds);
+    List<StudentTopic> findByStudentIdInAndStatusApproveIsTrue(List<Long> studentIds);
     List<StudentTopic> findByTopicIdIn(List<Long> topicIds);
     Optional<StudentTopic> findByStudentIdAndTopicId(Long studentId, Long topicId);
     List<StudentTopic> findByStudentId(Long studentId);

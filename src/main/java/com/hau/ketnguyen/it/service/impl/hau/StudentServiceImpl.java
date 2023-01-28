@@ -237,15 +237,18 @@ public class StudentServiceImpl implements StudentService {
 
         Map<Long, Boolean> mapTopicStatusStudentRegistry = studentTopics.stream()
                 .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatusRegistry));
+        Map<Long, Boolean> mapTopicStatusApprove = studentTopics.stream()
+                .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatusApprove));
         List<Long> topicIds = studentTopics.stream().map(StudentTopic::getTopicId).distinct().collect(Collectors.toList());
         request.setTopicIds(topicIds);
         Page<TopicDTO> page = topicReps.getListByTopicIds(request, pageable).map(topicMapper::to);
-        setTopicDTO(page, topicIds, mapTopicStatusStudentRegistry);
+        setTopicDTO(page, topicIds, mapTopicStatusStudentRegistry, mapTopicStatusApprove);
 
         return PageDataResponse.of(page);
     }
 
-    private void setTopicDTO(Page<TopicDTO> topicDTOS, List<Long> topicIds, Map<Long, Boolean> mapTopicStatusStudentRegistry) {
+    private void setTopicDTO(Page<TopicDTO> topicDTOS, List<Long> topicIds,
+                             Map<Long, Boolean> mapTopicStatusStudentRegistry, Map<Long, Boolean> mapTopicStatusApprove) {
         if (!CollectionUtils.isEmpty(topicDTOS.toList())) {
             List<Long> categoryIds = topicDTOS.stream().map(TopicDTO::getCategoryId).collect(Collectors.toList());
             List<Long> lectureGuideIds = topicDTOS.stream().map(TopicDTO::getLecturerGuideId).distinct().collect(Collectors.toList());
@@ -280,6 +283,11 @@ public class StudentServiceImpl implements StudentService {
                 if (!CollectionUtils.isEmpty(mapTopicStatusStudentRegistry)
                         && mapTopicStatusStudentRegistry.containsKey(p.getId())) {
                     p.setStudentRegistry(mapTopicStatusStudentRegistry.get(p.getId()));
+                }
+
+                if (!CollectionUtils.isEmpty(mapTopicStatusApprove)
+                        && mapTopicStatusApprove.containsKey(p.getId())) {
+                    p.setStudentApprove(mapTopicStatusApprove.get(p.getId()));
                 }
             });
         }
@@ -334,13 +342,15 @@ public class StudentServiceImpl implements StudentService {
         }
 
         List<StudentTopic> studentTopics =
-                studentTopicReps.findByStudentIdInAndStatusIsTrue(Collections.singletonList(students.get().getId()));
+                studentTopicReps.findByStudentIdInAndStatusApproveIsTrue(Collections.singletonList(students.get().getId()));
         Map<Long, Boolean> mapTopicStatusStudentRegistry = studentTopics.stream()
                 .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatusRegistry));
+        Map<Long, Boolean> mapTopicStatusApprove = studentTopics.stream()
+                .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatusApprove));
         List<Long> topicIds = studentTopics.stream().map(StudentTopic::getTopicId).distinct().collect(Collectors.toList());
         request.setTopicIds(topicIds);
         Page<TopicDTO> topicDTOS = topicReps.getListByTopicIds(request, pageable).map(topicMapper::to);
-        setTopicDTO(topicDTOS, topicIds, mapTopicStatusStudentRegistry);
+        setTopicDTO(topicDTOS, topicIds, mapTopicStatusStudentRegistry, mapTopicStatusApprove);
 
         return PageDataResponse.of(topicDTOS);
     }

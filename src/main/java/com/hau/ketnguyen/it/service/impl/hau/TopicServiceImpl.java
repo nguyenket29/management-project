@@ -119,6 +119,7 @@ public class TopicServiceImpl implements TopicService {
 
         Map<Long, List<String>> fileIdsLong = mapTopicIdWithListFileId(Collections.singletonList(id));
         Map<Long, Boolean> getStatusRegistryTopicByCurrentUser = getStatusRegistryTopicByCurrentUser();
+        Map<Long, Boolean> getStatusApproveTopicByCurrentUser = getStatusApproveTopicByCurrentUser();
 
         if (!fileIdsLong.isEmpty() && fileIdsLong.containsKey(id)) {
             topicDTO.setFileIds(fileIdsLong.get(id));
@@ -127,6 +128,11 @@ public class TopicServiceImpl implements TopicService {
         if (!CollectionUtils.isEmpty(getStatusRegistryTopicByCurrentUser)
                 && getStatusRegistryTopicByCurrentUser.containsKey(topicDTO.getId())) {
             topicDTO.setStudentRegistry(getStatusRegistryTopicByCurrentUser.get(topicDTO.getId()));
+        }
+
+        if (!CollectionUtils.isEmpty(getStatusApproveTopicByCurrentUser)
+                && getStatusApproveTopicByCurrentUser.containsKey(topicDTO.getId())) {
+            topicDTO.setStudentRegistry(getStatusApproveTopicByCurrentUser.get(topicDTO.getId()));
         }
 
         return topicDTO;
@@ -167,6 +173,7 @@ public class TopicServiceImpl implements TopicService {
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
         Page<TopicDTO> page = topicReps.search(request, pageable).map(topicMapper::to);
         Map<Long, Boolean> getStatusRegistryTopicByCurrentUser = getStatusRegistryTopicByCurrentUser();
+        Map<Long, Boolean> getStatusApproveTopicByCurrentUser = getStatusApproveTopicByCurrentUser();
 
         if (!page.isEmpty()) {
             List<Long> topicIds = page.map(TopicDTO::getId).toList();
@@ -202,6 +209,11 @@ public class TopicServiceImpl implements TopicService {
                         && getStatusRegistryTopicByCurrentUser.containsKey(p.getId())) {
                     p.setStudentRegistry(getStatusRegistryTopicByCurrentUser.get(p.getId()));
                 }
+
+                if (!CollectionUtils.isEmpty(getStatusApproveTopicByCurrentUser)
+                        && getStatusApproveTopicByCurrentUser.containsKey(p.getId())) {
+                    p.setStudentApprove(getStatusApproveTopicByCurrentUser.get(p.getId()));
+                }
             });
         }
 
@@ -219,6 +231,23 @@ public class TopicServiceImpl implements TopicService {
             List<StudentTopic> studentTopics = studentTopicReps.findByStudentId(students.get().getId());
             if (!CollectionUtils.isEmpty(studentTopics)) {
                 studentTopics.forEach(s -> map.put(s.getTopicId(), s.getStatusRegistry()));
+            }
+        }
+
+        return map;
+    }
+
+    private Map<Long, Boolean> getStatusApproveTopicByCurrentUser() {
+        Map<Long, Boolean> map = new HashMap<>();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUser customUser = (CustomUser) authentication.getPrincipal();
+
+        Optional<Students> students = studentReps.findByUserId(customUser.getId());
+
+        if (students.isPresent()) {
+            List<StudentTopic> studentTopics = studentTopicReps.findByStudentId(students.get().getId());
+            if (!CollectionUtils.isEmpty(studentTopics)) {
+                studentTopics.forEach(s -> map.put(s.getTopicId(), s.getStatusApprove()));
             }
         }
 

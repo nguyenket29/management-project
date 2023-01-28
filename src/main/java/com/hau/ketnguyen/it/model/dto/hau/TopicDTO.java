@@ -31,6 +31,7 @@ public class TopicDTO {
     private Long categoryId;
     private String categoryName;
     private boolean studentRegistry;
+    private boolean studentApprove;
 
     private List<String> fileIds;
 }

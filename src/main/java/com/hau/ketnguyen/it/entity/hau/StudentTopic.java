@@ -12,7 +12,7 @@ import javax.persistence.Table;
 @Data
 public class StudentTopic extends BaseEntity {
     @Column(name = "status", columnDefinition = "boolean default false")
-    private Boolean status = false;
+    private Boolean statusApprove = false;
 
     @Column(name = "status_registry", columnDefinition = "boolean default false")
     private Boolean statusRegistry = false;

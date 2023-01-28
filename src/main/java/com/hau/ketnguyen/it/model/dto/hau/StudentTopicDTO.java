@@ -17,4 +17,6 @@ public class StudentTopicDTO {
 
     private String studentName;
     private String topicName;
+    private Boolean statusRegistry;
+    private Boolean statusApprove;
 }
