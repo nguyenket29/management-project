@@ -218,7 +218,7 @@ public class TopicServiceImpl implements TopicService {
         if (students.isPresent()) {
             List<StudentTopic> studentTopics = studentTopicReps.findByStudentId(students.get().getId());
             if (!CollectionUtils.isEmpty(studentTopics)) {
-                studentTopics.forEach(s -> map.put(s.getTopicId(), s.getStatus()));
+                studentTopics.forEach(s -> map.put(s.getTopicId(), s.getStatusRegistry()));
             }
         }
 

@@ -215,7 +215,7 @@ public class StudentServiceImpl implements StudentService {
             StudentTopic studentTopic = new StudentTopic();
             studentTopic.setTopicId(topicId);
             studentTopic.setStudentId(students.get().getId());
-            studentTopic.setStatus(!registry);
+            studentTopic.setStatusRegistry(registry);
             studentTopicReps.save(studentTopic);
         }
     }
@@ -233,10 +233,10 @@ public class StudentServiceImpl implements StudentService {
         }
 
         List<StudentTopic> studentTopics =
-                studentTopicReps.findByStudentIdInAndStatusIsFalse(Collections.singletonList(students.get().getId()));
+                studentTopicReps.findByStudentIdInAndStatusRegistryIsTrue(Collections.singletonList(students.get().getId()));
 
         Map<Long, Boolean> mapTopicStatusStudentRegistry = studentTopics.stream()
-                .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatus));
+                .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatusRegistry));
         List<Long> topicIds = studentTopics.stream().map(StudentTopic::getTopicId).distinct().collect(Collectors.toList());
         request.setTopicIds(topicIds);
         Page<TopicDTO> page = topicReps.getListByTopicIds(request, pageable).map(topicMapper::to);
@@ -336,7 +336,7 @@ public class StudentServiceImpl implements StudentService {
         List<StudentTopic> studentTopics =
                 studentTopicReps.findByStudentIdInAndStatusIsTrue(Collections.singletonList(students.get().getId()));
         Map<Long, Boolean> mapTopicStatusStudentRegistry = studentTopics.stream()
-                .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatus));
+                .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatusRegistry));
         List<Long> topicIds = studentTopics.stream().map(StudentTopic::getTopicId).distinct().collect(Collectors.toList());
         request.setTopicIds(topicIds);
         Page<TopicDTO> topicDTOS = topicReps.getListByTopicIds(request, pageable).map(topicMapper::to);
