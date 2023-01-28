@@ -15,4 +15,5 @@ public interface ExcelService {
     void exportLecture(SearchLecturerRequest request, HttpServletResponse response) throws Exception;
     void exportAssembly(SearchAssemblyRequest request, HttpServletResponse response) throws Exception;
     void exportStudent(SearchStudentRequest request, HttpServletResponse response) throws Exception;
+    void exportTopic(SearchTopicRequest request, HttpServletResponse response) throws Exception;
 }

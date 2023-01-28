@@ -87,4 +87,12 @@ public class ExcelController {
         excelService.exportStudent(request, response);
         return ResponseEntity.ok(APIResponse.success());
     }
+
+    @GetMapping("/topic")
+    @ApiOperation(value = "Export Topic")
+    public ResponseEntity<APIResponse<Void>> exportExcelTopic(SearchTopicRequest request, HttpServletResponse response)
+            throws Exception {
+        excelService.exportTopic(request, response);
+        return ResponseEntity.ok(APIResponse.success());
+    }
 }

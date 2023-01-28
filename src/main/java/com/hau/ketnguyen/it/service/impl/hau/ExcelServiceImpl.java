@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hau.ketnguyen.it.common.anotations.Reflections;
 import com.hau.ketnguyen.it.common.util.ExportExcelUtil;
 import com.hau.ketnguyen.it.common.util.StringUtils;
+import com.hau.ketnguyen.it.entity.hau.Categories;
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
 import com.hau.ketnguyen.it.model.dto.auth.UserInfoDTO;
 import com.hau.ketnguyen.it.model.dto.excel.*;
@@ -119,7 +120,7 @@ public class ExcelServiceImpl implements ExcelService {
                 facultyDTOS.forEach(f -> facultyExcelDTOS.forEach(fx -> {
                     if (Objects.equals(f.getName(), fx.getName()) &&
                             Objects.equals(f.getSpecialization(), fx.getSpecialization())) {
-                        if (!CollectionUtils.isEmpty(workplaceDTOMap) && workplaceDTOMap.containsKey(f.getWorkplaceId())) {
+                        if (f.getWorkplaceId() != null && !CollectionUtils.isEmpty(workplaceDTOMap) && workplaceDTOMap.containsKey(f.getWorkplaceId())) {
                             fx.setWorkplace(workplaceDTOMap.get(f.getWorkplaceId()).getName());
                         }
                     }
@@ -208,7 +209,8 @@ public class ExcelServiceImpl implements ExcelService {
             if (!CollectionUtils.isEmpty(lectureExcelDTOS)) {
                 lecturerDTOS.forEach(l -> lectureExcelDTOS.forEach(lx -> {
                     if (Objects.equals(l.getCodeLecture(), lx.getCodeLecture())) {
-                        if (!CollectionUtils.isEmpty(userInfoDTOMap) && userInfoDTOMap.containsKey(l.getUserInfoId())) {
+                        if (l.getUserInfoId() != null && !CollectionUtils.isEmpty(userInfoDTOMap)
+                                && userInfoDTOMap.containsKey(l.getUserInfoId())) {
                             lx.setFullName(userInfoDTOMap.get(l.getUserInfoId()).getFullName());
                             lx.setGender(getMapGender().get(userInfoDTOMap.get(l.getUserInfoId()).getGender()));
                             lx.setDateOfBirth(userInfoDTOMap.get(l.getUserInfoId()).getDateOfBirth());
@@ -216,7 +218,8 @@ public class ExcelServiceImpl implements ExcelService {
                             lx.setTown(userInfoDTOMap.get(l.getUserInfoId()).getTown());
                         }
 
-                        if (!CollectionUtils.isEmpty(facultyDTOMap) && facultyDTOMap.containsKey(l.getFacultyId())) {
+                        if (l.getFacultyId() != null && !CollectionUtils.isEmpty(facultyDTOMap)
+                                && facultyDTOMap.containsKey(l.getFacultyId())) {
                             lx.setFacultyName(facultyDTOMap.get(l.getFacultyId()).getName());
                         }
                     }
@@ -287,11 +290,11 @@ public class ExcelServiceImpl implements ExcelService {
             if (!CollectionUtils.isEmpty(assemblyExcelDTOS)) {
                 assemblyDTOS.forEach(a -> assemblyExcelDTOS.forEach(ax -> {
                     if (Objects.equals(a.getNameAssembly(), ax.getNameAssembly())) {
-                        if (!topicDTOMap.isEmpty() && topicDTOMap.containsKey(a.getTopicId())) {
+                        if (a.getTopicId() != null && !topicDTOMap.isEmpty() && topicDTOMap.containsKey(a.getTopicId())) {
                             ax.setTopicName(topicDTOMap.get(a.getTopicId()).getName());
                         }
 
-                        if (!mapTopicWithLectureDTO.isEmpty() && mapTopicWithLectureDTO.containsKey(a.getId())) {
+                        if (a.getId() != null && !mapTopicWithLectureDTO.isEmpty() && mapTopicWithLectureDTO.containsKey(a.getId())) {
                             List<String> lecturerNames = mapTopicWithLectureDTO.get(a.getId())
                                     .stream().map(LecturerDTO::getFullName).collect(Collectors.toList());
                             ax.setLecturerNames(lecturerNames);
@@ -335,7 +338,7 @@ public class ExcelServiceImpl implements ExcelService {
             if (!CollectionUtils.isEmpty(studentExcelDTOS)) {
                 studentDTOS.forEach(s -> studentExcelDTOS.forEach(sx -> {
                     if (Objects.equals(s.getCodeStudent(), sx.getCodeStudent())) {
-                        if (!CollectionUtils.isEmpty(userInfoDTOMap) && userInfoDTOMap.containsKey(s.getUserInfoId())) {
+                        if (s.getUserInfoId() != null && !CollectionUtils.isEmpty(userInfoDTOMap) && userInfoDTOMap.containsKey(s.getUserInfoId())) {
                             sx.setFullName(userInfoDTOMap.get(s.getUserInfoId()).getFullName());
                             sx.setGender(getMapGender().get(userInfoDTOMap.get(s.getUserInfoId()).getGender()));
                             sx.setDateOfBirth(userInfoDTOMap.get(s.getUserInfoId()).getDateOfBirth());
@@ -343,11 +346,11 @@ public class ExcelServiceImpl implements ExcelService {
                             sx.setTown(userInfoDTOMap.get(s.getUserInfoId()).getTown());
                         }
 
-                        if (!CollectionUtils.isEmpty(classDTOMap) && classDTOMap.containsKey(s.getClassId())) {
+                        if (s.getClassId() != null && !CollectionUtils.isEmpty(classDTOMap) && classDTOMap.containsKey(s.getClassId())) {
                             sx.setClassName(classDTOMap.get(s.getClassId()).getName());
                         }
 
-                        if (!CollectionUtils.isEmpty(topicDTOMap) && topicDTOMap.containsKey(s.getTopicId())) {
+                        if (s.getTopicId() != null && !CollectionUtils.isEmpty(topicDTOMap) && topicDTOMap.containsKey(s.getTopicId())) {
                             sx.setTopicName(topicDTOMap.get(s.getTopicId()).getName());
                         }
                     }
@@ -361,6 +364,73 @@ public class ExcelServiceImpl implements ExcelService {
                     "Danh sách sinh viên", "student_export", StudentExcelDTO.class.getDeclaredFields(),
                     Arrays.asList(studentExcelDTOS.toArray()), headerListNew);
         }
+    }
+
+    @Override
+    public void exportTopic(SearchTopicRequest request, HttpServletResponse response) throws Exception {
+        long count = topicReps.count();
+        request.setSize((int) count);
+        List<TopicDTO> topicDTOS = topicService.getAll(request).getData()
+                .stream().sorted(Comparator.comparingLong(TopicDTO::getId)).collect(Collectors.toList());
+        List<TopicExcelDTO> topicExcelDTOS = topicMapper.toExcel(topicDTOS);
+
+        if (!CollectionUtils.isEmpty(topicDTOS)) {
+            List<Long> categoryIds = topicDTOS.stream().map(TopicDTO::getCategoryId).collect(Collectors.toList());
+            List<Long> lectureGuideIds = topicDTOS.stream()
+                    .map(TopicDTO::getLecturerGuideId).distinct().collect(Collectors.toList());
+            List<Long> lectureCounterArgumentIds = topicDTOS.stream()
+                    .map(TopicDTO::getLecturerCounterArgumentId).distinct().collect(Collectors.toList());
+            List<Long> lectureIds = new ArrayList<>();
+            lectureIds.addAll(lectureGuideIds);
+            lectureIds.addAll(lectureCounterArgumentIds);
+
+            Map<Long, LecturerDTO> lecturerDTOMap = setLecture(lectureIds.stream().distinct().collect(Collectors.toList()));
+            Map<Long, String> mapCategoryName = mapTopicWithCategoryName(categoryIds);
+            if (!CollectionUtils.isEmpty(topicExcelDTOS)) {
+                topicDTOS.forEach(t -> topicExcelDTOS.forEach(tx -> {
+                    if (Objects.equals(t.getName(), tx.getName())) {
+                        if (t.getStatus() != null && t.getStatus()) {
+                            tx.setStatus("Đạt");
+                        } else {
+                            tx.setStatus("Không Đạt");
+                        }
+
+                        if (t.getLecturerGuideId() != null && !CollectionUtils.isEmpty(lecturerDTOMap)
+                                && lecturerDTOMap.containsKey(t.getLecturerGuideId())) {
+                            tx.setLecturerGuideName(lecturerDTOMap.get(t.getLecturerGuideId()).getFullName());
+                        }
+
+                        if (t.getLecturerCounterArgumentId() != null && !CollectionUtils.isEmpty(lecturerDTOMap)
+                                && lecturerDTOMap.containsKey(t.getLecturerCounterArgumentId())) {
+                            tx.setLecturerCounterArgumentName(lecturerDTOMap.get(t.getLecturerCounterArgumentId()).getFullName());
+                        }
+
+                        if (t.getCategoryId() != null && !CollectionUtils.isEmpty(mapCategoryName)
+                                && mapCategoryName.containsKey(t.getCategoryId())) {
+                            tx.setCategoryName(mapCategoryName.get(t.getCategoryId()));
+                        }
+                    }
+                }));
+            }
+
+            List<String> headerListNew = Arrays.asList("Tên đề tài", "Chủ đề", "Giáo viên phản biện", "Giáo viên hướng dẫn",
+                    "Điểm phản biện", "Điểm hướng dẫn", "Điểm kiểm tra tiến độ lần 1", "Điểm kiểm tra tiến độ lần 2",
+                    "Trạng thái", "Số lượng sinh viên", "Năm thực hiện", "Thông tin");
+
+            exportExcel(response, "Export Topic",
+                    "Danh sách đồ án", "topic_export", TopicExcelDTO.class.getDeclaredFields(),
+                    Arrays.asList(topicExcelDTOS.toArray()), headerListNew);
+        }
+    }
+
+    private Map<Long, String> mapTopicWithCategoryName(List<Long> categoryIds) {
+        Map<Long, String> mapIdCategoryWithCategoryName = new HashMap<>();
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            mapIdCategoryWithCategoryName = categoryReps.findByIdIn(categoryIds)
+                    .stream().collect(Collectors.toMap(Categories::getId, Categories::getName));
+        }
+
+        return mapIdCategoryWithCategoryName;
     }
 
     public Map<Short, String> getMapStatus() {
