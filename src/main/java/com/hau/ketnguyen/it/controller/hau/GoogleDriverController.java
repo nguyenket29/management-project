@@ -3,6 +3,7 @@ package com.hau.ketnguyen.it.controller.hau;
 import com.hau.ketnguyen.it.model.dto.hau.FolderDriverDTO;
 import com.hau.ketnguyen.it.model.dto.hau.GoogleDriverFileDTO;
 import com.hau.ketnguyen.it.model.dto.hau.GoogleDriverFolderDTO;
+import com.hau.ketnguyen.it.model.request.hau.DriverRequest;
 import com.hau.ketnguyen.it.model.response.APIResponse;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.service.GoogleDriverFile;
@@ -56,6 +57,12 @@ public class GoogleDriverController {
             pathFile = "Root";
         }
         return ResponseEntity.ok(APIResponse.success(googleDriveFileService.uploadFile(fileUpload, pathFile, Boolean.parseBoolean(shared))));
+    }
+
+    @PostMapping("/file/get-by-id")
+    public ResponseEntity<APIResponse<List<GoogleDriverFileDTO>>> getByIds(@RequestBody DriverRequest request)
+            throws IOException, GeneralSecurityException {
+        return ResponseEntity.ok(APIResponse.success(googleDriveFileService.findByIdFileds(request.getFieldIds())));
     }
 
     // Upload file to public

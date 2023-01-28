@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
@@ -81,19 +82,21 @@ public class GoogleDriverFileServiceImpl implements GoogleDriverFile {
     }
 
     @Override
-    public GoogleDriverFileDTO findByIdFiled(String fileId) throws GeneralSecurityException, IOException {
+    public List<GoogleDriverFileDTO> findByIdFileds(List<String> fileIds) throws GeneralSecurityException, IOException {
         List<GoogleDriverFileDTO> responseList = getListFile();
 
-        GoogleDriverFileDTO googleDriverFileDTO = null;
-        if (!responseList.isEmpty()) {
+        List<GoogleDriverFileDTO> rs = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(responseList) && !CollectionUtils.isEmpty(fileIds)) {
             for (GoogleDriverFileDTO r : responseList) {
-                if (r.getId().equals(fileId)) {
-                    googleDriverFileDTO = r;
+                for (String fileId : fileIds) {
+                    if (r.getId().equals(fileId)) {
+                        rs.add(r);
+                    }
                 }
             }
         }
 
-        return googleDriverFileDTO;
+        return rs;
     }
 
     private List<GoogleDriverFileDTO> getListFile() throws GeneralSecurityException, IOException {

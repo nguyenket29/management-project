@@ -16,5 +16,5 @@ public interface GoogleDriverFile {
     String uploadFile(MultipartFile file, String filePath, boolean isPublic);
     List<String> uploadMultiFile(MultipartFile[] file, String filePath, boolean isPublic);
     byte[] downloadFile(String id, OutputStream outputStream, HttpServletResponse response) throws IOException, GeneralSecurityException;
-    GoogleDriverFileDTO findByIdFiled(String fileId) throws GeneralSecurityException, IOException;
+    List<GoogleDriverFileDTO> findByIdFileds(List<String> fileId) throws GeneralSecurityException, IOException;
 }
