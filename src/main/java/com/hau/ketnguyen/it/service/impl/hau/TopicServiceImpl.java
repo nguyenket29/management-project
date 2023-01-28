@@ -133,7 +133,7 @@ public class TopicServiceImpl implements TopicService {
 
         if (!CollectionUtils.isEmpty(getStatusApproveTopicByCurrentUser)
                 && getStatusApproveTopicByCurrentUser.containsKey(topicDTO.getId())) {
-            topicDTO.setStudentRegistry(getStatusApproveTopicByCurrentUser.get(topicDTO.getId()));
+            topicDTO.setStudentApprove(getStatusApproveTopicByCurrentUser.get(topicDTO.getId()));
         }
 
         return topicDTO;
