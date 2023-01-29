@@ -15,6 +15,7 @@ public class SearchTopicRequest extends BaseRequest {
     private Date year;
     private String description;
     private Boolean status;
+    private Boolean statusSuggest;
     private Float score;
     private Long lecturerGuideId;
     private Long lecturerCounterArgumentId;

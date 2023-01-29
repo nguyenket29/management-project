@@ -2,6 +2,7 @@ package com.hau.ketnguyen.it.controller.hau;
 
 import com.hau.ketnguyen.it.model.dto.hau.StudentDTO;
 import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
+import com.hau.ketnguyen.it.model.dto.hau.TopicSuggestDTO;
 import com.hau.ketnguyen.it.model.request.hau.SearchStudentRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchTopicStudentRequest;
 import com.hau.ketnguyen.it.model.response.APIResponse;
@@ -63,6 +64,26 @@ public class StudentController {
     @ApiOperation(value = "API lấy danh sách đề tài sinh viên đã đăng ký đã được duyệt")
     public ResponseEntity<APIResponse<PageDataResponse<TopicDTO>>> getListRegistryTopicApproved(SearchTopicStudentRequest request) {
         return ResponseEntity.ok(APIResponse.success(studentService.getListTopicRegistry(request)));
+    }
+
+    @PostMapping("/create-topic-suggest")
+    @ApiOperation(value = "API sinh viên đề xuất đề tài")
+    public ResponseEntity<APIResponse<Void>> createTopicSuggest(@RequestBody TopicSuggestDTO topicSuggestDTO) {
+        studentService.studentSuggestTopic(topicSuggestDTO.getTopicName());
+        return ResponseEntity.ok(APIResponse.success());
+    }
+
+    @GetMapping("/admin-approve-topic")
+    @ApiOperation(value = "API quản trị viên duyệt đề tài sinh viên đề xuất")
+    public ResponseEntity<APIResponse<Void>> adminApproveTopicSuggest(@RequestParam Long topicId) {
+        studentService.adminApproveTopicSuggest(topicId);
+        return ResponseEntity.ok(APIResponse.success());
+    }
+
+    @GetMapping("/get-list-topic-suggest")
+    @ApiOperation(value = "API lấy danh sách đề tài đề xuất của sinh viên hiện tại")
+    public ResponseEntity<APIResponse<PageDataResponse<TopicDTO>>> getListTopicSuggest(SearchTopicStudentRequest request) {
+        return ResponseEntity.ok(APIResponse.success(studentService.getListTopicSuggestOfStudent(request)));
     }
 
     @GetMapping

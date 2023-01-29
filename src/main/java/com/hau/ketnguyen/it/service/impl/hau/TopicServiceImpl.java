@@ -55,6 +55,7 @@ public class TopicServiceImpl implements TopicService {
 
     @Override
     public TopicDTO save(TopicDTO topicDTO) {
+        topicDTO.setStatusSuggest(true);
         return topicMapper.to(topicReps.save(topicMapper.from(topicDTO)));
     }
 

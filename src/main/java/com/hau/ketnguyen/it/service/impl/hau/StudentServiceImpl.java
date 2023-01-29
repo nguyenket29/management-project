@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
+import com.hau.ketnguyen.it.common.util.StringUtils;
 import com.hau.ketnguyen.it.entity.auth.CustomUser;
 import com.hau.ketnguyen.it.entity.hau.*;
 import com.hau.ketnguyen.it.model.dto.auth.UserInfoDTO;
@@ -32,6 +33,7 @@ import org.springframework.util.CollectionUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.hau.ketnguyen.it.common.enums.TypeUser.OTHER;
 import static com.hau.ketnguyen.it.service.impl.hau.AssemblyServiceImpl.getLongLecturerDTOMap;
 
 @Service
@@ -343,6 +345,84 @@ public class StudentServiceImpl implements StudentService {
 
         List<StudentTopic> studentTopics =
                 studentTopicReps.findByStudentIdInAndStatusApproveIsTrue(Collections.singletonList(students.get().getId()));
+        Map<Long, Boolean> mapTopicStatusStudentRegistry = studentTopics.stream()
+                .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatusRegistry));
+        Map<Long, Boolean> mapTopicStatusApprove = studentTopics.stream()
+                .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatusApprove));
+        List<Long> topicIds = studentTopics.stream().map(StudentTopic::getTopicId).distinct().collect(Collectors.toList());
+        request.setTopicIds(topicIds);
+        Page<TopicDTO> topicDTOS = topicReps.getListByTopicIds(request, pageable).map(topicMapper::to);
+        setTopicDTO(topicDTOS, topicIds, mapTopicStatusStudentRegistry, mapTopicStatusApprove);
+
+        return PageDataResponse.of(topicDTOS);
+    }
+
+    @Override
+    public void studentSuggestTopic(String topicName) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUser user = (CustomUser) authentication.getPrincipal();
+
+        Optional<Students> students = studentReps.findByUserId(user.getId());
+
+        if (students.isEmpty()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
+        }
+
+        // tạo mới đề tài
+        TopicDTO topicDTO = TopicDTO.builder()
+                .name(topicName)
+                .statusSuggest(false)
+                .build();
+        Topics topics = topicReps.save(topicMapper.from(topicDTO));
+
+        // đề xuất này của sinh viên nào
+        StudentTopic studentTopic = new StudentTopic();
+        studentTopic.setStatusSuggest(false);
+        studentTopic.setTopicId(topics.getId());
+        studentTopic.setStudentId(students.get().getId());
+        studentTopicReps.save(studentTopic);
+    }
+
+    @Override
+    public void adminApproveTopicSuggest(Long topicId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUser user = (CustomUser) authentication.getPrincipal();
+
+        if (StringUtils.isNullOrEmpty(user.getType()) || user.getType().equalsIgnoreCase(OTHER.name())) {
+            Optional<Topics> topicsOptional = topicReps.findById(topicId);
+
+            if (topicsOptional.isEmpty()) {
+                throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đề tài");
+            }
+
+            topicsOptional.get().setStatusSuggest(true);
+            topicReps.save(topicsOptional.get());
+
+            // xóa trong student topic
+            List<StudentTopic> studentTopics = studentTopicReps.findByTopicIdIn(Collections.singletonList(topicId));
+            if (!CollectionUtils.isEmpty(studentTopics)) {
+                studentTopicReps.deleteAll(studentTopics);
+            }
+        } else {
+            throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Người dùng không phải quản trị viên");
+        }
+    }
+
+    @Override
+    public PageDataResponse<TopicDTO> getListTopicSuggestOfStudent(SearchTopicStudentRequest request) {
+        Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUser user = (CustomUser) authentication.getPrincipal();
+
+        Optional<Students> students = studentReps.findByUserId(user.getId());
+
+        if (students.isEmpty()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
+        }
+
+        List<StudentTopic> studentTopics =
+                studentTopicReps.findByStudentIdInAndStatusSuggestIsFalse(Collections.singletonList(students.get().getId()));
+
         Map<Long, Boolean> mapTopicStatusStudentRegistry = studentTopics.stream()
                 .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatusRegistry));
         Map<Long, Boolean> mapTopicStatusApprove = studentTopics.stream()

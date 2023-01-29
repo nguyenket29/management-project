@@ -32,6 +32,9 @@ public class Topics extends BaseEntity {
     @Column(name = "status", columnDefinition = "boolean default false")
     private Boolean status = false;
 
+    @Column(name = "status_suggest", columnDefinition = "boolean default false")
+    private Boolean statusSuggest = false;
+
     @Column(name = "score_guide", columnDefinition = "float default 0")
     private Float scoreGuide;
 
