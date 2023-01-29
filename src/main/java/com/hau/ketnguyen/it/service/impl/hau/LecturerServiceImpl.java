@@ -210,7 +210,7 @@ public class LecturerServiceImpl implements LecturerService {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên hướng dẫn");
         }
 
-        request.setLecturerGuideId(lecturersOptional.get().getId());
+        request.setLecturerCounterArgumentId(lecturersOptional.get().getId());
         return topicService.getAll(request);
     }
 
@@ -224,7 +224,7 @@ public class LecturerServiceImpl implements LecturerService {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên hướng dẫn");
         }
 
-        request.setLecturerCounterArgumentId(lecturersOptional.get().getId());
+        request.setLecturerGuideId(lecturersOptional.get().getId());
         return topicService.getAll(request);
     }
 
