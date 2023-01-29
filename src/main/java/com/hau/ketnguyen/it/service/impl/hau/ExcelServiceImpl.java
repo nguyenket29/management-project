@@ -455,7 +455,7 @@ public class ExcelServiceImpl implements ExcelService {
     private byte[] exportExcel(HttpServletResponse response, String sheetName, String title, String fileName,
                                      Field[] fields, List<Object> objects, List<String> headerListNew) throws IOException {
         response.setContentType(type);
-        response.setHeader("Content-Disposition", "attachment; filename=" + HashHelper.urlEncode(fileName));
+        response.setHeader("Content-Disposition", "attachment; filename=" + HashHelper.urlEncode(fileName) + ".xlsx");
 
         List<String> headerList = new ArrayList();
         Arrays.stream(fields).forEach(c -> headerList.add(c.getName()));
