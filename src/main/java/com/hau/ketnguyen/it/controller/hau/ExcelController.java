@@ -9,12 +9,14 @@ import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
+import java.io.OutputStream;
 
 @RestController
 @Api(value = "Excel Controller", description = "Các APIs excel")
@@ -26,10 +28,9 @@ public class ExcelController {
 
     @GetMapping("/category")
     @ApiOperation(value = "Export Category")
-    public ResponseEntity<APIResponse<Void>> exportExcelCategory(SearchCategoryRequest request, HttpServletResponse response)
+    public ResponseEntity<byte[]> exportExcelCategory(SearchCategoryRequest request, HttpServletResponse response)
             throws Exception {
-        excelService.exportCategory(request, response);
-        return ResponseEntity.ok(APIResponse.success());
+        return ResponseEntity.ok(excelService.exportCategory(request, response));
     }
 
     @GetMapping("/user")

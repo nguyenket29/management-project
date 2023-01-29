@@ -13,10 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -330,12 +327,10 @@ public class ExportExcelUtil {
         return this;
     }
 
-    public ExportExcelUtil write(HttpServletResponse response, String fileName) throws IOException {
-        response.reset();
-        response.setContentType(type);
-        response.setHeader("Content-Disposition", "attachment; filename=" + HashHelper.urlEncode(fileName));
-        write(response.getOutputStream());
-        return this;
+    public ByteArrayInputStream write() throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        wb.write(byteArrayOutputStream);
+        return new ByteArrayInputStream(byteArrayOutputStream.toByteArray());
     }
 
     public ExportExcelUtil writeFile(String name) throws FileNotFoundException, IOException {

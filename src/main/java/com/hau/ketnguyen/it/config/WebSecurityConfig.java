@@ -1,6 +1,5 @@
 package com.hau.ketnguyen.it.config;
 
-import com.google.common.collect.ImmutableList;
 import com.hau.ketnguyen.it.common.util.JwtTokenUtil;
 import com.hau.ketnguyen.it.config.auth.Commons;
 import com.hau.ketnguyen.it.config.auth.JWTAuthenticationFilter;
@@ -12,15 +11,19 @@ import com.hau.ketnguyen.it.service.UserService;
 import com.hau.ketnguyen.it.service.impl.auth.AuthServiceimpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -59,16 +62,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .addFilter(new JWTAuthorizationFilter(authenticationManager(), userService))
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and().httpBasic().authenticationEntryPoint(entryPointConfig);
+
+        http.headers()
+                .addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Origin", "http://localhost:8080"))
+                .addHeaderWriter(new StaticHeadersWriter("Access-Control-Allow-Credentials", "true"))
+                .addHeaderWriter(new StaticHeadersWriter("Access-Control-Expose-Headers", "*"));
     }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         final CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(ImmutableList.of("*"));
-        configuration.setAllowedMethods(ImmutableList.of("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH"));
-        configuration.setAllowCredentials(false);
-        configuration.setAllowedHeaders(ImmutableList.of("*"));
-        configuration.setExposedHeaders(ImmutableList.of("Authorization"));
+        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedMethods(List.of("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setExposedHeaders(List.of("*"));
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

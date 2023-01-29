@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hau.ketnguyen.it.common.anotations.Reflections;
 import com.hau.ketnguyen.it.common.util.ExportExcelUtil;
+import com.hau.ketnguyen.it.common.util.HashHelper;
 import com.hau.ketnguyen.it.common.util.StringUtils;
 import com.hau.ketnguyen.it.entity.hau.Categories;
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -35,6 +37,7 @@ import static com.hau.ketnguyen.it.service.impl.hau.AssemblyServiceImpl.getLongL
 @Service
 @AllArgsConstructor
 public class ExcelServiceImpl implements ExcelService {
+    public static String type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
     private final UserInfoReps userInfoReps;
     private final UserInfoMapper userInfoMapper;
     private final WorkplaceService workplaceService;
@@ -66,7 +69,7 @@ public class ExcelServiceImpl implements ExcelService {
     private final TopicService topicService;
 
     @Override
-    public void exportCategory(SearchCategoryRequest request, HttpServletResponse response) throws Exception {
+    public byte[] exportCategory(SearchCategoryRequest request, HttpServletResponse response) throws Exception {
         long count = categoryReps.count();
         request.setSize((int) count);
         List<CategoryDTO> categoryDTOS = categoryService.getAll(request).getData()
@@ -74,7 +77,7 @@ public class ExcelServiceImpl implements ExcelService {
         List<CategoryExcelDTO> categoryExcelDTOS = categoryMapper.toExcel(categoryDTOS);
         List<String> headerListNew = Arrays.asList("Mã chủ đề", "Tên chủ đề");
 
-        exportExcel(response, "Export Category",
+        return exportExcel(response, "Export Category",
                 "Category", "category_export", CategoryExcelDTO.class.getDeclaredFields(),
                 Arrays.asList(categoryExcelDTOS.toArray()), headerListNew);
     }
@@ -449,8 +452,11 @@ public class ExcelServiceImpl implements ExcelService {
         return mapStatus;
     }
 
-    private void exportExcel(HttpServletResponse response, String sheetName, String title, String fileName,
-                             Field[] fields, List<Object> objects, List<String> headerListNew) throws IOException {
+    private byte[] exportExcel(HttpServletResponse response, String sheetName, String title, String fileName,
+                                     Field[] fields, List<Object> objects, List<String> headerListNew) throws IOException {
+        response.setContentType(type);
+        response.setHeader("Content-Disposition", "attachment; filename=" + HashHelper.urlEncode(fileName));
+
         List<String> headerList = new ArrayList();
         Arrays.stream(fields).forEach(c -> headerList.add(c.getName()));
 
@@ -466,9 +472,10 @@ public class ExcelServiceImpl implements ExcelService {
             }
         }
 
-        ee.write(response, fileName.concat(".xlsx"));
-        ee.dispose();
-
+        ee.write(response.getOutputStream());
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        byteArrayOutputStream.writeTo(response.getOutputStream());
+        return byteArrayOutputStream.toByteArray();
     }
 
     private String getValueSetColumn(String filedName, Object object) {
