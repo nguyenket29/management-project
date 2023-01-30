@@ -54,4 +54,17 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
             "where (t.id IN :#{#request.topicIds}) " +
             "and (:#{#request.topicName} IS NULL OR lower(t.name) LIKE %:#{#request.topicName}%) ")
     Page<Topics> getListByTopicIds(SearchTopicStudentRequest request, Pageable pageable);
+
+    @Query("SELECT c FROM topics c " +
+            "WHERE (:#{#request.lecturerGuideId} IS NULL OR c.lecturerGuideId = :#{#request.lecturerGuideId}) " +
+            " AND (:#{#request.name} IS NULL OR lower(c.name) LIKE %:#{#request.name}%) " +
+            " AND (:#{#request.statusSuggest} IS FALSE ) " +
+            " AND (:#{#request.description} IS NULL OR lower(c.description) LIKE %:#{#request.description}%) " +
+            " AND (:#{#request.status} IS NULL OR c.status = :#{#request.status}) " +
+            " AND (:#{#request.statusSuggest} IS NULL OR c.statusSuggest = :#{#request.statusSuggest}) " +
+            " AND (:#{#request.lecturerCounterArgumentId} IS NULL OR c.lecturerCounterArgumentId = :#{#request.lecturerCounterArgumentId}) " +
+            " AND (:#{#request.year} IS NULL OR c.year = :#{#request.year}) " +
+            " AND (:#{#request.categoryId} IS NULL OR c.categoryId = :#{#request.categoryId}) " +
+            " ORDER BY c.id desc")
+    Page<Topics> searchTopicSuggest(SearchTopicRequest request, Pageable pageable);
 }

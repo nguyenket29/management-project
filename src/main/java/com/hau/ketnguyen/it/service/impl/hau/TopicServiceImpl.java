@@ -174,52 +174,7 @@ public class TopicServiceImpl implements TopicService {
 
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
         Page<TopicDTO> page = topicReps.search(request, pageable).map(topicMapper::to);
-        Map<Long, Boolean> getStatusRegistryTopicByCurrentUser = getStatusRegistryTopicByCurrentUser();
-        Map<Long, Boolean> getStatusApproveTopicByCurrentUser = getStatusApproveTopicByCurrentUser();
-
-        if (!page.isEmpty()) {
-            List<Long> topicIds = page.map(TopicDTO::getId).toList();
-            List<Long> categoryIds = page.map(TopicDTO::getCategoryId).toList();
-            List<Long> lectureGuideIds = page.map(TopicDTO::getLecturerGuideId).stream().distinct().collect(Collectors.toList());
-            List<Long> lectureCounterArgumentIds = page.map(TopicDTO::getLecturerCounterArgumentId).stream().distinct().collect(Collectors.toList());
-
-            List<Long> lectureIds = new ArrayList<>();
-            lectureIds.addAll(lectureGuideIds);
-            lectureIds.addAll(lectureCounterArgumentIds);
-
-            Map<Long, LecturerDTO> lecturerDTOMap = setLecture(lectureIds.stream().distinct().collect(Collectors.toList()));
-            Map<Long, List<String>> mapFileIds = mapTopicIdWithListFileId(topicIds);
-            Map<Long, String> mapCategoryName = mapTopicWithCategoryName(categoryIds);
-            page.forEach(p -> {
-                if (p.getLecturerGuideId() != null && lecturerDTOMap.containsKey(p.getLecturerGuideId())) {
-                    p.setLecturerGuideDTO(lecturerDTOMap.get(p.getLecturerGuideId()));
-                }
-
-                if (p.getLecturerCounterArgumentId() != null && lecturerDTOMap.containsKey(p.getLecturerCounterArgumentId())) {
-                    p.setLecturerCounterArgumentDTO(lecturerDTOMap.get(p.getLecturerCounterArgumentId()));
-                }
-
-                if (!mapFileIds.isEmpty() && mapFileIds.containsKey(p.getId())) {
-                    p.setFileIds(mapFileIds.get(p.getId()));
-                }
-
-                if (!mapCategoryName.isEmpty() && mapCategoryName.containsKey(p.getCategoryId())) {
-                    p.setCategoryName(mapCategoryName.get(p.getCategoryId()));
-                }
-
-                if (!CollectionUtils.isEmpty(getStatusRegistryTopicByCurrentUser)
-                        && getStatusRegistryTopicByCurrentUser.containsKey(p.getId())) {
-                    p.setStudentRegistry(getStatusRegistryTopicByCurrentUser.get(p.getId()));
-                }
-
-                if (!CollectionUtils.isEmpty(getStatusApproveTopicByCurrentUser)
-                        && getStatusApproveTopicByCurrentUser.containsKey(p.getId())) {
-                    p.setStudentApprove(getStatusApproveTopicByCurrentUser.get(p.getId()));
-                }
-            });
-        }
-
-        return PageDataResponse.of(page);
+        return getTopicDTOPageDataResponse(page);
     }
 
     private Map<Long, Boolean> getStatusRegistryTopicByCurrentUser() {
@@ -316,5 +271,69 @@ public class TopicServiceImpl implements TopicService {
         Long total = topicReps.getStatisticalTotal();
 
         return PageDataResponse.of(String.valueOf(total), page);
+    }
+
+    @Override
+    public PageDataResponse<TopicDTO> getListTopicSuggest(SearchTopicRequest request) {
+        if (request.getName() != null) {
+            request.setName(request.getName().toLowerCase());
+        }
+
+        if (request.getDescription() != null) {
+            request.setDescription(request.getDescription().toLowerCase());
+        }
+
+        Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
+        Page<TopicDTO> page = topicReps.searchTopicSuggest(request, pageable).map(topicMapper::to);
+        return getTopicDTOPageDataResponse(page);
+    }
+
+    private PageDataResponse<TopicDTO> getTopicDTOPageDataResponse(Page<TopicDTO> page) {
+        Map<Long, Boolean> getStatusRegistryTopicByCurrentUser = getStatusRegistryTopicByCurrentUser();
+        Map<Long, Boolean> getStatusApproveTopicByCurrentUser = getStatusApproveTopicByCurrentUser();
+
+        if (!page.isEmpty()) {
+            List<Long> topicIds = page.map(TopicDTO::getId).toList();
+            List<Long> categoryIds = page.map(TopicDTO::getCategoryId).toList();
+            List<Long> lectureGuideIds = page.map(TopicDTO::getLecturerGuideId).stream().distinct().collect(Collectors.toList());
+            List<Long> lectureCounterArgumentIds = page.map(TopicDTO::getLecturerCounterArgumentId).stream().distinct().collect(Collectors.toList());
+
+            List<Long> lectureIds = new ArrayList<>();
+            lectureIds.addAll(lectureGuideIds);
+            lectureIds.addAll(lectureCounterArgumentIds);
+
+            Map<Long, LecturerDTO> lecturerDTOMap = setLecture(lectureIds.stream().distinct().collect(Collectors.toList()));
+            Map<Long, List<String>> mapFileIds = mapTopicIdWithListFileId(topicIds);
+            Map<Long, String> mapCategoryName = mapTopicWithCategoryName(categoryIds);
+            page.forEach(p -> {
+                if (p.getLecturerGuideId() != null && lecturerDTOMap.containsKey(p.getLecturerGuideId())) {
+                    p.setLecturerGuideDTO(lecturerDTOMap.get(p.getLecturerGuideId()));
+                }
+
+                if (p.getLecturerCounterArgumentId() != null && lecturerDTOMap.containsKey(p.getLecturerCounterArgumentId())) {
+                    p.setLecturerCounterArgumentDTO(lecturerDTOMap.get(p.getLecturerCounterArgumentId()));
+                }
+
+                if (!mapFileIds.isEmpty() && mapFileIds.containsKey(p.getId())) {
+                    p.setFileIds(mapFileIds.get(p.getId()));
+                }
+
+                if (!mapCategoryName.isEmpty() && mapCategoryName.containsKey(p.getCategoryId())) {
+                    p.setCategoryName(mapCategoryName.get(p.getCategoryId()));
+                }
+
+                if (!CollectionUtils.isEmpty(getStatusRegistryTopicByCurrentUser)
+                        && getStatusRegistryTopicByCurrentUser.containsKey(p.getId())) {
+                    p.setStudentRegistry(getStatusRegistryTopicByCurrentUser.get(p.getId()));
+                }
+
+                if (!CollectionUtils.isEmpty(getStatusApproveTopicByCurrentUser)
+                        && getStatusApproveTopicByCurrentUser.containsKey(p.getId())) {
+                    p.setStudentApprove(getStatusApproveTopicByCurrentUser.get(p.getId()));
+                }
+            });
+        }
+
+        return PageDataResponse.of(page);
     }
 }

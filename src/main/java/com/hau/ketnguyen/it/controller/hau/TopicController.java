@@ -8,6 +8,7 @@ import com.hau.ketnguyen.it.model.response.APIResponse;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.service.TopicService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -43,6 +44,12 @@ public class TopicController {
     @GetMapping("/{id}")
     public ResponseEntity<APIResponse<TopicDTO>> findById(@PathVariable Long id) {
         return ResponseEntity.ok(APIResponse.success(topicService.findById(id)));
+    }
+
+    @GetMapping("/get-list-topic-suggest")
+    @ApiOperation(value = "Quản trị viên lấy danh sách đề tài sinh viên đề xuất")
+    public ResponseEntity<APIResponse<PageDataResponse<TopicDTO>>> getListTopicSuggest(SearchTopicRequest request) {
+        return ResponseEntity.ok(APIResponse.success(topicService.getListTopicSuggest(request)));
     }
 
     @GetMapping

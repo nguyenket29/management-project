@@ -12,4 +12,5 @@ import java.util.List;
 public interface TopicService extends GenericService<TopicDTO, SearchTopicRequest> {
     List<String> uploadFile(MultipartFile[] file, String filePath, boolean isPublic, Long topicId);
     PageDataResponse<StatisticalDTO> getStatistical(SearchRequest request);
+    PageDataResponse<TopicDTO> getListTopicSuggest(SearchTopicRequest request);
 }
