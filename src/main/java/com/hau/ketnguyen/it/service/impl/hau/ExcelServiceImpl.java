@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hau.ketnguyen.it.common.anotations.Reflections;
 import com.hau.ketnguyen.it.common.util.ExportExcelUtil;
 import com.hau.ketnguyen.it.common.util.HashHelper;
+import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.common.util.StringUtils;
 import com.hau.ketnguyen.it.entity.hau.Categories;
 import com.hau.ketnguyen.it.model.dto.auth.UserDTO;
@@ -21,6 +22,7 @@ import com.hau.ketnguyen.it.service.mapper.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Row;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -371,10 +373,11 @@ public class ExcelServiceImpl implements ExcelService {
 
     @Override
     public void exportTopic(SearchTopicRequest request, HttpServletResponse response) throws Exception {
+        Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
         long count = topicReps.count();
         request.setSize((int) count);
-        List<TopicDTO> topicDTOS = topicService.getAll(request).getData()
-                .stream().sorted(Comparator.comparingLong(TopicDTO::getId)).collect(Collectors.toList());
+        List<TopicDTO> topicDTOS = topicReps.search(request, pageable).toList()
+                .stream().map(topicMapper::to).sorted(Comparator.comparingLong(TopicDTO::getId)).collect(Collectors.toList());
         List<TopicExcelDTO> topicExcelDTOS = topicMapper.toExcel(topicDTOS);
 
         if (!CollectionUtils.isEmpty(topicDTOS)) {
@@ -453,7 +456,7 @@ public class ExcelServiceImpl implements ExcelService {
     }
 
     private byte[] exportExcel(HttpServletResponse response, String sheetName, String title, String fileName,
-                                     Field[] fields, List<Object> objects, List<String> headerListNew) throws IOException {
+                               Field[] fields, List<Object> objects, List<String> headerListNew) throws IOException {
         response.setContentType(type);
         response.setHeader("Content-Disposition", "attachment; filename=" + HashHelper.urlEncode(fileName) + ".xlsx");
 
