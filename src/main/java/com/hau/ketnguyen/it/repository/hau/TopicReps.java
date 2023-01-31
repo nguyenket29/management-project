@@ -25,7 +25,7 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
     @Query("SELECT c FROM topics c " +
             "WHERE (:#{#request.lecturerGuideId} IS NULL OR c.lecturerGuideId = :#{#request.lecturerGuideId}) " +
             " AND (:#{#request.name} IS NULL OR lower(c.name) LIKE %:#{#request.name}%) " +
-            " AND (:#{#request.statusSuggest} IS TRUE) " +
+            " AND (c.statusSuggest IS TRUE) " +
             " AND (:#{#request.description} IS NULL OR lower(c.description) LIKE %:#{#request.description}%) " +
             " AND (:#{#request.status} IS NULL OR c.status = :#{#request.status}) " +
             " AND (:#{#request.statusSuggest} IS NULL OR c.statusSuggest = :#{#request.statusSuggest}) " +
@@ -58,7 +58,7 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
     @Query("SELECT c FROM topics c " +
             "WHERE (:#{#request.lecturerGuideId} IS NULL OR c.lecturerGuideId = :#{#request.lecturerGuideId}) " +
             " AND (:#{#request.name} IS NULL OR lower(c.name) LIKE %:#{#request.name}%) " +
-            " AND (:#{#request.statusSuggest} IS FALSE ) " +
+            " AND (c.statusSuggest IS FALSE ) " +
             " AND (:#{#request.description} IS NULL OR lower(c.description) LIKE %:#{#request.description}%) " +
             " AND (:#{#request.status} IS NULL OR c.status = :#{#request.status}) " +
             " AND (:#{#request.statusSuggest} IS NULL OR c.statusSuggest = :#{#request.statusSuggest}) " +
