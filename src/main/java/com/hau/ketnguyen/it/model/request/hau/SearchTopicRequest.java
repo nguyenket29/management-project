@@ -20,4 +20,6 @@ public class SearchTopicRequest extends BaseRequest {
     private Long lecturerGuideId;
     private Long lecturerCounterArgumentId;
     private Long categoryId;
+    private Float scoreAssembly;
+
 }

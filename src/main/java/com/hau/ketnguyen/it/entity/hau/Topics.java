@@ -47,6 +47,9 @@ public class Topics extends BaseEntity {
     @Column(name = "score_process_two", columnDefinition = "float default 0")
     private Float scoreProcessTwo;
 
+    @Column(name = "score_assembly", columnDefinition = "float default 0")
+    private Float scoreAssembly;
+
     @Column(name = "lecturer_guide_id")
     private Long lecturerGuideId;
 

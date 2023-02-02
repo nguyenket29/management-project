@@ -23,6 +23,7 @@ public class TopicDTO {
     private Date year;
     private Float scoreGuide;
     private Float scoreCounterArgument;
+    private Float scoreAssembly;
     private Long lecturerGuideId;
     private Long lecturerCounterArgumentId;
     private LecturerDTO lecturerGuideDTO;
