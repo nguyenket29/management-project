@@ -1,8 +1,10 @@
 package com.hau.ketnguyen.it.controller.hau;
 
 import com.hau.ketnguyen.it.model.dto.hau.StatisticalDTO;
+import com.hau.ketnguyen.it.model.dto.hau.StudentTopicDTO;
 import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
 import com.hau.ketnguyen.it.model.request.auth.SearchRequest;
+import com.hau.ketnguyen.it.model.request.hau.SearchStudentTopicRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchTopicRequest;
 import com.hau.ketnguyen.it.model.response.APIResponse;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
@@ -50,6 +52,12 @@ public class TopicController {
     @ApiOperation(value = "Quản trị viên lấy danh sách đề tài sinh viên đề xuất")
     public ResponseEntity<APIResponse<PageDataResponse<TopicDTO>>> getListTopicSuggest(SearchTopicRequest request) {
         return ResponseEntity.ok(APIResponse.success(topicService.getListTopicSuggest(request)));
+    }
+
+    @GetMapping("/get-topic-suggest")
+    @ApiOperation(value = "Lấy danh sách đề tài đề xuất cho người quản trị")
+    public ResponseEntity<APIResponse<PageDataResponse<StudentTopicDTO>>> getListStudentSuggestTopic(SearchStudentTopicRequest request) {
+        return ResponseEntity.ok(APIResponse.success(topicService.getListStudentSuggestTopic(request)));
     }
 
     @GetMapping

@@ -6,14 +6,13 @@ import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.auth.CustomUser;
-import com.hau.ketnguyen.it.entity.hau.Categories;
-import com.hau.ketnguyen.it.entity.hau.StudentTopic;
-import com.hau.ketnguyen.it.entity.hau.Students;
-import com.hau.ketnguyen.it.entity.hau.Topics;
+import com.hau.ketnguyen.it.entity.hau.*;
 import com.hau.ketnguyen.it.model.dto.hau.LecturerDTO;
 import com.hau.ketnguyen.it.model.dto.hau.StatisticalDTO;
+import com.hau.ketnguyen.it.model.dto.hau.StudentTopicDTO;
 import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
 import com.hau.ketnguyen.it.model.request.auth.SearchRequest;
+import com.hau.ketnguyen.it.model.request.hau.SearchStudentTopicRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchTopicRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
@@ -21,6 +20,7 @@ import com.hau.ketnguyen.it.repository.hau.*;
 import com.hau.ketnguyen.it.service.GoogleDriverFile;
 import com.hau.ketnguyen.it.service.TopicService;
 import com.hau.ketnguyen.it.service.mapper.LecturerMapper;
+import com.hau.ketnguyen.it.service.mapper.StudentTopicMapper;
 import com.hau.ketnguyen.it.service.mapper.TopicMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,11 +52,20 @@ public class TopicServiceImpl implements TopicService {
     private final CategoryReps categoryReps;
     private final StudentTopicReps studentTopicReps;
     private final StudentReps studentReps;
+    private final StudentTopicMapper studentTopicMapper;
 
     @Override
     public TopicDTO save(TopicDTO topicDTO) {
+        validateNameTopic(topicDTO.getName());
         topicDTO.setStatusSuggest(true);
         return topicMapper.to(topicReps.save(topicMapper.from(topicDTO)));
+    }
+
+    private void validateNameTopic(String name) {
+        Optional<Topics> topicsOptional = topicReps.findByName(name.toLowerCase());
+        if (topicsOptional.isPresent()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Tên đề tài đã tồn tại");
+        }
     }
 
     @Override
@@ -177,6 +186,7 @@ public class TopicServiceImpl implements TopicService {
         return getTopicDTOPageDataResponse(page);
     }
 
+    /* Trạng thái đăng ký đề tài của người dùng hiện tại*/
     private Map<Long, Boolean> getStatusRegistryTopicByCurrentUser() {
         Map<Long, Boolean> map = new HashMap<>();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -194,6 +204,7 @@ public class TopicServiceImpl implements TopicService {
         return map;
     }
 
+    /* Trạng thái duyệt đề tài của người dùng hiện tại*/
     private Map<Long, Boolean> getStatusApproveTopicByCurrentUser() {
         Map<Long, Boolean> map = new HashMap<>();
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -249,6 +260,7 @@ public class TopicServiceImpl implements TopicService {
         return mapIdCategoryWithCategoryName;
     }
 
+    /* Thống kê điểm */
     @Override
     public PageDataResponse<StatisticalDTO> getStatistical(SearchRequest request) {
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
@@ -273,6 +285,7 @@ public class TopicServiceImpl implements TopicService {
         return PageDataResponse.of(String.valueOf(total), page);
     }
 
+    /* Danh sách đề tài sinh viên đề xuất -> màn người quản trị -> để duyệt*/
     @Override
     public PageDataResponse<TopicDTO> getListTopicSuggest(SearchTopicRequest request) {
         if (request.getName() != null) {
@@ -286,6 +299,55 @@ public class TopicServiceImpl implements TopicService {
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
         Page<TopicDTO> page = topicReps.searchTopicSuggest(request, pageable).map(topicMapper::to);
         return getTopicDTOPageDataResponse(page);
+    }
+
+    @Override
+    public PageDataResponse<StudentTopicDTO> getListStudentSuggestTopic(SearchStudentTopicRequest request) {
+        Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUser user = (CustomUser) authentication.getPrincipal();
+
+        List<Topics> topics = topicReps.getListByTopicIdSuggest();
+
+        List<Long> topicIds = new ArrayList<>();
+        Map<Long, String> mapTopicName = new HashMap<>();
+        if (!CollectionUtils.isEmpty(topics)) {
+            topicIds = topics.stream().map(Topics::getId).collect(Collectors.toList());
+            mapTopicName = topics.stream().collect(Collectors.toMap(Topics::getId, Topics::getName));
+            request.setTopicIds(topicIds);
+        }
+
+        Page<StudentTopicDTO> studentTopics = studentTopicReps.search(request, pageable).map(studentTopicMapper::to);
+        if (!CollectionUtils.isEmpty(studentTopics.toList())) {
+            List<Long> studentIds = studentTopics.stream().map(StudentTopicDTO::getStudentId).collect(Collectors.toList());
+            List<Students> students = studentReps.findByIdIn(studentIds);
+
+            Map<Long, String> mapStudentName = new HashMap<>();
+            if (!CollectionUtils.isEmpty(students)) {
+                List<Long> userInfoIds = students.stream().map(Students::getUserInfoId).collect(Collectors.toList());
+                Map<Long, String> mapUserInfoIdWithName = userInfoReps.findByIdIn(userInfoIds)
+                        .stream().collect(Collectors.toMap(UserInfo::getId, UserInfo::getFullName));
+                if (!CollectionUtils.isEmpty(mapUserInfoIdWithName)) {
+                    students.forEach(s -> {
+                        if (mapUserInfoIdWithName.containsKey(s.getUserInfoId())) {
+                            mapStudentName.put(s.getId(), mapUserInfoIdWithName.get(s.getUserInfoId()));
+                        }
+                    });
+                }
+            }
+
+            for (StudentTopicDTO s : studentTopics) {
+                if (!CollectionUtils.isEmpty(mapTopicName) && mapTopicName.containsKey(s.getTopicId())) {
+                    s.setTopicName(mapTopicName.get(s.getTopicId()));
+                }
+
+                if (!CollectionUtils.isEmpty(mapStudentName) && mapStudentName.containsKey(s.getStudentId())) {
+                    s.setStudentName(mapStudentName.get(s.getStudentId()));
+                }
+            }
+        }
+
+        return PageDataResponse.of(studentTopics);
     }
 
     private PageDataResponse<TopicDTO> getTopicDTOPageDataResponse(Page<TopicDTO> page) {

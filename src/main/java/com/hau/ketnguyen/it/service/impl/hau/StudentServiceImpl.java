@@ -33,6 +33,8 @@ import org.springframework.util.CollectionUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.hau.ketnguyen.it.common.constant.Constants.APPROVED;
+import static com.hau.ketnguyen.it.common.constant.Constants.WAITING_APPROVE;
 import static com.hau.ketnguyen.it.common.enums.TypeUser.OTHER;
 import static com.hau.ketnguyen.it.service.impl.hau.AssemblyServiceImpl.getLongLecturerDTOMap;
 
@@ -202,6 +204,7 @@ public class StudentServiceImpl implements StudentService {
         }
     }
 
+    /* Sinh viên đăng ký đề tài */
     @Override
     public void studentRegistryTopic(Long topicId, boolean registry) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -222,6 +225,7 @@ public class StudentServiceImpl implements StudentService {
         }
     }
 
+    /* Lấy danh sách đề tài sinh viên đăng ký*/
     @Override
     public PageDataResponse<TopicDTO> getListTopicRegistry(SearchTopicStudentRequest request) {
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
@@ -234,8 +238,11 @@ public class StudentServiceImpl implements StudentService {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
         }
 
-        List<StudentTopic> studentTopics =
-                studentTopicReps.findByStudentIdInAndStatusRegistryIsTrue(Collections.singletonList(students.get().getId()));
+        List<StudentTopic> studentTopics = studentTopicReps
+                .findByStudentIdInAndStatusRegistryIsTrue(Collections.singletonList(students.get().getId()));
+        List<Long> topicIdApproved = studentTopicReps
+                .findByStudentIdInAndStatusRegistryIsTrueAndStatusApproveIsTrue(Collections.singletonList(students.get().getId()))
+                .stream().map(StudentTopic::getTopicId).collect(Collectors.toList());
 
         Map<Long, Boolean> mapTopicStatusStudentRegistry = studentTopics.stream()
                 .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatusRegistry));
@@ -244,13 +251,14 @@ public class StudentServiceImpl implements StudentService {
         List<Long> topicIds = studentTopics.stream().map(StudentTopic::getTopicId).distinct().collect(Collectors.toList());
         request.setTopicIds(topicIds);
         Page<TopicDTO> page = topicReps.getListByTopicIds(request, pageable).map(topicMapper::to);
-        setTopicDTO(page, topicIds, mapTopicStatusStudentRegistry, mapTopicStatusApprove);
+        setTopicDTO(page, topicIds, mapTopicStatusStudentRegistry, mapTopicStatusApprove, topicIdApproved);
 
         return PageDataResponse.of(page);
     }
 
     private void setTopicDTO(Page<TopicDTO> topicDTOS, List<Long> topicIds,
-                             Map<Long, Boolean> mapTopicStatusStudentRegistry, Map<Long, Boolean> mapTopicStatusApprove) {
+                             Map<Long, Boolean> mapTopicStatusStudentRegistry,
+                             Map<Long, Boolean> mapTopicStatusApprove, List<Long> topicIdApproved) {
         if (!CollectionUtils.isEmpty(topicDTOS.toList())) {
             List<Long> categoryIds = topicDTOS.stream().map(TopicDTO::getCategoryId).collect(Collectors.toList());
             List<Long> lectureGuideIds = topicDTOS.stream().map(TopicDTO::getLecturerGuideId).distinct().collect(Collectors.toList());
@@ -290,6 +298,12 @@ public class StudentServiceImpl implements StudentService {
                 if (!CollectionUtils.isEmpty(mapTopicStatusApprove)
                         && mapTopicStatusApprove.containsKey(p.getId())) {
                     p.setStudentApprove(mapTopicStatusApprove.get(p.getId()));
+                }
+
+                if (!CollectionUtils.isEmpty(topicIdApproved) && topicIdApproved.contains(p.getId())) {
+                    p.setStatusTopic(APPROVED);
+                } else {
+                    p.setStatusTopic(WAITING_APPROVE);
                 }
             });
         }
@@ -331,6 +345,7 @@ public class StudentServiceImpl implements StudentService {
         return map;
     }
 
+    /* Lấy danh sách đề tài mà sinh viên đăng ký đã được duyệt -> đề tài của tôi*/
     @Override
     public PageDataResponse<TopicDTO> getTopicOfStudentApproved(SearchTopicStudentRequest request) {
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
@@ -352,11 +367,12 @@ public class StudentServiceImpl implements StudentService {
         List<Long> topicIds = studentTopics.stream().map(StudentTopic::getTopicId).distinct().collect(Collectors.toList());
         request.setTopicIds(topicIds);
         Page<TopicDTO> topicDTOS = topicReps.getListByTopicIds(request, pageable).map(topicMapper::to);
-        setTopicDTO(topicDTOS, topicIds, mapTopicStatusStudentRegistry, mapTopicStatusApprove);
+        setTopicDTO(topicDTOS, topicIds, mapTopicStatusStudentRegistry, mapTopicStatusApprove, null);
 
         return PageDataResponse.of(topicDTOS);
     }
 
+    /* Sinh viên đề xuất đề tài */
     @Override
     public void studentSuggestTopic(String topicName) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -383,6 +399,7 @@ public class StudentServiceImpl implements StudentService {
         studentTopicReps.save(studentTopic);
     }
 
+    /* Người quản trị duyệt đề tài sinh viên đề xuất */
     @Override
     public void adminApproveTopicSuggest(Long topicId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -408,6 +425,7 @@ public class StudentServiceImpl implements StudentService {
         }
     }
 
+    /* Danh sách đề tài mà sinh viên đó đề xuất -> màn sinh viên */
     @Override
     public PageDataResponse<TopicDTO> getListTopicSuggestOfStudent(SearchTopicStudentRequest request) {
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
@@ -430,7 +448,7 @@ public class StudentServiceImpl implements StudentService {
         List<Long> topicIds = studentTopics.stream().map(StudentTopic::getTopicId).distinct().collect(Collectors.toList());
         request.setTopicIds(topicIds);
         Page<TopicDTO> topicDTOS = topicReps.getListByTopicIds(request, pageable).map(topicMapper::to);
-        setTopicDTO(topicDTOS, topicIds, mapTopicStatusStudentRegistry, mapTopicStatusApprove);
+        setTopicDTO(topicDTOS, topicIds, mapTopicStatusStudentRegistry, mapTopicStatusApprove, null);
 
         return PageDataResponse.of(topicDTOS);
     }

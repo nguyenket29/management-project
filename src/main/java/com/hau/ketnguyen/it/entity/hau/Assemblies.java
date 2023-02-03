@@ -17,6 +17,9 @@ public class Assemblies extends BaseEntity {
     @Column(name = "topic_id")
     private Long topicId;
 
+    @Column(name = "topic_ids")
+    private String topicIds;
+
     @Column(name = "score", columnDefinition = "float default 0")
     private Float score;
 

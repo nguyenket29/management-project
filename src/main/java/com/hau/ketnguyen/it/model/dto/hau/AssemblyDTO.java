@@ -21,6 +21,11 @@ public class AssemblyDTO {
     private Long topicId;
     private Float score;
 
+    private String topicIds;
+    private List<Long> idTopics;
+
     private TopicDTO topicDTO;
+
+    private List<String> topicNames;
     private List<LecturerDTO> lecturerDTOS;
 }

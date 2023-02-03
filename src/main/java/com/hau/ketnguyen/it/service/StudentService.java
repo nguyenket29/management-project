@@ -12,6 +12,5 @@ public interface StudentService extends GenericService<StudentDTO, SearchStudent
     PageDataResponse<TopicDTO> getTopicOfStudentApproved(SearchTopicStudentRequest request);
     void studentSuggestTopic(String topicName);
     void adminApproveTopicSuggest(Long topicId);
-
     PageDataResponse<TopicDTO> getListTopicSuggestOfStudent(SearchTopicStudentRequest request);
 }

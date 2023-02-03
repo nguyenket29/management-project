@@ -29,6 +29,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,7 +49,9 @@ public class AssemblyServiceImpl implements AssemblyService {
     @Override
     public AssemblyDTO save(AssemblyDTO assemblyDTO) {
         ObjectMapper objectMapper = new ObjectMapper();
-        if (assemblyDTO.getIdLectures() != null && !assemblyDTO.getIdLectures().isEmpty()) {
+
+        // lưu danh sách giảng viên
+        if (!CollectionUtils.isEmpty(assemblyDTO.getIdLectures())) {
             String lectureIds = null;
             try {
                 lectureIds = objectMapper.writeValueAsString(assemblyDTO.getIdLectures());
@@ -56,6 +59,17 @@ public class AssemblyServiceImpl implements AssemblyService {
                 throw new RuntimeException(e);
             }
             assemblyDTO.setLecturerIds(lectureIds);
+        }
+
+        // lưu danh sách đề tài
+        if (!CollectionUtils.isEmpty(assemblyDTO.getIdTopics())) {
+            String topicIds = null;
+            try {
+                topicIds = objectMapper.writeValueAsString(assemblyDTO.getIdTopics());
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            assemblyDTO.setTopicIds(topicIds);
         }
 
         return assemblyMapper.to(assemblyReps.save(assemblyMapper.from(assemblyDTO)));
@@ -63,14 +77,15 @@ public class AssemblyServiceImpl implements AssemblyService {
 
     @Override
     public AssemblyDTO edit(Long id, AssemblyDTO assemblyDTO) {
+        ObjectMapper objectMapper = new ObjectMapper();
         Optional<Assemblies> assembliesOptional = assemblyReps.findById(id);
 
         if (assembliesOptional.isEmpty()) {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy hội đồng");
         }
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        if (assemblyDTO.getIdLectures() != null && !assemblyDTO.getIdLectures().isEmpty()) {
+        // lưu danh sách giảng viên
+        if (!CollectionUtils.isEmpty(assemblyDTO.getIdLectures())) {
             String lectureIds = null;
             try {
                 lectureIds = objectMapper.writeValueAsString(assemblyDTO.getIdLectures());
@@ -78,6 +93,17 @@ public class AssemblyServiceImpl implements AssemblyService {
                 throw new RuntimeException(e);
             }
             assemblyDTO.setLecturerIds(lectureIds);
+        }
+
+        // lưu danh sách đề tài
+        if (!CollectionUtils.isEmpty(assemblyDTO.getIdTopics())) {
+            String topicIds = null;
+            try {
+                topicIds = objectMapper.writeValueAsString(assemblyDTO.getIdTopics());
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            assemblyDTO.setTopicIds(topicIds);
         }
 
         Assemblies assemblies = assembliesOptional.get();
@@ -114,6 +140,7 @@ public class AssemblyServiceImpl implements AssemblyService {
             assemblyDTO.setTopicDTO(topicDTO);
         }
 
+        // Danh sách giảng viên
         if (assemblyDTO.getLecturerIds() != null && !assemblyDTO.getLecturerIds().isEmpty()) {
             List<Integer> lectureIds = null;
             try {
@@ -125,12 +152,30 @@ public class AssemblyServiceImpl implements AssemblyService {
             }
 
             List<Long> lectureIdLong = new ArrayList<>();
-
-            if (lectureIds != null && !lectureIds.isEmpty()) {
+            if (!CollectionUtils.isEmpty(lectureIds)) {
                 lectureIds.forEach(l -> lectureIdLong.add(Long.parseLong(l.toString())));
             }
 
             assemblyDTO.setLecturerDTOS(new ArrayList<>(setLecture(lectureIdLong).values()));
+        }
+
+        // Danh sách đề tài
+        if (assemblyDTO.getTopicIds() != null && !assemblyDTO.getTopicIds().isEmpty()) {
+            List<Integer> topicIds = null;
+            try {
+                if (!StringUtils.isNullOrEmpty(assemblyDTO.getTopicIds())) {
+                    topicIds = objectMapper.readValue(assemblyDTO.getTopicIds(), List.class);
+                }
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+
+            List<Long> topicIdLong = new ArrayList<>();
+            if (!CollectionUtils.isEmpty(topicIds)) {
+                topicIds.forEach(l -> topicIdLong.add(Long.parseLong(l.toString())));
+            }
+
+            assemblyDTO.setTopicNames(new ArrayList<>(getLongTopicName(topicIdLong, topicReps).values()));
         }
 
         return assemblyDTO;
@@ -151,7 +196,8 @@ public class AssemblyServiceImpl implements AssemblyService {
             Map<Long, TopicDTO> topicDTOMap = topicReps.findByIdIn(topicIds)
                     .stream().map(topicMapper::to).collect(Collectors.toMap(TopicDTO::getId, t -> t));
 
-            Map<Long, List<Long>> mapTopicLectrueIds = new HashMap<>();
+            // Danh sách giảng viên
+            Map<Long, List<Long>> mapAssemblyLectureIds = new HashMap<>();
             List<Long> idLectures = new ArrayList<>();
             assemblyDTOS.forEach(l -> {
                 List<Integer> lectureIds = null;
@@ -170,13 +216,13 @@ public class AssemblyServiceImpl implements AssemblyService {
                 }
 
                 idLectures.addAll(lectureIdLong);
-                mapTopicLectrueIds.put(l.getId(), lectureIdLong);
+                mapAssemblyLectureIds.put(l.getId(), lectureIdLong);
             });
 
             Map<Long, LecturerDTO> lecturerDTOMap = setLecture(idLectures);
-            Map<Long, List<LecturerDTO>> mapTopicWithLectureDTO = new HashMap<>();
-            if (!mapTopicLectrueIds.isEmpty()) {
-                mapTopicLectrueIds.forEach((k, v) -> {
+            Map<Long, List<LecturerDTO>> mapAssemblyWithLectureDTO = new HashMap<>();
+            if (!mapAssemblyLectureIds.isEmpty()) {
+                mapAssemblyLectureIds.forEach((k, v) -> {
                     if (v != null && !v.isEmpty()) {
                         List<LecturerDTO> list = new ArrayList<>();
                         v.forEach(i -> {
@@ -184,18 +230,43 @@ public class AssemblyServiceImpl implements AssemblyService {
                                 list.add(lecturerDTOMap.get(i));
                             }
                         });
-                        mapTopicWithLectureDTO.put(k, list);
+                        mapAssemblyWithLectureDTO.put(k, list);
                     }
                 });
             }
+
+            // Danh sách đề tài
+            Map<Long, List<Long>> mapAssemblyTopicIds = new HashMap<>();
+            assemblyDTOS.forEach(l -> {
+                List<Integer> idTopicList = null;
+                try {
+                    if (!StringUtils.isNullOrEmpty(l.getTopicIds())) {
+                        idTopicList = objectMapper.readValue(l.getTopicIds(), List.class);
+                    }
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+
+                List<Long> topicIdLong = new ArrayList<>();
+
+                if (!CollectionUtils.isEmpty(idTopicList)) {
+                    idTopicList.forEach(i -> topicIdLong.add(Long.parseLong(i.toString())));
+                }
+
+                mapAssemblyTopicIds.put(l.getId(), topicIdLong);
+            });
 
             assemblyDTOS.forEach(a -> {
                 if (!topicDTOMap.isEmpty() && topicDTOMap.containsKey(a.getTopicId())) {
                     a.setTopicDTO(topicDTOMap.get(a.getTopicId()));
                 }
 
-                if (!mapTopicWithLectureDTO.isEmpty() && mapTopicWithLectureDTO.containsKey(a.getId())) {
-                    a.setLecturerDTOS(mapTopicWithLectureDTO.get(a.getId()));
+                if (!mapAssemblyWithLectureDTO.isEmpty() && mapAssemblyWithLectureDTO.containsKey(a.getId())) {
+                    a.setLecturerDTOS(mapAssemblyWithLectureDTO.get(a.getId()));
+                }
+
+                if (!CollectionUtils.isEmpty(mapAssemblyTopicIds) && mapAssemblyTopicIds.containsKey(a.getId())) {
+                    a.setTopicNames(new ArrayList<>(getLongTopicName(mapAssemblyTopicIds.get(a.getId()), topicReps).values()));
                 }
             });
         }
@@ -228,5 +299,14 @@ public class AssemblyServiceImpl implements AssemblyService {
             }
         }
         return lecturerDTOMap;
+    }
+
+    static Map<Long, String> getLongTopicName(List<Long> topicIds, TopicReps topicReps) {
+        Map<Long, String> topicMap = new HashMap<>();
+        if (!CollectionUtils.isEmpty(topicIds)) {
+            List<Topics> topics = topicReps.findByIdIn(topicIds);
+            topicMap = topics.stream().collect(Collectors.toMap(Topics::getId, Topics::getName));
+        }
+        return topicMap;
     }
 }

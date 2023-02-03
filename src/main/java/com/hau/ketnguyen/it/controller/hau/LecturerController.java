@@ -58,7 +58,7 @@ public class LecturerController {
     }
 
     @GetMapping("/get-list-topic")
-    @ApiOperation(value = "Lấy danh sách đề tài mà giảng viên đó hướng dẫn đực sinh viên đăng ký")
+    @ApiOperation(value = "Lấy danh sách đề tài mà giảng viên đó hướng dẫn đuợc sinh viên đăng ký")
     public ResponseEntity<APIResponse<PageDataResponse<StudentTopicDTO>>> getListStudentRegistryTopic(SearchStudentTopicRequest request) {
         return ResponseEntity.ok(APIResponse.success(lecturerService.getListStudentRegistryTopic(request)));
     }

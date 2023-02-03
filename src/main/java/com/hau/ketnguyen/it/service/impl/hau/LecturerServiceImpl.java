@@ -200,6 +200,7 @@ public class LecturerServiceImpl implements LecturerService {
         }
     }
 
+    /* Lấy danh sách đề tài mà giảng viên phản biện */
     @Override
     public PageDataResponse<TopicDTO> getListTopicCounterArgument(SearchTopicRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -214,6 +215,7 @@ public class LecturerServiceImpl implements LecturerService {
         return topicService.getAll(request);
     }
 
+    /* Lấy danh sách đề tài mà giảng viên hướng dẫn */
     @Override
     public PageDataResponse<TopicDTO> getListTopicGuide(SearchTopicRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -228,6 +230,7 @@ public class LecturerServiceImpl implements LecturerService {
         return topicService.getAll(request);
     }
 
+    /* Danh sách sinh viên đăng ký đề tài -> màn giảng viên*/
     @Override
     public PageDataResponse<StudentTopicDTO> getListStudentRegistryTopic(SearchStudentTopicRequest request) {
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
@@ -282,6 +285,7 @@ public class LecturerServiceImpl implements LecturerService {
         return PageDataResponse.of(studentTopics);
     }
 
+    /* Giảng viên duyệt đề tài sinh viên đăng ký */
     @Override
     public void approveTopicForStudent(Long topicId, Long studentId) {
         // cập nhật lại danh sách đăng ký đề tài
@@ -289,7 +293,20 @@ public class LecturerServiceImpl implements LecturerService {
         if (studentTopicOptional.isEmpty()) {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Sinh viên chưa đăng ký đề tài này");
         }
+
+        List<StudentTopic> studentTopicList = studentTopicReps.findByTopicIdIn(Collections.singletonList(topicId))
+                .stream().filter(st -> !Objects.equals(st.getStudentId(), studentId)).collect(Collectors.toList());
+
+        List<StudentTopic> studentTopicUpdated = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(studentTopicList)) {
+            studentTopicList.forEach(st -> {
+                st.setStatusApprove(true);
+                studentTopicUpdated.add(st);
+            });
+        }
+
         studentTopicOptional.get().setStatusApprove(true);
+        studentTopicUpdated.add(studentTopicOptional.get());
 
         // cập nhật lại danh sách đề tài
         Optional<Topics> topicsOptional = topicReps.findById(topicId);
@@ -305,7 +322,7 @@ public class LecturerServiceImpl implements LecturerService {
         }
         studentOptional.get().setTopicId(topicsOptional.get().getId());
 
-        studentTopicReps.save(studentTopicOptional.get());
+        studentTopicReps.saveAll(studentTopicUpdated);
         topicReps.save(topicsOptional.get());
         studentReps.save(studentOptional.get());
     }

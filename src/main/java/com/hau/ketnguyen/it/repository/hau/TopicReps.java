@@ -12,6 +12,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TopicReps extends CrudRepository<Topics, Long> {
@@ -55,6 +56,9 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
             "and (:#{#request.topicName} IS NULL OR lower(t.name) LIKE %:#{#request.topicName}%) ")
     Page<Topics> getListByTopicIds(SearchTopicStudentRequest request, Pageable pageable);
 
+    @Query("select t from topics t where (t.statusSuggest is false)")
+    List<Topics> getListByTopicIdSuggest();
+
     @Query("SELECT c FROM topics c " +
             "WHERE (:#{#request.lecturerGuideId} IS NULL OR c.lecturerGuideId = :#{#request.lecturerGuideId}) " +
             " AND (:#{#request.name} IS NULL OR lower(c.name) LIKE %:#{#request.name}%) " +
@@ -67,4 +71,7 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
             " AND (:#{#request.categoryId} IS NULL OR c.categoryId = :#{#request.categoryId}) " +
             " ORDER BY c.id desc")
     Page<Topics> searchTopicSuggest(SearchTopicRequest request, Pageable pageable);
+
+    @Query("SELECT c FROM topics c WHERE lower(c.name) = :name")
+    Optional<Topics> findByName(String name);
 }
