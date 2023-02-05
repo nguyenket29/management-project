@@ -34,6 +34,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.hau.ketnguyen.it.service.impl.hau.AssemblyServiceImpl.getLongLecturerDTOMap;
+import static com.hau.ketnguyen.it.service.impl.hau.AssemblyServiceImpl.getLongTopicName;
 
 @Slf4j
 @Service
@@ -292,23 +293,44 @@ public class ExcelServiceImpl implements ExcelService {
                 });
             }
 
+            // Danh sách đề tài
+            Map<Long, List<Long>> mapAssemblyTopicIds = new HashMap<>();
+            assemblyDTOS.forEach(l -> {
+                List<Integer> idTopicList = null;
+                try {
+                    if (!StringUtils.isNullOrEmpty(l.getTopicIds())) {
+                        idTopicList = objectMapper.readValue(l.getTopicIds(), List.class);
+                    }
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+
+                List<Long> topicIdLong = new ArrayList<>();
+
+                if (!CollectionUtils.isEmpty(idTopicList)) {
+                    idTopicList.forEach(i -> topicIdLong.add(Long.parseLong(i.toString())));
+                }
+
+                mapAssemblyTopicIds.put(l.getId(), topicIdLong);
+            });
+
             if (!CollectionUtils.isEmpty(assemblyExcelDTOS)) {
                 assemblyDTOS.forEach(a -> assemblyExcelDTOS.forEach(ax -> {
                     if (Objects.equals(a.getNameAssembly(), ax.getNameAssembly())) {
-                        if (a.getTopicId() != null && !topicDTOMap.isEmpty() && topicDTOMap.containsKey(a.getTopicId())) {
-                            ax.setTopicName(topicDTOMap.get(a.getTopicId()).getName());
-                        }
-
                         if (a.getId() != null && !mapTopicWithLectureDTO.isEmpty() && mapTopicWithLectureDTO.containsKey(a.getId())) {
                             List<String> lecturerNames = mapTopicWithLectureDTO.get(a.getId())
                                     .stream().map(LecturerDTO::getFullName).collect(Collectors.toList());
                             ax.setLecturerNames(lecturerNames);
                         }
+
+                        if (!CollectionUtils.isEmpty(mapAssemblyTopicIds) && mapAssemblyTopicIds.containsKey(a.getId())) {
+                            a.setTopicNames(new ArrayList<>(getLongTopicName(mapAssemblyTopicIds.get(a.getId()), topicReps).values()));
+                        }
                     }
                 }));
             }
 
-            List<String> headerListNew = Arrays.asList("Tên hội đồng", "Giáo viên", "Đồ án", "Điểm");
+            List<String> headerListNew = Arrays.asList("Tên hội đồng", "Giáo viên", "Đồ án");
 
             exportExcel(response, "Export Assembly",
                     "Danh sách hội đồng", "assembly_export", AssemblyExcelDTO.class.getDeclaredFields(),
@@ -420,7 +442,7 @@ public class ExcelServiceImpl implements ExcelService {
             }
 
             List<String> headerListNew = Arrays.asList("Tên đề tài", "Chủ đề", "Giáo viên phản biện", "Giáo viên hướng dẫn",
-                    "Điểm phản biện", "Điểm hướng dẫn", "Điểm kiểm tra tiến độ lần 1", "Điểm kiểm tra tiến độ lần 2",
+                    "Điểm hội đồng", "Điểm phản biện", "Điểm hướng dẫn", "Điểm kiểm tra tiến độ lần 1", "Điểm kiểm tra tiến độ lần 2",
                     "Trạng thái", "Số lượng sinh viên", "Năm thực hiện", "Thông tin");
 
             exportExcel(response, "Export Topic",

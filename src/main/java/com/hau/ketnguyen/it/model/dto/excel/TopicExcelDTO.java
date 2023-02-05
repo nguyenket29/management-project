@@ -10,6 +10,7 @@ public class TopicExcelDTO {
     private String categoryName;
     private String lecturerCounterArgumentName;
     private String lecturerGuideName;
+    private Float scoreAssembly;
     private Float scoreCounterArgument;
     private Float scoreGuide;
     private Float scoreProcessOne;

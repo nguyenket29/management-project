@@ -8,6 +8,5 @@ import java.util.List;
 public class AssemblyExcelDTO {
     private String nameAssembly;
     private List<String> lecturerNames;
-    private String topicName;
-    private Float score;
+    private List<String> topicNames;
 }
