@@ -18,7 +18,7 @@ public interface StudentTopicReps extends CrudRepository<StudentTopic, Long> {
     List<StudentTopic> findByStudentIdInAndStatusRegistryIsTrueAndStatusApproveIsTrue(List<Long> studentIds);
     List<StudentTopic> findByTopicIdInAndStatusRegistryIsTrueAndStatusApproveIsTrue(List<Long> topicIds);
     List<StudentTopic> findByStudentIdInAndStatusApproveIsTrue(List<Long> studentIds);
-    List<StudentTopic> findByStudentIdInAndStatusSuggestIsFalse(List<Long> studentIds);
+    List<StudentTopic> findByStudentIdInAndStatusSuggestIsTrue(List<Long> studentIds);
     List<StudentTopic> findByTopicIdIn(List<Long> topicIds);
     Optional<StudentTopic> findByStudentIdAndTopicId(Long studentId, Long topicId);
     List<StudentTopic> findByStudentId(Long studentId);

@@ -393,7 +393,7 @@ public class StudentServiceImpl implements StudentService {
 
         // đề xuất này của sinh viên nào
         StudentTopic studentTopic = new StudentTopic();
-        studentTopic.setStatusSuggest(false);
+        studentTopic.setStatusSuggest(true);
         studentTopic.setTopicId(topics.getId());
         studentTopic.setStudentId(students.get().getId());
         studentTopicReps.save(studentTopic);
@@ -439,7 +439,7 @@ public class StudentServiceImpl implements StudentService {
         }
 
         List<StudentTopic> studentTopics =
-                studentTopicReps.findByStudentIdInAndStatusSuggestIsFalse(Collections.singletonList(students.get().getId()));
+                studentTopicReps.findByStudentIdInAndStatusSuggestIsTrue(Collections.singletonList(students.get().getId()));
 
         Map<Long, Boolean> mapTopicStatusStudentRegistry = studentTopics.stream()
                 .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatusRegistry));
