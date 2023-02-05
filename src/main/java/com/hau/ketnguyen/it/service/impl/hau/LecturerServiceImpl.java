@@ -297,16 +297,13 @@ public class LecturerServiceImpl implements LecturerService {
         List<StudentTopic> studentTopicList = studentTopicReps.findByTopicIdIn(Collections.singletonList(topicId))
                 .stream().filter(st -> !Objects.equals(st.getStudentId(), studentId)).collect(Collectors.toList());
 
+        // Nếu có nhiều sinh viên đăng ký nhiều đề tài cùng lúc thì khi duyệt cho 1 sinh viên những sinh viên khác sẽ bị từ chối
         List<StudentTopic> studentTopicUpdated = new ArrayList<>();
         if (!CollectionUtils.isEmpty(studentTopicList)) {
-            studentTopicList.forEach(st -> {
-                st.setStatusApprove(true);
-                studentTopicUpdated.add(st);
-            });
+            studentTopicUpdated.addAll(studentTopicList);
         }
 
         studentTopicOptional.get().setStatusApprove(true);
-        studentTopicUpdated.add(studentTopicOptional.get());
 
         // cập nhật lại danh sách đề tài
         Optional<Topics> topicsOptional = topicReps.findById(topicId);
@@ -315,14 +312,17 @@ public class LecturerServiceImpl implements LecturerService {
         }
         topicsOptional.get().setStatus(true);
 
-        // cập nhật lại sinh viên đã đăng ký đề tài
+        // cập nhật lại đề tài cho sinh viên đã đăng kis
         Optional<Students> studentOptional = studentReps.findById(studentId);
         if (studentOptional.isEmpty()) {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
         }
         studentOptional.get().setTopicId(topicsOptional.get().getId());
 
-        studentTopicReps.saveAll(studentTopicUpdated);
+        if (!CollectionUtils.isEmpty(studentTopicUpdated)) {
+            studentTopicReps.deleteAll(studentTopicUpdated);
+        }
+        studentTopicReps.save(studentTopicOptional.get());
         topicReps.save(topicsOptional.get());
         studentReps.save(studentOptional.get());
     }

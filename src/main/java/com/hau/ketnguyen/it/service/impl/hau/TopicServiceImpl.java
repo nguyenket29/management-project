@@ -27,7 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -131,6 +130,7 @@ public class TopicServiceImpl implements TopicService {
         Map<Long, List<String>> fileIdsLong = mapTopicIdWithListFileId(Collections.singletonList(id));
         Map<Long, Boolean> getStatusRegistryTopicByCurrentUser = getStatusRegistryTopicByCurrentUser();
         Map<Long, Boolean> getStatusApproveTopicByCurrentUser = getStatusApproveTopicByCurrentUser();
+        Map<Long, String> mapCategoryName = mapTopicWithCategoryName(Collections.singletonList(topicDTO.getCategoryId()));
 
         if (!fileIdsLong.isEmpty() && fileIdsLong.containsKey(id)) {
             topicDTO.setFileIds(fileIdsLong.get(id));
@@ -144,6 +144,10 @@ public class TopicServiceImpl implements TopicService {
         if (!CollectionUtils.isEmpty(getStatusApproveTopicByCurrentUser)
                 && getStatusApproveTopicByCurrentUser.containsKey(topicDTO.getId())) {
             topicDTO.setStudentApprove(getStatusApproveTopicByCurrentUser.get(topicDTO.getId()));
+        }
+
+        if (!CollectionUtils.isEmpty(mapCategoryName) && mapCategoryName.containsKey(topicDTO.getCategoryId())) {
+            topicDTO.setCategoryName(mapCategoryName.get(topicDTO.getCategoryId()));
         }
 
         return topicDTO;
@@ -304,9 +308,6 @@ public class TopicServiceImpl implements TopicService {
     @Override
     public PageDataResponse<StudentTopicDTO> getListStudentSuggestTopic(SearchStudentTopicRequest request) {
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUser user = (CustomUser) authentication.getPrincipal();
-
         List<Topics> topics = topicReps.getListByTopicIdSuggest();
 
         List<Long> topicIds = new ArrayList<>();

@@ -396,7 +396,7 @@ public class ExcelServiceImpl implements ExcelService {
     @Override
     public void exportTopic(SearchTopicRequest request, HttpServletResponse response) throws Exception {
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
-        long count = topicReps.count();
+        long count = topicReps.getCount();
         request.setSize((int) count);
         List<TopicDTO> topicDTOS = topicReps.search(request, pageable).toList()
                 .stream().map(topicMapper::to).sorted(Comparator.comparingLong(TopicDTO::getId)).collect(Collectors.toList());
@@ -449,6 +449,33 @@ public class ExcelServiceImpl implements ExcelService {
                     "Danh sách đồ án", "topic_export", TopicExcelDTO.class.getDeclaredFields(),
                     Arrays.asList(topicExcelDTOS.toArray()), headerListNew);
         }
+    }
+
+    @Override
+    public void exportStatistical(HttpServletResponse response) throws Exception {
+        List<StatisticalDTO> statisticalDTOS = topicReps.getStatistical().stream().map(u -> {
+            StatisticalDTO statisticalDTO = new StatisticalDTO();
+            statisticalDTO.setNameClass(u.getNameClass());
+            statisticalDTO.setNameStudent(u.getNameStudent());
+            statisticalDTO.setNameTopic(u.getNameTopic());
+            statisticalDTO.setScoreAssembly(u.getScoreAssembly());
+            statisticalDTO.setScoreCounterArgument(u.getScoreCounterArgument());
+            statisticalDTO.setScoreGuide(u.getScoreGuide());
+            statisticalDTO.setScoreProcessOne(u.getScoreProcessOne());
+            statisticalDTO.setScoreProcessTwo(u.getScoreProcessTwo() );
+            statisticalDTO.setTopicYear(u.getTopicYear());
+            float avg = (u.getScoreAssembly() + u.getScoreGuide() + u.getScoreCounterArgument()) / 3;
+            statisticalDTO.setScoreMedium(avg);
+            return statisticalDTO;
+        }).collect(Collectors.toList());
+
+        List<String> headerListNew = Arrays.asList("Lớp", "Sinh viên", "Tên đề tài", "Điểm hội đồng", "Điểm phản biện",
+                "Điểm hướng dẫn", "Điểm kiểm tra tiến độ lần 1", "Điểm kiểm tra tiến độ lần 2",
+                "Điểm trung bình", "Năm thực hiện");
+
+        exportExcel(response, "Export Statistical",
+                "Danh sách điểm đồ án", "statistical_export", StatisticalDTO.class.getDeclaredFields(),
+                Arrays.asList(statisticalDTOS.toArray()), headerListNew);
     }
 
     private Map<Long, String> mapTopicWithCategoryName(List<Long> categoryIds) {

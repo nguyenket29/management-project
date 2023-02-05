@@ -22,6 +22,7 @@ public interface StudentTopicReps extends CrudRepository<StudentTopic, Long> {
     List<StudentTopic> findByTopicIdIn(List<Long> topicIds);
     Optional<StudentTopic> findByStudentIdAndTopicId(Long studentId, Long topicId);
     List<StudentTopic> findByStudentId(Long studentId);
+    Optional<StudentTopic> findByTopicId(Long topicId);
 
     @Query("SELECT st FROM student_topics st " +
             "WHERE (COALESCE(:#{#request.topicIds}, NULL) IS NULL OR st.topicId IN :#{#request.topicIds}) " +

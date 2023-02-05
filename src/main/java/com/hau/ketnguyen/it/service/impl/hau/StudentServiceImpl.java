@@ -54,14 +54,23 @@ public class StudentServiceImpl implements StudentService {
     private final LecturerReps lecturerReps;
     private final LecturerMapper lecturerMapper;
     private final CategoryReps categoryReps;
-
     @Override
     public StudentDTO save(StudentDTO studentDTO) {
         UserInfo userInfo = setUserInfo(studentDTO);
         userInfoReps.save(userInfo);
         studentDTO.setUserInfoId(userInfo.getId());
+        if (!StringUtils.isNullOrEmpty(studentDTO.getTopicId().toString())) {
+            validateRegistryTopicOnlyStudent(studentDTO.getTopicId());
+        }
         Students students = studentReps.save(studentMapper.from(studentDTO));
         return studentMapper.to(students);
+    }
+
+    private void validateRegistryTopicOnlyStudent(Long topic) {
+        Optional<Students> studentsOptional = studentReps.findByTopicId(topic);
+        if (studentsOptional.isPresent()) {
+            throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Đề tài đã có sinh viên đăng ký, vui lòng chọn đề tài khác.");
+        }
     }
 
     @Override
@@ -72,9 +81,16 @@ public class StudentServiceImpl implements StudentService {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
         }
 
+        if (!StringUtils.isNullOrEmpty(studentDTO.getTopicId().toString())) {
+            validateRegistryTopicOnlyStudent(studentDTO.getTopicId());
+        }
+
         Students students = studentOptional.get();
         Long userInfoId = students.getUserInfoId();
         BeanUtil.copyNonNullProperties(studentDTO, students);
+        if (studentDTO.getTopicId() == null) {
+            students.setTopicId(null);
+        }
         studentReps.save(students);
 
         Optional<UserInfo> userInfoOptional = userInfoReps.findById(userInfoId);
@@ -216,12 +232,20 @@ public class StudentServiceImpl implements StudentService {
             if (students.isEmpty()) {
                 throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
             }
+            validateTopicHaveStudentRegistry(topicId);
 
             StudentTopic studentTopic = new StudentTopic();
             studentTopic.setTopicId(topicId);
             studentTopic.setStudentId(students.get().getId());
             studentTopic.setStatusRegistry(registry);
             studentTopicReps.save(studentTopic);
+        }
+    }
+
+    private void validateTopicHaveStudentRegistry(Long topicId) {
+        Optional<StudentTopic> studentTopicOptional = studentTopicReps.findByTopicId(topicId);
+        if (studentTopicOptional.isPresent()) {
+            throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Đã có sinh viên đăng ký đề tài này, vui lòng chọn đề tài khác");
         }
     }
 
@@ -360,6 +384,9 @@ public class StudentServiceImpl implements StudentService {
 
         List<StudentTopic> studentTopics =
                 studentTopicReps.findByStudentIdInAndStatusApproveIsTrue(Collections.singletonList(students.get().getId()));
+        List<Long> topicIdApproved = studentTopicReps
+                .findByStudentIdInAndStatusRegistryIsTrueAndStatusApproveIsTrue(Collections.singletonList(students.get().getId()))
+                .stream().map(StudentTopic::getTopicId).collect(Collectors.toList());
         Map<Long, Boolean> mapTopicStatusStudentRegistry = studentTopics.stream()
                 .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatusRegistry));
         Map<Long, Boolean> mapTopicStatusApprove = studentTopics.stream()
@@ -367,7 +394,7 @@ public class StudentServiceImpl implements StudentService {
         List<Long> topicIds = studentTopics.stream().map(StudentTopic::getTopicId).distinct().collect(Collectors.toList());
         request.setTopicIds(topicIds);
         Page<TopicDTO> topicDTOS = topicReps.getListByTopicIds(request, pageable).map(topicMapper::to);
-        setTopicDTO(topicDTOS, topicIds, mapTopicStatusStudentRegistry, mapTopicStatusApprove, null);
+        setTopicDTO(topicDTOS, topicIds, mapTopicStatusStudentRegistry, mapTopicStatusApprove, topicIdApproved);
 
         return PageDataResponse.of(topicDTOS);
     }
@@ -413,6 +440,7 @@ public class StudentServiceImpl implements StudentService {
             }
 
             topicsOptional.get().setStatusSuggest(true);
+            topicsOptional.get().setStatus(true);
             topicReps.save(topicsOptional.get());
 
             // xóa trong student topic

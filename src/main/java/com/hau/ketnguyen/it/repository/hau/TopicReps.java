@@ -36,19 +36,40 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
             " ORDER BY c.id desc")
     Page<Topics> search(SearchTopicRequest request, Pageable pageable);
     List<Topics> findByStatus(boolean status);
+    @Query("SELECT COUNT(t) FROM topics t WHERE (t.statusSuggest IS TRUE)")
+    long getCount();
 
     @Query(value = "select t.name as nameTopic, ui.fullname as nameStudent, c.name as nameClass, t.year as topicYear, " +
-            "a.score as scoreAssembly, t.score_guide as scoreGuide, t.score_counter_argument as scoreCounterArgument, " +
+            "t.score_assembly as scoreAssembly, t.score_guide as scoreGuide, t.score_counter_argument as scoreCounterArgument, " +
             "t.score_process_one as scoreProcessOne, t.score_process_two as scoreProcessTwo " +
-            "from students s, topics t, classes c, assembly a, user_info ui " +
-            "where s.topic_id = t.id AND s.class_id = c.id AND t.id = a.topic_id AND ui.id = s.user_info_id", nativeQuery = true)
+            "FROM student_topics st " +
+            "LEFT JOIN students s ON s.id = st.student_id " +
+            "LEFT JOIN topics t  ON t.id = st.topic_id " +
+            "LEFT JOIN classes c ON c.id = s.class_id " +
+            "LEFT JOIN user_info ui ON ui.id = s.user_info_id " +
+            "WHERE st.status is true", nativeQuery = true)
     List<StatisticalProjection> getStatistical(Pageable pageable);
 
-    @Query(value = "select count(*) from (select t.name as nameTopic, ui.fullname as nameStudent, c.name as nameClass, t.year as topicYear, " +
-            "a.score as scoreAssembly, t.score_guide as scoreGuide, t.score_counter_argument as scoreCounterArgument, " +
+    @Query(value = "select t.name as nameTopic, ui.fullname as nameStudent, c.name as nameClass, t.year as topicYear, " +
+            "t.score_assembly as scoreAssembly, t.score_guide as scoreGuide, t.score_counter_argument as scoreCounterArgument, " +
             "t.score_process_one as scoreProcessOne, t.score_process_two as scoreProcessTwo " +
-            "from students s, topics t, classes c, assembly a, user_info ui " +
-            "where s.topic_id = t.id AND s.class_id = c.id AND t.id = a.topic_id AND ui.id = s.user_info_id) as totals", nativeQuery = true)
+            "FROM student_topics st " +
+            "LEFT JOIN students s ON s.id = st.student_id " +
+            "LEFT JOIN topics t  ON t.id = st.topic_id " +
+            "LEFT JOIN classes c ON c.id = s.class_id " +
+            "LEFT JOIN user_info ui ON ui.id = s.user_info_id " +
+            "WHERE st.status is true", nativeQuery = true)
+    List<StatisticalProjection> getStatistical();
+
+    @Query(value = "select count(*) from (select t.name as nameTopic, ui.fullname as nameStudent, c.name as nameClass, t.year as topicYear, " +
+            "t.score_assembly as scoreAssembly, t.score_guide as scoreGuide, t.score_counter_argument as scoreCounterArgument, " +
+            "t.score_process_one as scoreProcessOne, t.score_process_two as scoreProcessTwo " +
+            "FROM student_topics st " +
+            "LEFT JOIN students s ON s.id = st.student_id " +
+            "LEFT JOIN topics t  ON t.id = st.topic_id " +
+            "LEFT JOIN classes c ON c.id = s.class_id " +
+            "LEFT JOIN user_info ui ON ui.id = s.user_info_id " +
+            "WHERE st.status is true) as totals", nativeQuery = true)
     Long getStatisticalTotal();
 
     @Query("select t from topics t " +

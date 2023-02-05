@@ -96,4 +96,12 @@ public class ExcelController {
         excelService.exportTopic(request, response);
         return ResponseEntity.ok(APIResponse.success());
     }
+
+    @GetMapping("/statistical")
+    @ApiOperation(value = "Export Statistical")
+    public ResponseEntity<APIResponse<Void>> exportExcelStatistical(HttpServletResponse response)
+            throws Exception {
+        excelService.exportStatistical(response);
+        return ResponseEntity.ok(APIResponse.success());
+    }
 }

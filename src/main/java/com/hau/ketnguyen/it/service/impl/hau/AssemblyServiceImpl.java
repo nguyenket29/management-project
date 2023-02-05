@@ -109,6 +109,14 @@ public class AssemblyServiceImpl implements AssemblyService {
         Assemblies assemblies = assembliesOptional.get();
         BeanUtil.copyNonNullProperties(assemblyDTO, assemblies);
 
+        if (CollectionUtils.isEmpty(assemblyDTO.getIdLectures())) {
+            assemblies.setLecturerIds(null);
+        }
+
+        if (CollectionUtils.isEmpty(assemblyDTO.getIdTopics())) {
+            assemblies.setTopicIds(null);
+        }
+
         return assemblyMapper.to(assemblyReps.save(assemblies));
     }
 
@@ -156,6 +164,7 @@ public class AssemblyServiceImpl implements AssemblyService {
                 lectureIds.forEach(l -> lectureIdLong.add(Long.parseLong(l.toString())));
             }
 
+            assemblyDTO.setIdLectures(lectureIdLong);
             assemblyDTO.setLecturerDTOS(new ArrayList<>(setLecture(lectureIdLong).values()));
         }
 
@@ -175,6 +184,7 @@ public class AssemblyServiceImpl implements AssemblyService {
                 topicIds.forEach(l -> topicIdLong.add(Long.parseLong(l.toString())));
             }
 
+            assemblyDTO.setIdTopics(topicIdLong);
             assemblyDTO.setTopicNames(new ArrayList<>(getLongTopicName(topicIdLong, topicReps).values()));
         }
 

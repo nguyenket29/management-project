@@ -23,7 +23,7 @@ public class DashboardServiceImpl implements DashboardService {
         Long qtyLecturer = lecturerReps.count();
         Long qtyStudent = studentReps.count();
         Long qtyClass = classReps.count();
-        Long qtyTopic = topicReps.count();
+        Long qtyTopic = topicReps.getCount();
         Long qtyAssembly = assemblyReps.count();
         Long qtyFaculty = facultyReps.count();
         Long qtyStdPass = (long) studentReps.findByStdPass(true).size();

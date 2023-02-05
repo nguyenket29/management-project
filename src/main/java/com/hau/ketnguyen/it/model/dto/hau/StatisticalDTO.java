@@ -6,14 +6,14 @@ import java.util.Date;
 
 @Data
 public class StatisticalDTO {
-    private String nameTopic;
-    private String nameStudent;
     private String nameClass;
-    private Date topicYear;
-    private Float scoreGuide = (float) 0;
+    private String nameStudent;
+    private String nameTopic;
+    private Float scoreAssembly = (float) 0;
     private Float scoreCounterArgument = (float) 0;
+    private Float scoreGuide = (float) 0;
     private Float scoreProcessOne = (float) 0;
     private Float scoreProcessTwo = (float) 0;
-    private Float scoreAssembly = (float) 0;
     private Float scoreMedium = (float) 0;
+    private Date topicYear;
 }
