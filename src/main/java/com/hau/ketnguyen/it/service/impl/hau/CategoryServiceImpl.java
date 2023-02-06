@@ -69,8 +69,19 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public PageDataResponse<CategoryDTO> getAll(SearchCategoryRequest request) {
+        setCategoryRequest(request);
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
         Page<CategoryDTO> categoryDTOPage = categoryReps.search(request, pageable).map(categoryMapper::to);
         return PageDataResponse.of(categoryDTOPage);
+    }
+
+    private void setCategoryRequest(SearchCategoryRequest request) {
+        if (request.getName() != null) {
+            request.setName(request.getName().toLowerCase());
+        }
+
+        if (request.getCode() != null) {
+            request.setCode(request.getCode().toLowerCase());
+        }
     }
 }

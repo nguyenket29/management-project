@@ -19,6 +19,7 @@ public interface ClassReps extends CrudRepository<Classes, Long> {
             "WHERE (:#{#request.code} IS NULL OR lower(c.code) LIKE %:#{#request.code}%) " +
             " AND (:#{#request.name} IS NULL OR lower(c.name) LIKE %:#{#request.name}%) " +
             " AND (:#{#request.facultyId} IS NULL OR c.facultyId = :#{#request.facultyId}) " +
+            " AND (:#{#request.stdNumber} IS NULL OR c.stdNumber = :#{#request.stdNumber}) " +
             " ORDER BY c.id desc")
     Page<Classes> search(SearchClassRequest request, Pageable pageable);
 
