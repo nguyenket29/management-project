@@ -9,7 +9,7 @@ import com.hau.ketnguyen.it.entity.auth.CustomUser;
 import com.hau.ketnguyen.it.entity.hau.*;
 import com.hau.ketnguyen.it.model.dto.hau.LecturerDTO;
 import com.hau.ketnguyen.it.model.dto.hau.StatisticalDTO;
-import com.hau.ketnguyen.it.model.dto.hau.StudentTopicDTO;
+import com.hau.ketnguyen.it.model.dto.hau.StudentSuggestTopicDTO;
 import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
 import com.hau.ketnguyen.it.model.request.auth.SearchRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchStudentTopicRequest;
@@ -20,6 +20,7 @@ import com.hau.ketnguyen.it.repository.hau.*;
 import com.hau.ketnguyen.it.service.GoogleDriverFile;
 import com.hau.ketnguyen.it.service.TopicService;
 import com.hau.ketnguyen.it.service.mapper.LecturerMapper;
+import com.hau.ketnguyen.it.service.mapper.StudentSuggestTopicMapper;
 import com.hau.ketnguyen.it.service.mapper.StudentTopicMapper;
 import com.hau.ketnguyen.it.service.mapper.TopicMapper;
 import lombok.AllArgsConstructor;
@@ -52,6 +53,8 @@ public class TopicServiceImpl implements TopicService {
     private final StudentTopicReps studentTopicReps;
     private final StudentReps studentReps;
     private final StudentTopicMapper studentTopicMapper;
+    private final StudentSuggestTopicReps studentSuggestTopicReps;
+    private final StudentSuggestTopicMapper studentSuggestTopicMapper;
 
     @Override
     public TopicDTO save(TopicDTO topicDTO) {
@@ -306,7 +309,7 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Override
-    public PageDataResponse<StudentTopicDTO> getListStudentSuggestTopic(SearchStudentTopicRequest request) {
+    public PageDataResponse<StudentSuggestTopicDTO> getListStudentSuggestTopic(SearchStudentTopicRequest request) {
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
         List<Topics> topics = topicReps.getListByTopicIdSuggest();
 
@@ -318,9 +321,9 @@ public class TopicServiceImpl implements TopicService {
             request.setTopicIds(topicIds);
         }
 
-        Page<StudentTopicDTO> studentTopics = studentTopicReps.search(request, pageable).map(studentTopicMapper::to);
+        Page<StudentSuggestTopicDTO> studentTopics = studentSuggestTopicReps.search(request, pageable).map(studentSuggestTopicMapper::to);
         if (!CollectionUtils.isEmpty(studentTopics.toList())) {
-            List<Long> studentIds = studentTopics.stream().map(StudentTopicDTO::getStudentId).collect(Collectors.toList());
+            List<Long> studentIds = studentTopics.stream().map(StudentSuggestTopicDTO::getStudentId).collect(Collectors.toList());
             List<Students> students = studentReps.findByIdIn(studentIds);
 
             Map<Long, String> mapStudentName = new HashMap<>();
@@ -337,7 +340,7 @@ public class TopicServiceImpl implements TopicService {
                 }
             }
 
-            for (StudentTopicDTO s : studentTopics) {
+            for (StudentSuggestTopicDTO s : studentTopics) {
                 if (!CollectionUtils.isEmpty(mapTopicName) && mapTopicName.containsKey(s.getTopicId())) {
                     s.setTopicName(mapTopicName.get(s.getTopicId()));
                 }

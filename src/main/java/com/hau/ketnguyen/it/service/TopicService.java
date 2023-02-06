@@ -1,7 +1,7 @@
 package com.hau.ketnguyen.it.service;
 
 import com.hau.ketnguyen.it.model.dto.hau.StatisticalDTO;
-import com.hau.ketnguyen.it.model.dto.hau.StudentTopicDTO;
+import com.hau.ketnguyen.it.model.dto.hau.StudentSuggestTopicDTO;
 import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
 import com.hau.ketnguyen.it.model.request.auth.SearchRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchStudentTopicRequest;
@@ -15,5 +15,5 @@ public interface TopicService extends GenericService<TopicDTO, SearchTopicReques
     List<String> uploadFile(MultipartFile[] file, String filePath, boolean isPublic, Long topicId);
     PageDataResponse<StatisticalDTO> getStatistical(SearchRequest request);
     PageDataResponse<TopicDTO> getListTopicSuggest(SearchTopicRequest request);
-    PageDataResponse<StudentTopicDTO> getListStudentSuggestTopic(SearchStudentTopicRequest request);
+    PageDataResponse<StudentSuggestTopicDTO> getListStudentSuggestTopic(SearchStudentTopicRequest request);
 }

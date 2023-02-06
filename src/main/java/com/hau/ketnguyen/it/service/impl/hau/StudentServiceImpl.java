@@ -54,6 +54,7 @@ public class StudentServiceImpl implements StudentService {
     private final LecturerReps lecturerReps;
     private final LecturerMapper lecturerMapper;
     private final CategoryReps categoryReps;
+    private final StudentSuggestTopicReps studentSuggestTopicReps;
     @Override
     public StudentDTO save(StudentDTO studentDTO) {
         UserInfo userInfo = setUserInfo(studentDTO);
@@ -419,11 +420,11 @@ public class StudentServiceImpl implements StudentService {
         Topics topics = topicReps.save(topicMapper.from(topicDTO));
 
         // đề xuất này của sinh viên nào
-        StudentTopic studentTopic = new StudentTopic();
-        studentTopic.setStatusSuggest(true);
-        studentTopic.setTopicId(topics.getId());
-        studentTopic.setStudentId(students.get().getId());
-        studentTopicReps.save(studentTopic);
+        StudentSuggestTopic studentSuggestTopic = new StudentSuggestTopic();
+        studentSuggestTopic.setStatusSuggest(true);
+        studentSuggestTopic.setTopicId(topics.getId());
+        studentSuggestTopic.setStudentId(students.get().getId());
+        studentSuggestTopicReps.save(studentSuggestTopic);
     }
 
     /* Người quản trị duyệt đề tài sinh viên đề xuất */
@@ -441,13 +442,16 @@ public class StudentServiceImpl implements StudentService {
 
             topicsOptional.get().setStatusSuggest(true);
             topicsOptional.get().setStatus(true);
-            topicReps.save(topicsOptional.get());
 
-            // xóa trong student topic
-            List<StudentTopic> studentTopics = studentTopicReps.findByTopicIdIn(Collections.singletonList(topicId));
-            if (!CollectionUtils.isEmpty(studentTopics)) {
-                studentTopicReps.deleteAll(studentTopics);
+            Optional<StudentSuggestTopic> studentSuggestTopic = studentSuggestTopicReps.findByTopicId(topicId);
+
+            if (studentSuggestTopic.isEmpty()) {
+                throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đề tài");
             }
+
+            studentSuggestTopic.get().setStatusApprove(true);
+            studentSuggestTopicReps.save(studentSuggestTopic.get());
+            topicReps.save(topicsOptional.get());
         } else {
             throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Người dùng không phải quản trị viên");
         }
@@ -466,17 +470,15 @@ public class StudentServiceImpl implements StudentService {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
         }
 
-        List<StudentTopic> studentTopics =
-                studentTopicReps.findByStudentIdInAndStatusSuggestIsTrue(Collections.singletonList(students.get().getId()));
+        List<StudentSuggestTopic> studentTopics =
+                studentSuggestTopicReps.findByStudentIdInAndStatusSuggestIsTrue(Collections.singletonList(students.get().getId()));
 
-        Map<Long, Boolean> mapTopicStatusStudentRegistry = studentTopics.stream()
-                .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatusRegistry));
         Map<Long, Boolean> mapTopicStatusApprove = studentTopics.stream()
-                .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatusApprove));
-        List<Long> topicIds = studentTopics.stream().map(StudentTopic::getTopicId).distinct().collect(Collectors.toList());
+                .collect(Collectors.toMap(StudentSuggestTopic::getTopicId, StudentSuggestTopic::getStatusApprove));
+        List<Long> topicIds = studentTopics.stream().map(StudentSuggestTopic::getTopicId).distinct().collect(Collectors.toList());
         request.setTopicIds(topicIds);
         Page<TopicDTO> topicDTOS = topicReps.getListByTopicIds(request, pageable).map(topicMapper::to);
-        setTopicDTO(topicDTOS, topicIds, mapTopicStatusStudentRegistry, mapTopicStatusApprove, null);
+        setTopicDTO(topicDTOS, topicIds, null, mapTopicStatusApprove, null);
 
         return PageDataResponse.of(topicDTOS);
     }
