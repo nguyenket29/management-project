@@ -25,8 +25,13 @@ public interface StudentTopicReps extends CrudRepository<StudentTopic, Long> {
     Optional<StudentTopic> findByTopicId(Long topicId);
 
     @Query("SELECT st FROM student_topics st " +
+            "LEFT JOIN topics t ON st.topicId = t.id " +
+            "LEFT JOIN students s ON s.id = st.studentId " +
+            "LEFT JOIN UserInfo ui ON s.userInfoId = ui.id " +
             "WHERE (COALESCE(:#{#request.topicIds}, NULL) IS NULL OR st.topicId IN :#{#request.topicIds}) " +
             "AND (:#{#request.topicId} IS NULL OR st.topicId = :#{#request.topicId}) " +
+            "AND (:#{#request.topicName} IS NULL OR lower(t.name) LIKE %:#{#request.topicName}%) " +
+            "AND (:#{#request.studentName} IS NULL OR lower(ui.fullName) LIKE %:#{#request.studentName}%) " +
             "AND (:#{#request.studentId} IS NULL OR st.studentId = :#{#request.studentId})")
     Page<StudentTopic> search(SearchStudentTopicRequest request, Pageable pageable);
 }

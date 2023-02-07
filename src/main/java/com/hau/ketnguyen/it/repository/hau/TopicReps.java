@@ -74,7 +74,12 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
 
     @Query("select t from topics t " +
             "where (t.id IN :#{#request.topicIds}) " +
-            "and (:#{#request.topicName} IS NULL OR lower(t.name) LIKE %:#{#request.topicName}%) ")
+            "and (:#{#request.topicName} IS NULL OR lower(t.name) LIKE %:#{#request.topicName}%) " +
+            "and (:#{#request.lecturerGuideId} IS NULL OR t.lecturerGuideId = :#{#request.lecturerGuideId}) " +
+            " AND (:#{#request.lecturerCounterArgumentId} IS NULL OR t.lecturerCounterArgumentId = :#{#request.lecturerCounterArgumentId}) " +
+            " AND (:#{#request.year} IS NULL OR t.year = :#{#request.year}) " +
+            " AND (:#{#request.description} IS NULL OR lower(t.description) LIKE %:#{#request.description}%) " +
+            " AND (:#{#request.categoryId} IS NULL OR t.categoryId = :#{#request.categoryId})")
     Page<Topics> getListByTopicIds(SearchTopicStudentRequest request, Pageable pageable);
 
     @Query("select t from topics t where (t.statusSuggest is false)")

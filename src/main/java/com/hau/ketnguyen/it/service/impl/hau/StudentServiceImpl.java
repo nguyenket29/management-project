@@ -275,6 +275,9 @@ public class StudentServiceImpl implements StudentService {
                 .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatusApprove));
         List<Long> topicIds = studentTopics.stream().map(StudentTopic::getTopicId).distinct().collect(Collectors.toList());
         request.setTopicIds(topicIds);
+        if (request.getTopicName() != null) {
+            request.setTopicName(request.getTopicName().toLowerCase());
+        }
         Page<TopicDTO> page = topicReps.getListByTopicIds(request, pageable).map(topicMapper::to);
         setTopicDTO(page, topicIds, mapTopicStatusStudentRegistry, mapTopicStatusApprove, topicIdApproved);
 
@@ -394,6 +397,9 @@ public class StudentServiceImpl implements StudentService {
                 .collect(Collectors.toMap(StudentTopic::getTopicId, StudentTopic::getStatusApprove));
         List<Long> topicIds = studentTopics.stream().map(StudentTopic::getTopicId).distinct().collect(Collectors.toList());
         request.setTopicIds(topicIds);
+        if (request.getTopicName() != null) {
+            request.setTopicName(request.getTopicName().toLowerCase());
+        }
         Page<TopicDTO> topicDTOS = topicReps.getListByTopicIds(request, pageable).map(topicMapper::to);
         setTopicDTO(topicDTOS, topicIds, mapTopicStatusStudentRegistry, mapTopicStatusApprove, topicIdApproved);
 
@@ -477,6 +483,9 @@ public class StudentServiceImpl implements StudentService {
                 .collect(Collectors.toMap(StudentSuggestTopic::getTopicId, StudentSuggestTopic::getStatusApprove));
         List<Long> topicIds = studentTopics.stream().map(StudentSuggestTopic::getTopicId).distinct().collect(Collectors.toList());
         request.setTopicIds(topicIds);
+        if (request.getTopicName() != null) {
+            request.setTopicName(request.getTopicName().toLowerCase());
+        }
         Page<TopicDTO> topicDTOS = topicReps.getListByTopicIds(request, pageable).map(topicMapper::to);
         setTopicDTO(topicDTOS, topicIds, null, mapTopicStatusApprove, null);
 

@@ -311,18 +311,17 @@ public class TopicServiceImpl implements TopicService {
     @Override
     public PageDataResponse<StudentSuggestTopicDTO> getListStudentSuggestTopic(SearchStudentTopicRequest request) {
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
-        List<Topics> topics = topicReps.getListByTopicIdSuggest();
-
-        List<Long> topicIds = new ArrayList<>();
-        Map<Long, String> mapTopicName = new HashMap<>();
-        if (!CollectionUtils.isEmpty(topics)) {
-            topicIds = topics.stream().map(Topics::getId).collect(Collectors.toList());
-            mapTopicName = topics.stream().collect(Collectors.toMap(Topics::getId, Topics::getName));
-            request.setTopicIds(topicIds);
-        }
 
         Page<StudentSuggestTopicDTO> studentTopics = studentSuggestTopicReps.search(request, pageable).map(studentSuggestTopicMapper::to);
         if (!CollectionUtils.isEmpty(studentTopics.toList())) {
+            List<Long> topicIds = studentTopics.toList().stream()
+                    .map(StudentSuggestTopicDTO::getTopicId).distinct().collect(Collectors.toList());
+            List<Topics> topics = topicReps.findByIdIn(topicIds);
+            Map<Long, String> mapTopicName = new HashMap<>();
+            if (!CollectionUtils.isEmpty(topics)) {
+                mapTopicName = topics.stream().collect(Collectors.toMap(Topics::getId, Topics::getName));
+            }
+
             List<Long> studentIds = studentTopics.stream().map(StudentSuggestTopicDTO::getStudentId).collect(Collectors.toList());
             List<Students> students = studentReps.findByIdIn(studentIds);
 

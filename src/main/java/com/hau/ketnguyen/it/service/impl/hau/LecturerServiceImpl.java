@@ -234,6 +234,14 @@ public class LecturerServiceImpl implements LecturerService {
     @Override
     public PageDataResponse<StudentTopicDTO> getListStudentRegistryTopic(SearchStudentTopicRequest request) {
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
+        if (request.getStudentName() != null) {
+            request.setStudentName(request.getStudentName().toLowerCase());
+        }
+
+        if (request.getTopicName() != null) {
+            request.setTopicName(request.getTopicName().toLowerCase());
+        }
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUser user = (CustomUser) authentication.getPrincipal();
 

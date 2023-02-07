@@ -10,5 +10,7 @@ import java.util.List;
 public class SearchStudentTopicRequest extends SearchRequest {
     private Long studentId;
     private Long topicId;
+    private String topicName;
+    private String studentName;
     private List<Long> topicIds = new ArrayList<>();
 }
