@@ -16,6 +16,11 @@ public class Constants {
         public static final String FAILED = "FAILED";
     }
 
+    public static class RoleAssembly {
+        public static final String PRESIDENT = "PRESIDENT";
+        public static final String SECRETARY = "SECRETARY";
+    }
+
     public static class Notification {
         public enum Status {
             SENT, UNSENT

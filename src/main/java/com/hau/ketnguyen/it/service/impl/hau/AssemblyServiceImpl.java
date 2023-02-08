@@ -165,7 +165,16 @@ public class AssemblyServiceImpl implements AssemblyService {
             }
 
             assemblyDTO.setIdLectures(lectureIdLong);
+            Map<Long, LecturerDTO> lecturerDTOMap = setLecture(lectureIdLong);
             assemblyDTO.setLecturerDTOS(new ArrayList<>(setLecture(lectureIdLong).values()));
+
+            if (!lecturerDTOMap.isEmpty() && lecturerDTOMap.containsKey(assemblyDTO.getLecturePresidentId())) {
+                assemblyDTO.setLecturePresidentName(lecturerDTOMap.get(assemblyDTO.getLecturePresidentId()).getFullName());
+            }
+
+            if (!lecturerDTOMap.isEmpty() && lecturerDTOMap.containsKey(assemblyDTO.getLectureSecretaryId())) {
+                assemblyDTO.setLectureSecretaryName(lecturerDTOMap.get(assemblyDTO.getLectureSecretaryId()).getFullName());
+            }
         }
 
         // Danh sách đề tài
@@ -220,13 +229,14 @@ public class AssemblyServiceImpl implements AssemblyService {
                 }
 
                 List<Long> lectureIdLong = new ArrayList<>();
-
                 if (lectureIds != null && !lectureIds.isEmpty()) {
                     lectureIds.forEach(i -> lectureIdLong.add(Long.parseLong(i.toString())));
                 }
 
-                idLectures.addAll(lectureIdLong);
-                mapAssemblyLectureIds.put(l.getId(), lectureIdLong);
+                lectureIdLong.add(l.getLecturePresidentId());
+                lectureIdLong.add(l.getLectureSecretaryId());
+                idLectures.addAll(lectureIdLong.stream().distinct().collect(Collectors.toList()));
+                mapAssemblyLectureIds.put(l.getId(), lectureIdLong.stream().distinct().collect(Collectors.toList()));
             });
 
             Map<Long, LecturerDTO> lecturerDTOMap = setLecture(idLectures);
@@ -273,6 +283,14 @@ public class AssemblyServiceImpl implements AssemblyService {
 
                 if (!mapAssemblyWithLectureDTO.isEmpty() && mapAssemblyWithLectureDTO.containsKey(a.getId())) {
                     a.setLecturerDTOS(mapAssemblyWithLectureDTO.get(a.getId()));
+                }
+
+                if (!lecturerDTOMap.isEmpty() && lecturerDTOMap.containsKey(a.getLecturePresidentId())) {
+                    a.setLecturePresidentName(lecturerDTOMap.get(a.getLecturePresidentId()).getFullName());
+                }
+
+                if (!lecturerDTOMap.isEmpty() && lecturerDTOMap.containsKey(a.getLectureSecretaryId())) {
+                    a.setLectureSecretaryName(lecturerDTOMap.get(a.getLectureSecretaryId()).getFullName());
                 }
 
                 if (!CollectionUtils.isEmpty(mapAssemblyTopicIds) && mapAssemblyTopicIds.containsKey(a.getId())) {

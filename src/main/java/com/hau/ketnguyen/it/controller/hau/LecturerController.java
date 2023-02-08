@@ -70,6 +70,19 @@ public class LecturerController {
         return ResponseEntity.ok(APIResponse.success());
     }
 
+    @GetMapping("/check-lecture-by-assembly")
+    @ApiOperation(value = "Kiểm tra giảng viên đó có phải chủ tịch hội đồng hay không")
+    public ResponseEntity<APIResponse<Void>> checkLectureHavePresidentAssembly(@RequestParam Integer userId) {
+        lecturerService.checkLectureInAssembly(userId);
+        return ResponseEntity.ok(APIResponse.success());
+    }
+
+    @GetMapping("/get-topic-by-assembly")
+    @ApiOperation(value = "Lấy danh sách đề tài theo giảng viên hội dồng")
+    public ResponseEntity<APIResponse<PageDataResponse<TopicDTO>>> getListTopicOfPresidentAssembly(SearchTopicRequest request) {
+        return ResponseEntity.ok(APIResponse.success(lecturerService.getListTopicOfPresidentAssembly(request)));
+    }
+
     @GetMapping
     public ResponseEntity<APIResponse<PageDataResponse<LecturerDTO>>> getAll(SearchLecturerRequest request) {
         return ResponseEntity.ok(APIResponse.success(lecturerService.getAll(request)));

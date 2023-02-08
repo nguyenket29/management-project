@@ -353,7 +353,7 @@ public class TopicServiceImpl implements TopicService {
         return PageDataResponse.of(studentTopics);
     }
 
-    private PageDataResponse<TopicDTO> getTopicDTOPageDataResponse(Page<TopicDTO> page) {
+    public PageDataResponse<TopicDTO> getTopicDTOPageDataResponse(Page<TopicDTO> page) {
         Map<Long, Boolean> getStatusRegistryTopicByCurrentUser = getStatusRegistryTopicByCurrentUser();
         Map<Long, Boolean> getStatusApproveTopicByCurrentUser = getStatusApproveTopicByCurrentUser();
 

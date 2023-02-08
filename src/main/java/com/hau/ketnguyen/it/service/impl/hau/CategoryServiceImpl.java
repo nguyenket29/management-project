@@ -42,7 +42,7 @@ public class CategoryServiceImpl implements CategoryService {
         Categories categories = categoriesOptional.get();
         BeanUtil.copyNonNullProperties(categoryDTO, categories);
 
-        return categoryMapper.to(categories);
+        return categoryMapper.to(categoryReps.save(categories));
     }
 
     @Override

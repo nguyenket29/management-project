@@ -330,7 +330,7 @@ public class ExcelServiceImpl implements ExcelService {
                 }));
             }
 
-            List<String> headerListNew = Arrays.asList("Tên hội đồng", "Giáo viên", "Đồ án");
+            List<String> headerListNew = Arrays.asList("Tên hội đồng", "Chủ tịch hội đồng", "Thư ký hội đồng", "Giáo viên", "Đồ án");
 
             exportExcel(response, "Export Assembly",
                     "Danh sách hội đồng", "assembly_export", AssemblyExcelDTO.class.getDeclaredFields(),

@@ -7,6 +7,7 @@ import com.hau.ketnguyen.it.model.request.auth.SearchRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchStudentTopicRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchTopicRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
+import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -16,4 +17,5 @@ public interface TopicService extends GenericService<TopicDTO, SearchTopicReques
     PageDataResponse<StatisticalDTO> getStatistical(SearchRequest request);
     PageDataResponse<TopicDTO> getListTopicSuggest(SearchTopicRequest request);
     PageDataResponse<StudentSuggestTopicDTO> getListStudentSuggestTopic(SearchStudentTopicRequest request);
+    PageDataResponse<TopicDTO> getTopicDTOPageDataResponse(Page<TopicDTO> page);
 }

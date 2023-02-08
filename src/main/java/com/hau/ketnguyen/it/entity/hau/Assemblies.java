@@ -25,4 +25,10 @@ public class Assemblies extends BaseEntity {
 
     @Column(name = "name_assembly")
     private String nameAssembly;
+
+    @Column(name = "lecture_resident_id")
+    private Long lecturePresidentId;
+
+    @Column(name = "lecture_secretary_id")
+    private Long lectureSecretaryId;
 }

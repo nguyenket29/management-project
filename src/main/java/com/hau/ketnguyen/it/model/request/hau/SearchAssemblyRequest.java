@@ -8,6 +8,8 @@ import java.util.List;
 public class SearchAssemblyRequest extends BaseRequest {
     private Long topicId;
     private Long commentId;
+    private Long lecturePresidentId;
+    private Long lectureSecretaryId;
     private List<Long> lectureIds;
     private String nameAssembly;
 }

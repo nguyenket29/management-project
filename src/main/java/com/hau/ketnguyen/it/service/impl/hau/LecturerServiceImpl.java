@@ -1,8 +1,11 @@
 package com.hau.ketnguyen.it.service.impl.hau;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
+import com.hau.ketnguyen.it.common.util.StringUtils;
 import com.hau.ketnguyen.it.entity.auth.CustomUser;
 import com.hau.ketnguyen.it.entity.hau.*;
 import com.hau.ketnguyen.it.model.dto.auth.UserInfoDTO;
@@ -18,10 +21,7 @@ import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
 import com.hau.ketnguyen.it.repository.hau.*;
 import com.hau.ketnguyen.it.service.LecturerService;
 import com.hau.ketnguyen.it.service.TopicService;
-import com.hau.ketnguyen.it.service.mapper.FacultyMapper;
-import com.hau.ketnguyen.it.service.mapper.LecturerMapper;
-import com.hau.ketnguyen.it.service.mapper.StudentTopicMapper;
-import com.hau.ketnguyen.it.service.mapper.UserInfoMapper;
+import com.hau.ketnguyen.it.service.mapper.*;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -46,10 +46,12 @@ public class LecturerServiceImpl implements LecturerService {
     private final UserInfoReps userInfoReps;
     private final UserInfoMapper userInfoMapper;
     private final TopicReps topicReps;
+    private final TopicMapper topicMapper;
     private final TopicService topicService;
     private final StudentTopicReps studentTopicReps;
     private final StudentTopicMapper studentTopicMapper;
     private final StudentReps studentReps;
+    private final AssemblyReps assemblyReps;
 
     @Override
     public LecturerDTO save(LecturerDTO lecturerDTO) {
@@ -333,5 +335,56 @@ public class LecturerServiceImpl implements LecturerService {
         studentTopicReps.save(studentTopicOptional.get());
         topicReps.save(topicsOptional.get());
         studentReps.save(studentOptional.get());
+    }
+
+    // Kiểm tra ó phải giảng viên hay không, giảng viên đó có phải chủ tịch hội đồng hay không để lấy danh sách đề tài
+    @Override
+    public boolean checkLectureInAssembly(Integer userId) {
+        Optional<Lecturers> lecturersOptional = lecturerReps.findByUserId(userId);
+        if (lecturersOptional.isEmpty()) {
+            return false;
+        }
+        List<Assemblies> assemblies = assemblyReps
+                .findByLecturePresidentIdIn(Collections.singletonList(lecturersOptional.get().getId()));
+        return !CollectionUtils.isEmpty(assemblies);
+    }
+
+    // Lấy danh sách đề tài theo hội đồng
+    @Override
+    public PageDataResponse<TopicDTO> getListTopicOfPresidentAssembly(SearchTopicRequest request) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUser user = (CustomUser) authentication.getPrincipal();
+
+        Optional<Lecturers> lecturersOptional = lecturerReps.findByUserId(user.getId());
+        if (lecturersOptional.isEmpty()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên");
+        }
+
+        List<Assemblies> assemblies = assemblyReps
+                .findByLecturePresidentIdIn(Collections.singletonList(lecturersOptional.get().getId()));
+
+        List<Long> topicIdLongs = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(assemblies)) {
+            for (Assemblies a : assemblies) {
+                List<Integer> topicIds = new ArrayList<>();
+                try {
+                    if (!StringUtils.isNullOrEmpty(a.getTopicIds())) {
+                        topicIds = objectMapper.readValue(a.getTopicIds(), List.class);
+                    }
+                } catch (JsonProcessingException e) {
+                    throw APIException.from(HttpStatus.BAD_REQUEST).withMessage(e.getMessage());
+                }
+
+                if (!CollectionUtils.isEmpty(topicIds)) {
+                    topicIds.forEach(l -> topicIdLongs.add(Long.parseLong(l.toString())));
+                }
+            }
+        }
+
+        Page<TopicDTO> page = topicReps.getListTopicByPresidentAssembly(request,
+                topicIdLongs.stream().distinct().collect(Collectors.toList()), pageable).map(topicMapper::to);
+        return topicService.getTopicDTOPageDataResponse(page);
     }
 }

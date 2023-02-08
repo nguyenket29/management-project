@@ -35,6 +35,20 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
             " AND (:#{#request.categoryId} IS NULL OR c.categoryId = :#{#request.categoryId}) " +
             " ORDER BY c.id desc")
     Page<Topics> search(SearchTopicRequest request, Pageable pageable);
+
+    @Query("SELECT c FROM topics c " +
+            "WHERE (:#{#request.lecturerGuideId} IS NULL OR c.lecturerGuideId = :#{#request.lecturerGuideId}) " +
+            " AND (:#{#request.name} IS NULL OR lower(c.name) LIKE %:#{#request.name}%) " +
+            " AND (c.statusSuggest IS TRUE) " +
+            " AND (c.id IN :topicIds) " +
+            " AND (:#{#request.description} IS NULL OR lower(c.description) LIKE %:#{#request.description}%) " +
+            " AND (:#{#request.status} IS NULL OR c.status = :#{#request.status}) " +
+            " AND (:#{#request.statusSuggest} IS NULL OR c.statusSuggest = :#{#request.statusSuggest}) " +
+            " AND (:#{#request.lecturerCounterArgumentId} IS NULL OR c.lecturerCounterArgumentId = :#{#request.lecturerCounterArgumentId}) " +
+            " AND (:#{#request.year} IS NULL OR c.year = :#{#request.year}) " +
+            " AND (:#{#request.categoryId} IS NULL OR c.categoryId = :#{#request.categoryId}) " +
+            " ORDER BY c.id desc")
+    Page<Topics> getListTopicByPresidentAssembly(SearchTopicRequest request, List<Long> topicIds, Pageable pageable);
     List<Topics> findByStatus(boolean status);
     @Query("SELECT COUNT(t) FROM topics t WHERE (t.statusSuggest IS TRUE)")
     long getCount();

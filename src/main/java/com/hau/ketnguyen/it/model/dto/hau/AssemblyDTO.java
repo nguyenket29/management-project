@@ -3,6 +3,7 @@ package com.hau.ketnguyen.it.model.dto.hau;
 import lombok.Builder;
 import lombok.Data;
 
+import javax.persistence.Column;
 import java.util.Date;
 import java.util.List;
 
@@ -28,4 +29,9 @@ public class AssemblyDTO {
 
     private List<String> topicNames;
     private List<LecturerDTO> lecturerDTOS;
+
+    private Long lecturePresidentId;
+    private Long lectureSecretaryId;
+    private String lecturePresidentName;
+    private String lectureSecretaryName;
 }
