@@ -72,9 +72,8 @@ public class LecturerController {
 
     @GetMapping("/check-lecture-by-assembly")
     @ApiOperation(value = "Kiểm tra giảng viên đó có phải chủ tịch hội đồng hay không")
-    public ResponseEntity<APIResponse<Void>> checkLectureHavePresidentAssembly(@RequestParam Integer userId) {
-        lecturerService.checkLectureInAssembly(userId);
-        return ResponseEntity.ok(APIResponse.success());
+    public ResponseEntity<APIResponse<Boolean>> checkLectureHavePresidentAssembly(@RequestParam Integer userId) {
+        return ResponseEntity.ok(APIResponse.success(lecturerService.checkLectureInAssembly(userId)));
     }
 
     @GetMapping("/get-topic-by-assembly")
