@@ -62,7 +62,7 @@ public class GoogleDriverController {
     @PostMapping("/file/get-by-id")
     public ResponseEntity<APIResponse<List<GoogleDriverFileDTO>>> getByIds(@RequestBody DriverRequest request)
             throws IOException, GeneralSecurityException {
-        return ResponseEntity.ok(APIResponse.success(googleDriveFileService.findByIdFileds(request.getFieldIds())));
+        return ResponseEntity.ok(APIResponse.success(googleDriveFileService.findByIdFiles(request.getFieldIds())));
     }
 
     // Upload file to public

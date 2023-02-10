@@ -362,24 +362,55 @@ public class LecturerServiceImpl implements LecturerService {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên");
         }
 
-        List<Assemblies> assemblies = assemblyReps
-                .findByLecturePresidentIdIn(Collections.singletonList(lecturersOptional.get().getId()));
+        Map<Long, Long> mapListLong = new HashMap<>();
+        Map<Long, Assemblies> assembliesMap = assemblyReps.findAll().stream().collect(Collectors.toMap(Assemblies::getId, a -> a));
 
-        List<Long> topicIdLongs = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(assemblies)) {
-            for (Assemblies a : assemblies) {
-                List<Integer> topicIds = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(assembliesMap)) {
+            assembliesMap.forEach((k, v) -> {
+                List<Integer> lectureIds = new ArrayList<>();
                 try {
-                    if (!StringUtils.isNullOrEmpty(a.getTopicIds())) {
-                        topicIds = objectMapper.readValue(a.getTopicIds(), List.class);
+                    if (!StringUtils.isNullOrEmpty(v.getLecturerIds())) {
+                        lectureIds = objectMapper.readValue(v.getLecturerIds(), List.class);
+                    }
+
+                    if (v.getLecturePresidentId() != null) {
+                        lectureIds.add(v.getLecturePresidentId().intValue());
+                    }
+
+                    if (v.getLectureSecretaryId() != null) {
+                        lectureIds.add(v.getLectureSecretaryId().intValue());
                     }
                 } catch (JsonProcessingException e) {
                     throw APIException.from(HttpStatus.BAD_REQUEST).withMessage(e.getMessage());
                 }
 
-                if (!CollectionUtils.isEmpty(topicIds)) {
-                    topicIds.forEach(l -> topicIdLongs.add(Long.parseLong(l.toString())));
+                if (!CollectionUtils.isEmpty(lectureIds)
+                        && lectureIds.contains(lecturersOptional.get().getId().intValue())) {
+                    mapListLong.put(k, lecturersOptional.get().getId());
                 }
+            });
+        }
+
+        List<Long> topicIdLongs = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(mapListLong)) {
+            Set<Long> assemblyIds = mapListLong.keySet();
+            if (!CollectionUtils.isEmpty(assemblyIds)) {
+                assemblyIds.forEach(a -> {
+                    if (!CollectionUtils.isEmpty(assembliesMap) && assembliesMap.containsKey(a)) {
+                        List<Integer> topicIds = new ArrayList<>();
+                        try {
+                            if (!StringUtils.isNullOrEmpty(assembliesMap.get(a).getTopicIds())) {
+                                topicIds = objectMapper.readValue(assembliesMap.get(a).getTopicIds(), List.class);
+                            }
+                        } catch (JsonProcessingException e) {
+                            throw APIException.from(HttpStatus.BAD_REQUEST).withMessage(e.getMessage());
+                        }
+
+                        if (!CollectionUtils.isEmpty(topicIds)) {
+                            topicIds.forEach(l -> topicIdLongs.add(Long.parseLong(l.toString())));
+                        }
+                    }
+                });
             }
         }
 

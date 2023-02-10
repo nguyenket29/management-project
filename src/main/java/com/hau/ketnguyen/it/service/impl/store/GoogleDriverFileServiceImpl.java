@@ -82,7 +82,7 @@ public class GoogleDriverFileServiceImpl implements GoogleDriverFile {
     }
 
     @Override
-    public List<GoogleDriverFileDTO> findByIdFileds(List<String> fileIds) throws GeneralSecurityException, IOException {
+    public List<GoogleDriverFileDTO> findByIdFiles(List<String> fileIds) throws GeneralSecurityException, IOException {
         List<GoogleDriverFileDTO> responseList = getListFile();
 
         List<GoogleDriverFileDTO> rs = new ArrayList<>();

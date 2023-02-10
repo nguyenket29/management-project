@@ -113,6 +113,14 @@ public class AssemblyServiceImpl implements AssemblyService {
             assemblies.setLecturerIds(null);
         }
 
+        if (assemblyDTO.getLecturePresidentId() == null) {
+            assemblies.setLecturePresidentId(null);
+        }
+
+        if (assemblyDTO.getLectureSecretaryId() == null) {
+            assemblies.setLectureSecretaryId(null);
+        }
+
         if (CollectionUtils.isEmpty(assemblyDTO.getIdTopics())) {
             assemblies.setTopicIds(null);
         }

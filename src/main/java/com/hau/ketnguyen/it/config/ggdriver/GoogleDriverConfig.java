@@ -37,8 +37,8 @@ public class GoogleDriverConfig {
     public Drive getInstance() throws GeneralSecurityException, IOException {
         // Build a new authorized API client service.
         final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
-        return new Drive.Builder(HTTP_TRANSPORT,
-                JacksonFactory.getDefaultInstance(), getCredentials(HTTP_TRANSPORT))
+        return new Drive.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
+                .setApplicationName(APPLICATION_NAME)
                 .build();
     }
 

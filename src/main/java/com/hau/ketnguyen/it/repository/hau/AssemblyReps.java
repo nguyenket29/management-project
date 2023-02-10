@@ -23,4 +23,6 @@ public interface AssemblyReps extends CrudRepository<Assemblies, Long> {
             " ORDER BY l.id desc")
     Page<Assemblies> search(SearchAssemblyRequest request, Pageable pageable);
     List<Assemblies> findByLecturePresidentIdIn(List<Long> lecturePresidentIds);
+    @Query("SELECT a FROM assembly a")
+    List<Assemblies> findAll();
 }
