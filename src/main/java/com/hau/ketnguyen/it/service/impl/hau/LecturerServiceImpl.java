@@ -339,14 +339,36 @@ public class LecturerServiceImpl implements LecturerService {
 
     // Kiểm tra ó phải giảng viên hay không, giảng viên đó có phải chủ tịch hội đồng hay không để lấy danh sách đề tài
     @Override
-    public boolean checkLectureInAssembly(Integer userId) {
+    public boolean checkLectureInAssembly(Integer userId, Long topicId) {
+        ObjectMapper objectMapper = new ObjectMapper();
         Optional<Lecturers> lecturersOptional = lecturerReps.findByUserId(userId);
         if (lecturersOptional.isEmpty()) {
             return false;
         }
+
         List<Assemblies> assemblies = assemblyReps
                 .findByLecturePresidentIdIn(Collections.singletonList(lecturersOptional.get().getId()));
-        return !CollectionUtils.isEmpty(assemblies);
+
+        if (!CollectionUtils.isEmpty(assemblies)) {
+            List<Integer> idTopicList = new ArrayList<>();
+            for (Assemblies a : assemblies) {
+                try {
+                    if (!StringUtils.isNullOrEmpty(a.getTopicIds())) {
+                        idTopicList = objectMapper.readValue(a.getTopicIds(), List.class);
+                    }
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            idTopicList = idTopicList.stream().distinct().collect(Collectors.toList());
+            if (!CollectionUtils.isEmpty(idTopicList) && idTopicList.contains(topicId.intValue())) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
     }
 
     // Lấy danh sách đề tài theo hội đồng

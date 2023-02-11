@@ -16,6 +16,6 @@ public interface LecturerService extends GenericService<LecturerDTO, SearchLectu
     PageDataResponse<TopicDTO> getListTopicGuide(SearchTopicRequest request);
     PageDataResponse<StudentTopicDTO> getListStudentRegistryTopic(SearchStudentTopicRequest request);
     void approveTopicForStudent(Long topicId, Long studentId);
-    boolean checkLectureInAssembly(Integer userId);
+    boolean checkLectureInAssembly(Integer userId, Long topicId);
     PageDataResponse<TopicDTO> getListTopicOfPresidentAssembly(SearchTopicRequest request);
 }
