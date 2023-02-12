@@ -281,6 +281,11 @@ public class LecturerServiceImpl implements LecturerService {
                 }
             }
 
+            // Kiểm tra nếu đề tài đó mà được duyệt rồi , những thằng đki còn lại sẽ phải bị disable
+            List<Long> studentTopicList = studentTopicReps
+                    .findByTopicIdInAndStatusRegistryIsTrueAndStatusApproveIsTrue(request.getTopicIds())
+                    .stream().map(StudentTopic::getId).collect(Collectors.toList());
+
             for (StudentTopicDTO s : studentTopics) {
                 if (!CollectionUtils.isEmpty(mapTopicName) && mapTopicName.containsKey(s.getTopicId())) {
                     s.setTopicName(mapTopicName.get(s.getTopicId()));
@@ -288,6 +293,11 @@ public class LecturerServiceImpl implements LecturerService {
 
                 if (!CollectionUtils.isEmpty(mapStudentName) && mapStudentName.containsKey(s.getStudentId())) {
                     s.setStudentName(mapStudentName.get(s.getStudentId()));
+                }
+
+                // Lm cho những thằng khác bị disable khi có 1 thằng đki cùng đề tài đã được duyệt
+                if (!CollectionUtils.isEmpty(studentTopicList) && !studentTopicList.contains(s.getId())) {
+                    s.setStatusApprove(true);
                 }
             }
         }
