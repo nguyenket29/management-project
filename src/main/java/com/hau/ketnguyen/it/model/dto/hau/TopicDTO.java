@@ -34,6 +34,7 @@ public class TopicDTO {
     private String categoryName;
     private boolean studentRegistry;
     private boolean studentApprove;
+    private boolean topicOfAssembly;
     private String statusTopic;
 
     private List<String> fileIds;

@@ -304,15 +304,8 @@ public class LecturerServiceImpl implements LecturerService {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Sinh viên chưa đăng ký đề tài này");
         }
 
-        List<StudentTopic> studentTopicList = studentTopicReps.findByTopicIdIn(Collections.singletonList(topicId))
-                .stream().filter(st -> !Objects.equals(st.getStudentId(), studentId)).collect(Collectors.toList());
-
-        // Nếu có nhiều sinh viên đăng ký nhiều đề tài cùng lúc thì khi duyệt cho 1 sinh viên những sinh viên khác sẽ bị từ chối
-        List<StudentTopic> studentTopicUpdated = new ArrayList<>();
-        if (!CollectionUtils.isEmpty(studentTopicList)) {
-            studentTopicUpdated.addAll(studentTopicList);
-        }
-
+        // kiểm tra xem có sinh viên nào thực hiện đề tài này hay chưa
+        validateTopicHaveStudentRegistry(topicId);
         studentTopicOptional.get().setStatusApprove(true);
 
         // cập nhật lại danh sách đề tài
@@ -329,18 +322,22 @@ public class LecturerServiceImpl implements LecturerService {
         }
         studentOptional.get().setTopicId(topicsOptional.get().getId());
 
-        if (!CollectionUtils.isEmpty(studentTopicUpdated)) {
-            studentTopicReps.deleteAll(studentTopicUpdated);
-        }
         studentTopicReps.save(studentTopicOptional.get());
         topicReps.save(topicsOptional.get());
         studentReps.save(studentOptional.get());
     }
 
+    private void validateTopicHaveStudentRegistry(Long topicId) {
+        Optional<StudentTopic> studentTopicOptional = studentTopicReps.findByTopicIdAndStatusRegistryIsTrueAndStatusApproveIsTrue(topicId);
+        if (studentTopicOptional.isPresent()) {
+            throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Đã có sinh viên đăng ký đề tài này.");
+        }
+    }
+
     // Kiểm tra ó phải giảng viên hay không, giảng viên đó có phải chủ tịch hội đồng hay không để lấy danh sách đề tài
     @Override
     public boolean checkLectureInAssembly(Integer userId, Long topicId) {
-        ObjectMapper objectMapper = new ObjectMapper();
+        /*ObjectMapper objectMapper = new ObjectMapper();
         Optional<Lecturers> lecturersOptional = lecturerReps.findByUserId(userId);
         if (lecturersOptional.isEmpty()) {
             return false;
@@ -368,7 +365,46 @@ public class LecturerServiceImpl implements LecturerService {
                 return false;
             }
         }
+        return false;*/
         return false;
+    }
+
+    private Map<Long, Boolean> checkTopicInAssemblyByLecture(Integer userId, List<Long> topicIds) {
+        Map<Long, Boolean> map = new HashMap<>();
+        ObjectMapper objectMapper = new ObjectMapper();
+        Optional<Lecturers> lecturersOptional = lecturerReps.findByUserId(userId);
+        if (lecturersOptional.isEmpty()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên");
+        }
+
+        List<Assemblies> assemblies = assemblyReps
+                .findByLecturePresidentIdIn(Collections.singletonList(lecturersOptional.get().getId()));
+
+        if (!CollectionUtils.isEmpty(assemblies)) {
+            List<Integer> idTopicList = new ArrayList<>();
+            for (Assemblies a : assemblies) {
+                try {
+                    if (!StringUtils.isNullOrEmpty(a.getTopicIds())) {
+                        idTopicList = objectMapper.readValue(a.getTopicIds(), List.class);
+                    }
+                } catch (JsonProcessingException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            idTopicList = idTopicList.stream().distinct().collect(Collectors.toList());
+            if (!CollectionUtils.isEmpty(idTopicList) && !CollectionUtils.isEmpty(topicIds)) {
+                for (Long t : topicIds) {
+                    if (idTopicList.contains(t.intValue())) {
+                        map.put(t, true);
+                    } else {
+                        map.put(t, false);
+                    }
+                }
+            }
+        }
+
+        return map;
     }
 
     // Lấy danh sách đề tài theo hội đồng
@@ -438,6 +474,19 @@ public class LecturerServiceImpl implements LecturerService {
 
         Page<TopicDTO> page = topicReps.getListTopicByPresidentAssembly(request,
                 topicIdLongs.stream().distinct().collect(Collectors.toList()), pageable).map(topicMapper::to);
+
+        if (!CollectionUtils.isEmpty(page.toList())) {
+            List<Long> topicIds = page.map(TopicDTO::getId).toList();
+            Map<Long, Boolean> checkTopicInAssemblyByLecture = checkTopicInAssemblyByLecture(user.getId(), topicIds);
+
+            page.forEach(p -> {
+                if (!CollectionUtils.isEmpty(checkTopicInAssemblyByLecture)
+                        && checkTopicInAssemblyByLecture.containsKey(p.getId())) {
+                    p.setTopicOfAssembly(checkTopicInAssemblyByLecture.get(p.getId()));
+                }
+            });
+        }
+
         return topicService.getTopicDTOPageDataResponse(page);
     }
 }

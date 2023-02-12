@@ -233,20 +233,12 @@ public class StudentServiceImpl implements StudentService {
             if (students.isEmpty()) {
                 throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
             }
-            validateTopicHaveStudentRegistry(topicId);
 
             StudentTopic studentTopic = new StudentTopic();
             studentTopic.setTopicId(topicId);
             studentTopic.setStudentId(students.get().getId());
             studentTopic.setStatusRegistry(registry);
             studentTopicReps.save(studentTopic);
-        }
-    }
-
-    private void validateTopicHaveStudentRegistry(Long topicId) {
-        Optional<StudentTopic> studentTopicOptional = studentTopicReps.findByTopicId(topicId);
-        if (studentTopicOptional.isPresent()) {
-            throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Đã có sinh viên đăng ký đề tài này, vui lòng chọn đề tài khác");
         }
     }
 
