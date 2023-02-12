@@ -138,7 +138,6 @@ public class UserServiceImpl implements UserService {
      * @Return: User
      */
     @Override
-    @Cacheable("users")
     public Optional<User> findByUsernameAndStatus(String username, short status) {
         log.info("calling findByUsernameAndStatus");
         return userReps.findByUsernameAndStatus(username, status);

@@ -111,8 +111,10 @@ public class GoogleFileManager {
     // Upload Multi file
     public List<String> uploadMultiFile(MultipartFile[] files, String folderName, String type, String role) {
         try {
+            Drive driver = googleDriverConfig.getInstance();
             List<String> fileIds = new ArrayList<>();
-            String folderId = getFolderId(folderName);
+            String folderId = getFolderId(folderName, driver);
+
             if (files.length > 0) {
                 Arrays.asList(files).forEach(file -> {
                     if (null != file) {
@@ -121,22 +123,21 @@ public class GoogleFileManager {
                         fileMetadata.setName(file.getOriginalFilename());
                         File uploadFile = null;
                         try {
-                            uploadFile = googleDriverConfig.getInstance()
-                                    .files()
+                            uploadFile = driver.files()
                                     .create(fileMetadata, new InputStreamContent(
                                             file.getContentType(),
                                             new ByteArrayInputStream(file.getBytes()))
                                     )
                                     .setFields("id").execute();
-                        } catch (IOException | GeneralSecurityException e) {
+                        } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
 
                         if (!type.equals("private") && !role.equals("private")) {
                             // Call Set Permission drive
                             try {
-                                googleDriverConfig.getInstance().permissions().create(uploadFile.getId(), setPermission(type, role)).execute();
-                            } catch (IOException | GeneralSecurityException e) {
+                                driver.permissions().create(uploadFile.getId(), setPermission(type, role)).execute();
+                            } catch (IOException e) {
                                 throw new RuntimeException(e);
                             }
                         }
@@ -145,12 +146,11 @@ public class GoogleFileManager {
                     }
                 });
             }
-
             return fileIds;
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return null;
+        return Collections.emptyList();
     }
 
     // get id folder google drive
@@ -159,6 +159,15 @@ public class GoogleFileManager {
         String[] folderNames = folderName.split("/");
 
          Drive driveInstance = googleDriverConfig.getInstance();
+        for (String name : folderNames) {
+            parentId = findOrCreateFolder(parentId, name, driveInstance);
+        }
+        return parentId;
+    }
+
+    public String getFolderId(String folderName, Drive driveInstance) throws Exception {
+        String parentId = null;
+        String[] folderNames = folderName.split("/");
         for (String name : folderNames) {
             parentId = findOrCreateFolder(parentId, name, driveInstance);
         }
