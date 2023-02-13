@@ -421,17 +421,20 @@ public class TopicServiceImpl implements TopicService {
                     p.setFileIds(mapFileIds.get(p.getId()));
 
                     if (!CollectionUtils.isEmpty(p.getFileIds())) {
-                        List<String> fileNames = new ArrayList<>();
+                        List<FileDTO> fileDTOS = new ArrayList<>();
                         List<Long> fileIdLongs = p.getFileIds().stream().map(Long::parseLong).collect(Collectors.toList());
                         if (!CollectionUtils.isEmpty(fileIdLongs)) {
                             fileIdLongs.forEach(f -> {
                                 if (!CollectionUtils.isEmpty(mapTopicWithFileNames)
                                         && mapTopicWithFileNames.containsKey(f)) {
-                                    fileNames.add(mapTopicWithFileNames.get(f));
+                                    FileDTO fileDTO = new FileDTO();
+                                    fileDTO.setId(f);
+                                    fileDTO.setName(mapTopicWithFileNames.get(f));
+                                    fileDTOS.add(fileDTO);
                                 }
                             });
 
-                            p.setFileNames(fileNames);
+                            p.setFileDTOS(fileDTOS);
                         }
                     }
                 }
