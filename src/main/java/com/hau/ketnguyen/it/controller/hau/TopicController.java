@@ -17,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -28,22 +30,26 @@ public class TopicController {
     private final TopicService topicService;
 
     @PostMapping
+    @ApiOperation("Api tạo mới đề tài")
     public ResponseEntity<APIResponse<TopicDTO>> save(@RequestBody TopicDTO topicDTO) {
         return ResponseEntity.ok(APIResponse.success(topicService.save(topicDTO)));
     }
 
     @PutMapping("/{id}")
+    @ApiOperation("Api cập nhật đề tài")
     public ResponseEntity<APIResponse<TopicDTO>> edit(@PathVariable Long id,@RequestBody TopicDTO topicDTO) {
         return ResponseEntity.ok(APIResponse.success(topicService.edit(id, topicDTO)));
     }
 
     @DeleteMapping("/{id}")
+    @ApiOperation("Api xóa đề tài")
     public ResponseEntity<APIResponse<Void>> delete(@PathVariable Long id) {
         topicService.delete(id);
         return ResponseEntity.ok(APIResponse.success());
     }
 
     @GetMapping("/{id}")
+    @ApiOperation("Api xem chi tiết đề tài")
     public ResponseEntity<APIResponse<TopicDTO>> findById(@PathVariable Long id) {
         return ResponseEntity.ok(APIResponse.success(topicService.findById(id)));
     }
@@ -61,20 +67,36 @@ public class TopicController {
     }
 
     @GetMapping
+    @ApiOperation("Api lấy danh sách đề tài")
     public ResponseEntity<APIResponse<PageDataResponse<TopicDTO>>> getAll(SearchTopicRequest request) {
         return ResponseEntity.ok(APIResponse.success(topicService.getAll(request)));
     }
 
+    @ApiOperation(value = "Api thống kê điểm")
     @GetMapping("/statistical-score")
     public ResponseEntity<APIResponse<PageDataResponse<StatisticalDTO>>> getScoreByTopic(SearchRequest request) {
         return ResponseEntity.ok(APIResponse.success(topicService.getStatistical(request)));
     }
 
+    @ApiOperation("Api tải lên file đề tài lên GG driver")
     @PostMapping("/upload")
     public ResponseEntity<APIResponse<List<String>>> uploadAvatar(@RequestParam("fileUpload") MultipartFile[] fileUpload,
                                                           @RequestParam("filePath") String pathFile,
                                                           @RequestParam("shared") String shared,
                                                           @RequestParam("topicId") Long topicId) {
         return ResponseEntity.ok(APIResponse.success(topicService.uploadFile(fileUpload, pathFile, Boolean.parseBoolean(shared), topicId)));
+    }
+
+    @ApiOperation("Api tải lên file đề tài")
+    @PostMapping("/upload-local")
+    public ResponseEntity<APIResponse<List<String>>> uploadAvatar(@RequestParam("fileUpload") MultipartFile[] fileUpload,
+                                                                  @RequestParam("topicId") Long topicId) throws IOException {
+        return ResponseEntity.ok(APIResponse.success(topicService.uploadFileLocal(fileUpload, topicId)));
+    }
+
+    @ApiOperation("Api tải xuống file đề tài")
+    @GetMapping(value = "/download/{id}")
+    public ResponseEntity<byte[]> downFileStringId(@PathVariable("id") String id, HttpServletResponse response) throws Exception {
+        return ResponseEntity.ok().body(topicService.downFileFromLocal(id, response).getFileContent());
     }
 }

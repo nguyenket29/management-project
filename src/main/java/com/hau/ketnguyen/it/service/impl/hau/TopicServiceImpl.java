@@ -7,16 +7,14 @@ import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.auth.CustomUser;
 import com.hau.ketnguyen.it.entity.hau.*;
-import com.hau.ketnguyen.it.model.dto.hau.LecturerDTO;
-import com.hau.ketnguyen.it.model.dto.hau.StatisticalDTO;
-import com.hau.ketnguyen.it.model.dto.hau.StudentSuggestTopicDTO;
-import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
+import com.hau.ketnguyen.it.model.dto.hau.*;
 import com.hau.ketnguyen.it.model.request.auth.SearchRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchStudentTopicRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchTopicRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
 import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
 import com.hau.ketnguyen.it.repository.hau.*;
+import com.hau.ketnguyen.it.service.FileService;
 import com.hau.ketnguyen.it.service.GoogleDriverFile;
 import com.hau.ketnguyen.it.service.TopicService;
 import com.hau.ketnguyen.it.service.mapper.LecturerMapper;
@@ -35,6 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -56,6 +56,7 @@ public class TopicServiceImpl implements TopicService {
     private final StudentTopicMapper studentTopicMapper;
     private final StudentSuggestTopicReps studentSuggestTopicReps;
     private final StudentSuggestTopicMapper studentSuggestTopicMapper;
+    private final FileService fileService;
 
     @Override
     public TopicDTO save(TopicDTO topicDTO) {
@@ -261,6 +262,35 @@ public class TopicServiceImpl implements TopicService {
             topicReps.save(topic);
         }
         return fileIds;
+    }
+
+    @Override
+    public List<String> uploadFileLocal(MultipartFile[] file, Long topicId) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<String> fileIds = fileService.uploadFile(file).stream().map(String::valueOf).collect(Collectors.toList());
+        if (!CollectionUtils.isEmpty(fileIds)) {
+            Optional<Topics> topicsOptional = topicReps.findById(topicId);
+
+            if (topicsOptional.isEmpty()) {
+                throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đề tài");
+            }
+
+            Topics topic = topicsOptional.get();
+            String fileId = null;
+            try {
+                fileId = objectMapper.writeValueAsString(fileIds);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            topic.setFileId(fileId);
+            topicReps.save(topic);
+        }
+        return fileIds;
+    }
+
+    @Override
+    public FileDTO downFileFromLocal(String id, HttpServletResponse response) throws Exception {
+        return fileService.getFileByStringId(id, response);
     }
 
     private Map<Long, String> mapTopicWithCategoryName(List<Long> categoryIds) {
