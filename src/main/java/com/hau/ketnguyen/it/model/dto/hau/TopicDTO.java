@@ -38,4 +38,5 @@ public class TopicDTO {
     private String statusTopic;
 
     private List<String> fileIds;
+    private List<String> fileNames;
 }

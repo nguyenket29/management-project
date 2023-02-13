@@ -56,6 +56,7 @@ public class TopicServiceImpl implements TopicService {
     private final StudentTopicMapper studentTopicMapper;
     private final StudentSuggestTopicReps studentSuggestTopicReps;
     private final StudentSuggestTopicMapper studentSuggestTopicMapper;
+    private final FileReps fileReps;
     private final FileService fileService;
 
     @Override
@@ -405,6 +406,7 @@ public class TopicServiceImpl implements TopicService {
 
             Map<Long, LecturerDTO> lecturerDTOMap = setLecture(lectureIds.stream().distinct().collect(Collectors.toList()));
             Map<Long, List<String>> mapFileIds = mapTopicIdWithListFileId(topicIds);
+            Map<Long, String> mapTopicWithFileNames = mapTopicWithFileNames(page.toList());
             Map<Long, String> mapCategoryName = mapTopicWithCategoryName(categoryIds);
             page.forEach(p -> {
                 if (p.getLecturerGuideId() != null && lecturerDTOMap.containsKey(p.getLecturerGuideId())) {
@@ -417,6 +419,21 @@ public class TopicServiceImpl implements TopicService {
 
                 if (!mapFileIds.isEmpty() && mapFileIds.containsKey(p.getId())) {
                     p.setFileIds(mapFileIds.get(p.getId()));
+
+                    if (!CollectionUtils.isEmpty(p.getFileIds())) {
+                        List<String> fileNames = new ArrayList<>();
+                        List<Long> fileIdLongs = p.getFileIds().stream().map(Long::parseLong).collect(Collectors.toList());
+                        if (!CollectionUtils.isEmpty(fileIdLongs)) {
+                            fileIdLongs.forEach(f -> {
+                                if (!CollectionUtils.isEmpty(mapTopicWithFileNames)
+                                        && mapTopicWithFileNames.containsKey(f)) {
+                                    fileNames.add(mapTopicWithFileNames.get(f));
+                                }
+                            });
+
+                            p.setFileNames(fileNames);
+                        }
+                    }
                 }
 
                 if (!mapCategoryName.isEmpty() && mapCategoryName.containsKey(p.getCategoryId())) {
@@ -436,5 +453,30 @@ public class TopicServiceImpl implements TopicService {
         }
 
         return PageDataResponse.of(page);
+    }
+
+    private Map<Long, String> mapTopicWithFileNames(List<TopicDTO> topicDTOS) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<Long, String> filesMap = new HashMap<>();
+        if (!CollectionUtils.isEmpty(topicDTOS)) {
+            List<String> fileIds = new ArrayList<>();
+            for (TopicDTO t : topicDTOS) {
+                if (t.getFileId() != null && !t.getFileId().isEmpty()) {
+                    try {
+                        fileIds.addAll(objectMapper.readValue(t.getFileId(), List.class));
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+
+            List<Long> idFiles = new ArrayList<>();
+            if (!CollectionUtils.isEmpty(fileIds)) {
+                idFiles.addAll(fileIds.stream().map(Long::parseLong).collect(Collectors.toList()));
+            }
+
+            filesMap = fileReps.findByIdIn(idFiles).stream().collect(Collectors.toMap(Files::getId, Files::getName));
+        }
+        return filesMap;
     }
 }
