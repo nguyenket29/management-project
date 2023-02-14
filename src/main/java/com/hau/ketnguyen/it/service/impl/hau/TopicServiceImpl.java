@@ -244,8 +244,12 @@ public class TopicServiceImpl implements TopicService {
     @Override
     public List<String> uploadFile(MultipartFile[] file, String filePath, boolean isPublic, Long topicId) {
         ObjectMapper objectMapper = new ObjectMapper();
-        List<String> fileIds = googleDriverFile.uploadMultiFile(file, filePath, isPublic);
-        if (fileIds != null && !fileIds.isEmpty()) {
+        List<String> fileIds = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(Arrays.asList(file))) {
+            Arrays.asList(file).forEach(f -> fileIds.add(googleDriverFile.uploadFile(f)));
+        }
+
+        if (!CollectionUtils.isEmpty(fileIds)) {
             Optional<Topics> topicsOptional = topicReps.findById(topicId);
 
             if (topicsOptional.isEmpty()) {

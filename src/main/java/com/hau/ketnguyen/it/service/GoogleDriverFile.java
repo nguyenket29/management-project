@@ -13,7 +13,7 @@ import java.util.List;
 public interface GoogleDriverFile {
     PageDataResponse<GoogleDriverFileDTO> getAllFile() throws IOException, GeneralSecurityException;
     void deleteFile(String id) throws Exception;
-    String uploadFile(MultipartFile file, String filePath, boolean isPublic);
+    String uploadFile(MultipartFile file);
     List<String> uploadMultiFile(MultipartFile[] file, String filePath, boolean isPublic);
     byte[] downloadFile(String id, OutputStream outputStream, HttpServletResponse response) throws IOException, GeneralSecurityException;
     List<GoogleDriverFileDTO> findByIdFiles(List<String> fileId) throws GeneralSecurityException, IOException;

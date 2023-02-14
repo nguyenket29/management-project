@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 
 @Service
@@ -40,19 +39,8 @@ public class GoogleDriverFileServiceImpl implements GoogleDriverFile {
     }
 
     @Override
-    public String uploadFile(MultipartFile file, String filePath, boolean isPublic) {
-        String type = "";
-        String role = "";
-        if (isPublic) {
-            // Public file of folder for everyone
-            type = "anyone";
-            role = "reader";
-        } else {
-            // Private
-            type = "private";
-            role = "private";
-        }
-        return googleFileManager.uploadFile(file, filePath, type, role);
+    public String uploadFile(MultipartFile file) {
+        return googleFileManager.uploadFile(file);
     }
 
     @Override

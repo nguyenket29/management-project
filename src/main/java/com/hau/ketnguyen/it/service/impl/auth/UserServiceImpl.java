@@ -273,7 +273,7 @@ public class UserServiceImpl implements UserService {
     public void uploadAvatar(MultipartFile file, String filePath, boolean isPublic) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUser user = (CustomUser) authentication.getPrincipal();
-        String fileId = googleDriverFile.uploadFile(file, filePath, isPublic);
+        String fileId = googleDriverFile.uploadFile(file);
         if (fileId != null) {
             UserInfo userInfo = new UserInfo();
             if (user.getType().equalsIgnoreCase(STUDENT.name())) {

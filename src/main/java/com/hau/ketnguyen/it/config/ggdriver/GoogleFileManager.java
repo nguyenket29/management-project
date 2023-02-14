@@ -1,5 +1,6 @@
 package com.hau.ketnguyen.it.config.ggdriver;
 
+import com.google.api.client.http.AbstractInputStreamContent;
 import com.google.api.client.http.InputStreamContent;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
@@ -37,8 +38,7 @@ public class GoogleFileManager {
 
     //Get File By Id
     public File getFileById(String id) throws GeneralSecurityException, IOException {
-        File file = googleDriverConfig.getInstance().files().get(id).execute();
-        return file;
+        return googleDriverConfig.getInstance().files().get(id).execute();
     }
 
 
@@ -77,29 +77,18 @@ public class GoogleFileManager {
         return permission;
     }
 
-
     // Upload file
-    public String uploadFile(MultipartFile file, String folderName, String type, String role) {
+    public String uploadFile(MultipartFile file) {
         try {
-            String folderId = getFolderId(folderName);
+            Drive driver = googleDriverConfig.getInstance();
+            String folderId = "12W8UC1OQ2RETbvOxnPdSSmMRKabASKfO";
             if (null != file) {
-
                 File fileMetadata = new File();
                 fileMetadata.setParents(Collections.singletonList(folderId));
                 fileMetadata.setName(file.getOriginalFilename());
-                File uploadFile = googleDriverConfig.getInstance()
-                        .files()
-                        .create(fileMetadata, new InputStreamContent(
-                                file.getContentType(),
-                                new ByteArrayInputStream(file.getBytes()))
-                        )
-                        .setFields("id").execute();
-
-                if (!type.equals("private") && !role.equals("private")) {
-                    // Call Set Permission drive
-                    googleDriverConfig.getInstance().permissions().create(uploadFile.getId(), setPermission(type, role)).execute();
-                }
-
+                AbstractInputStreamContent fileContent = new
+                        InputStreamContent(file.getContentType(), new ByteArrayInputStream(file.getBytes()));
+                File uploadFile = driver.files().create(fileMetadata, fileContent).setFields("id").execute();
                 return uploadFile.getId();
             }
         } catch (Exception e) {
@@ -111,38 +100,12 @@ public class GoogleFileManager {
     // Upload Multi file
     public List<String> uploadMultiFile(MultipartFile[] files, String folderName, String type, String role) {
         try {
-            Drive driver = googleDriverConfig.getInstance();
             List<String> fileIds = new ArrayList<>();
-            String folderId = getFolderId(folderName, driver);
-
             if (files.length > 0) {
                 Arrays.asList(files).forEach(file -> {
                     if (null != file) {
-                        File fileMetadata = new File();
-                        fileMetadata.setParents(Collections.singletonList(folderId));
-                        fileMetadata.setName(file.getOriginalFilename());
-                        File uploadFile = null;
-                        try {
-                            uploadFile = driver.files()
-                                    .create(fileMetadata, new InputStreamContent(
-                                            file.getContentType(),
-                                            new ByteArrayInputStream(file.getBytes()))
-                                    )
-                                    .setFields("id").execute();
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-
-                        if (!type.equals("private") && !role.equals("private")) {
-                            // Call Set Permission drive
-                            try {
-                                driver.permissions().create(uploadFile.getId(), setPermission(type, role)).execute();
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
-
-                        fileIds.add(uploadFile.getId());
+                        String fileId = uploadFile(file);
+                        fileIds.add(fileId);
                     }
                 });
             }
