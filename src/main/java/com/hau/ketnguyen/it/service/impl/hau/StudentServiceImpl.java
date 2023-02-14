@@ -9,10 +9,7 @@ import com.hau.ketnguyen.it.common.util.StringUtils;
 import com.hau.ketnguyen.it.entity.auth.CustomUser;
 import com.hau.ketnguyen.it.entity.hau.*;
 import com.hau.ketnguyen.it.model.dto.auth.UserInfoDTO;
-import com.hau.ketnguyen.it.model.dto.hau.ClassDTO;
-import com.hau.ketnguyen.it.model.dto.hau.LecturerDTO;
-import com.hau.ketnguyen.it.model.dto.hau.StudentDTO;
-import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
+import com.hau.ketnguyen.it.model.dto.hau.*;
 import com.hau.ketnguyen.it.model.request.hau.SearchStudentRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchTopicStudentRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
@@ -55,6 +52,7 @@ public class StudentServiceImpl implements StudentService {
     private final LecturerMapper lecturerMapper;
     private final CategoryReps categoryReps;
     private final StudentSuggestTopicReps studentSuggestTopicReps;
+    private final FileReps fileReps;
     @Override
     public StudentDTO save(StudentDTO studentDTO) {
         UserInfo userInfo = setUserInfo(studentDTO);
@@ -291,6 +289,7 @@ public class StudentServiceImpl implements StudentService {
 
             Map<Long, LecturerDTO> lecturerDTOMap = setLecture(lectureIds.stream().distinct().collect(Collectors.toList()));
             Map<Long, List<String>> mapFileIds = mapTopicIdWithListFileId(topicIds);
+            Map<Long, String> mapTopicWithFileNames = mapTopicWithFileNames(topicDTOS.toList());
             Map<Long, String> mapCategoryName = mapTopicWithCategoryName(categoryIds);
 
             topicDTOS.forEach(p -> {
@@ -304,6 +303,24 @@ public class StudentServiceImpl implements StudentService {
 
                 if (!mapFileIds.isEmpty() && mapFileIds.containsKey(p.getId())) {
                     p.setFileIds(mapFileIds.get(p.getId()));
+
+                    if (!CollectionUtils.isEmpty(p.getFileIds())) {
+                        List<FileDTO> fileDTOS = new ArrayList<>();
+                        List<Long> fileIdLongs = p.getFileIds().stream().map(Long::parseLong).collect(Collectors.toList());
+                        if (!CollectionUtils.isEmpty(fileIdLongs)) {
+                            fileIdLongs.forEach(f -> {
+                                if (!CollectionUtils.isEmpty(mapTopicWithFileNames)
+                                        && mapTopicWithFileNames.containsKey(f)) {
+                                    FileDTO fileDTO = new FileDTO();
+                                    fileDTO.setId(f);
+                                    fileDTO.setName(mapTopicWithFileNames.get(f));
+                                    fileDTOS.add(fileDTO);
+                                }
+                            });
+
+                            p.setFileDTOS(fileDTOS);
+                        }
+                    }
                 }
 
                 if (!mapCategoryName.isEmpty() && mapCategoryName.containsKey(p.getCategoryId())) {
@@ -327,6 +344,31 @@ public class StudentServiceImpl implements StudentService {
                 }
             });
         }
+    }
+
+    private Map<Long, String> mapTopicWithFileNames(List<TopicDTO> topicDTOS) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<Long, String> filesMap = new HashMap<>();
+        if (!CollectionUtils.isEmpty(topicDTOS)) {
+            List<String> fileIds = new ArrayList<>();
+            for (TopicDTO t : topicDTOS) {
+                if (t.getFileId() != null && !t.getFileId().isEmpty()) {
+                    try {
+                        fileIds.addAll(objectMapper.readValue(t.getFileId(), List.class));
+                    } catch (JsonProcessingException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+
+            List<Long> idFiles = new ArrayList<>();
+            if (!CollectionUtils.isEmpty(fileIds)) {
+                idFiles.addAll(fileIds.stream().map(Long::parseLong).collect(Collectors.toList()));
+            }
+
+            filesMap = fileReps.findByIdIn(idFiles).stream().collect(Collectors.toMap(Files::getId, Files::getName));
+        }
+        return filesMap;
     }
 
     private Map<Long, LecturerDTO> setLecture(List<Long> lectureIds) {
