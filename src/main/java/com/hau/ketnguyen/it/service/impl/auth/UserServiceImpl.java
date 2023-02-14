@@ -33,6 +33,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -56,6 +57,7 @@ public class UserServiceImpl implements UserService {
     private final TopicReps topicReps;
 
     @Override
+    @Transactional
     public boolean createUser(SignupRequest signupRequest) {
         User user = new User();
 
@@ -172,6 +174,7 @@ public class UserServiceImpl implements UserService {
      * @Return: UserDTO
      */
     @Override
+    @Transactional
     public UserDTO edit(Integer userId, UserRequest userRequest) {
         Optional<User> userOptional = userReps.findById(userId);
 
@@ -195,6 +198,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteUser(List<Integer> userIds) {
         if (userIds != null && !userIds.isEmpty()) {
             List<User> users = userReps.findByIds(userIds);
@@ -305,6 +309,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void inActive(Integer userId, boolean check) {
         Optional<User> userOptional = userReps.findById(userId);
 

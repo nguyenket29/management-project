@@ -25,6 +25,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
@@ -54,15 +55,34 @@ public class StudentServiceImpl implements StudentService {
     private final StudentSuggestTopicReps studentSuggestTopicReps;
     private final FileReps fileReps;
     @Override
+    @Transactional
     public StudentDTO save(StudentDTO studentDTO) {
-        UserInfo userInfo = setUserInfo(studentDTO);
-        userInfoReps.save(userInfo);
-        studentDTO.setUserInfoId(userInfo.getId());
-        if (!StringUtils.isNullOrEmpty(studentDTO.getTopicId().toString())) {
-            validateRegistryTopicOnlyStudent(studentDTO.getTopicId());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUser user = (CustomUser) authentication.getPrincipal();
+
+        if (StringUtils.isNullOrEmpty(user.getType()) || user.getType().equalsIgnoreCase(OTHER.name())) {
+            UserInfo userInfo = setUserInfo(studentDTO);
+            userInfoReps.save(userInfo);
+            studentDTO.setUserInfoId(userInfo.getId());
+            if (!StringUtils.isNullOrEmpty(studentDTO.getTopicId().toString())) {
+                validateRegistryTopicOnlyStudent(studentDTO.getTopicId());
+            }
+            Students students = studentReps.save(studentMapper.from(studentDTO));
+
+            // Nếu tạo mới sinh viên đó có chọn đề tài thì đề tài đó sẽ được duyệt cho sinh viên đó
+            if (studentDTO.getTopicId() != null) {
+                StudentTopic studentTopic = new StudentTopic();
+                studentTopic.setStatusApprove(true);
+                studentTopic.setTopicId(studentTopic.getTopicId());
+                studentTopic.setStudentId(students.getId());
+
+                studentTopicReps.save(studentTopic);
+            }
+
+            return studentMapper.to(students);
+        } else {
+            throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Người dùng hiện tại không có quyền.");
         }
-        Students students = studentReps.save(studentMapper.from(studentDTO));
-        return studentMapper.to(students);
     }
 
     private void validateRegistryTopicOnlyStudent(Long topic) {
@@ -73,36 +93,64 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    @Transactional
     public StudentDTO edit(Long id, StudentDTO studentDTO) {
-        Optional<Students> studentOptional = studentReps.findById(id);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUser user = (CustomUser) authentication.getPrincipal();
 
-        if (studentOptional.isEmpty()) {
-            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
+        if (StringUtils.isNullOrEmpty(user.getType()) || user.getType().equalsIgnoreCase(OTHER.name())) {
+            Optional<Students> studentOptional = studentReps.findById(id);
+
+            if (studentOptional.isEmpty()) {
+                throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
+            }
+
+            Long topicIdOld = studentOptional.get().getTopicId();
+
+            if (!StringUtils.isNullOrEmpty(studentDTO.getTopicId().toString())) {
+                validateRegistryTopicOnlyStudent(studentDTO.getTopicId());
+            }
+
+            Students students = studentOptional.get();
+            Long userInfoId = students.getUserInfoId();
+            BeanUtil.copyNonNullProperties(studentDTO, students);
+            if (studentDTO.getTopicId() == null) {
+                students.setTopicId(null);
+            }
+            studentReps.save(students);
+
+            Optional<UserInfo> userInfoOptional = userInfoReps.findById(userInfoId);
+
+            if (userInfoOptional.isEmpty()) {
+                throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin sinh viên");
+            }
+
+            UserInfo userInfo = setUserInfo(studentDTO);
+            BeanUtil.copyNonNullProperties(userInfo, userInfoOptional.get());
+            userInfoReps.save(userInfoOptional.get());
+
+            if ((studentDTO.getTopicId() != null && !Objects.equals(topicIdOld, studentDTO.getTopicId())) ||
+                    (studentDTO.getTopicId() != null && topicIdOld == null)) {
+                if (topicIdOld != null) {
+                    Optional<StudentTopic> studentTopicOptional =
+                            studentTopicReps.findByStudentIdAndTopicId(students.getId(), topicIdOld);
+                    studentTopicOptional.ifPresent(studentTopicReps::delete);
+                }
+
+                // Nếu tạo mới sinh viên đó có chọn đề tài thì đề tài đó sẽ được duyệt cho sinh viên đó
+                StudentTopic studentTopic = new StudentTopic();
+                studentTopic.setStatusApprove(true);
+                studentTopic.setTopicId(studentTopic.getTopicId());
+                studentTopic.setStudentId(students.getId());
+
+                studentTopicReps.save(studentTopic);
+            }
+
+
+            return studentMapper.to(students);
+        } else {
+            throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Người dùng hiện tại không có quyền.");
         }
-
-        if (!StringUtils.isNullOrEmpty(studentDTO.getTopicId().toString())) {
-            validateRegistryTopicOnlyStudent(studentDTO.getTopicId());
-        }
-
-        Students students = studentOptional.get();
-        Long userInfoId = students.getUserInfoId();
-        BeanUtil.copyNonNullProperties(studentDTO, students);
-        if (studentDTO.getTopicId() == null) {
-            students.setTopicId(null);
-        }
-        studentReps.save(students);
-
-        Optional<UserInfo> userInfoOptional = userInfoReps.findById(userInfoId);
-
-        if (userInfoOptional.isEmpty()) {
-            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin sinh viên");
-        }
-
-        UserInfo userInfo = setUserInfo(studentDTO);
-        BeanUtil.copyNonNullProperties(userInfo, userInfoOptional.get());
-        userInfoReps.save(userInfoOptional.get());
-
-        return studentMapper.to(students);
     }
 
     private UserInfo setUserInfo(StudentDTO studentDTO) {
@@ -118,6 +166,7 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         Optional<Students> studentOptional = studentReps.findById(id);
 
@@ -221,6 +270,7 @@ public class StudentServiceImpl implements StudentService {
 
     /* Sinh viên đăng ký đề tài */
     @Override
+    @Transactional
     public void studentRegistryTopic(Long topicId, boolean registry) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUser user = (CustomUser) authentication.getPrincipal();
@@ -442,6 +492,7 @@ public class StudentServiceImpl implements StudentService {
 
     /* Sinh viên đề xuất đề tài */
     @Override
+    @Transactional
     public void studentSuggestTopic(String topicName) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUser user = (CustomUser) authentication.getPrincipal();
@@ -469,6 +520,7 @@ public class StudentServiceImpl implements StudentService {
 
     /* Người quản trị duyệt đề tài sinh viên đề xuất */
     @Override
+    @Transactional
     public void adminApproveTopicSuggest(Long topicId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUser user = (CustomUser) authentication.getPrincipal();

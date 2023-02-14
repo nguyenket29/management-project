@@ -60,6 +60,7 @@ public class TopicServiceImpl implements TopicService {
     private final FileService fileService;
 
     @Override
+    @Transactional
     public TopicDTO save(TopicDTO topicDTO) {
         validateNameTopic(topicDTO.getName());
         topicDTO.setStatusSuggest(true);
@@ -74,6 +75,7 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Override
+    @Transactional
     public TopicDTO edit(Long id, TopicDTO topicDTO) {
         Optional<Topics> topicsOptional = topicReps.findById(id);
 
@@ -142,9 +144,28 @@ public class TopicServiceImpl implements TopicService {
         Map<Long, Boolean> getStatusRegistryTopicByCurrentUser = getStatusRegistryTopicByCurrentUser();
         Map<Long, Boolean> getStatusApproveTopicByCurrentUser = getStatusApproveTopicByCurrentUser();
         Map<Long, String> mapCategoryName = mapTopicWithCategoryName(Collections.singletonList(topicDTO.getCategoryId()));
+        Map<Long, String> mapTopicWithFileNames = mapTopicWithFileNames(Collections.singletonList(topicDTO));
 
         if (!fileIdsLong.isEmpty() && fileIdsLong.containsKey(id)) {
             topicDTO.setFileIds(fileIdsLong.get(id));
+
+            if (!CollectionUtils.isEmpty(topicDTO.getFileIds())) {
+                List<FileDTO> fileDTOS = new ArrayList<>();
+                List<Long> fileIdLongs = topicDTO.getFileIds().stream().map(Long::parseLong).collect(Collectors.toList());
+                if (!CollectionUtils.isEmpty(fileIdLongs)) {
+                    fileIdLongs.forEach(f -> {
+                        if (!CollectionUtils.isEmpty(mapTopicWithFileNames)
+                                && mapTopicWithFileNames.containsKey(f)) {
+                            FileDTO fileDTO = new FileDTO();
+                            fileDTO.setId(f);
+                            fileDTO.setName(mapTopicWithFileNames.get(f));
+                            fileDTOS.add(fileDTO);
+                        }
+                    });
+
+                    topicDTO.setFileDTOS(fileDTOS);
+                }
+            }
         }
 
         if (!CollectionUtils.isEmpty(getStatusRegistryTopicByCurrentUser)
@@ -270,6 +291,7 @@ public class TopicServiceImpl implements TopicService {
     }
 
     @Override
+    @Transactional
     public List<String> uploadFileLocal(MultipartFile[] file, Long topicId) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         List<String> fileIds = fileService.uploadFile(file).stream().map(String::valueOf).collect(Collectors.toList());

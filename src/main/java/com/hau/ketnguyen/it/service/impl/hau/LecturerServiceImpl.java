@@ -30,6 +30,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
@@ -54,6 +55,7 @@ public class LecturerServiceImpl implements LecturerService {
     private final AssemblyReps assemblyReps;
 
     @Override
+    @Transactional
     public LecturerDTO save(LecturerDTO lecturerDTO) {
         UserInfo userInfo = setUserInfo(lecturerDTO);
         userInfoReps.save(userInfo);
@@ -63,6 +65,7 @@ public class LecturerServiceImpl implements LecturerService {
     }
 
     @Override
+    @Transactional
     public LecturerDTO edit(Long id, LecturerDTO lecturerDTO) {
         Optional<Lecturers> lecturersOptional = lecturerReps.findById(id);
 
@@ -101,6 +104,7 @@ public class LecturerServiceImpl implements LecturerService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         Optional<Lecturers> lecturersOptional = lecturerReps.findById(id);
 
@@ -307,6 +311,7 @@ public class LecturerServiceImpl implements LecturerService {
 
     /* Giảng viên duyệt đề tài sinh viên đăng ký */
     @Override
+    @Transactional
     public void approveTopicForStudent(Long topicId, Long studentId) {
         // cập nhật lại danh sách đăng ký đề tài
         Optional<StudentTopic> studentTopicOptional = studentTopicReps.findByStudentIdAndTopicId(studentId, topicId);
