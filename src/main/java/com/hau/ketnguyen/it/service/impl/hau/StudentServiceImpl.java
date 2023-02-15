@@ -54,6 +54,7 @@ public class StudentServiceImpl implements StudentService {
     private final CategoryReps categoryReps;
     private final StudentSuggestTopicReps studentSuggestTopicReps;
     private final FileReps fileReps;
+
     @Override
     @Transactional
     public StudentDTO save(StudentDTO studentDTO) {
@@ -211,35 +212,8 @@ public class StudentServiceImpl implements StudentService {
     public PageDataResponse<StudentDTO> getAll(SearchStudentRequest request) {
         setStudentRequest(request);
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
-         Page<StudentDTO> page = studentReps.search(request, pageable).map(studentMapper::to);
-
-        if (!page.isEmpty()) {
-            List<Long> topicIds = page.map(StudentDTO::getTopicId).toList();
-            List<Long> classIds = page.map(StudentDTO::getClassId).toList();
-            List<Long> userInfoIds = page.map(StudentDTO::getUserInfoId).toList();
-
-            Map<Long, UserInfoDTO> userDTOMap = userInfoReps.findByIdIn(userInfoIds).stream()
-                    .map(userInfoMapper::to).collect(Collectors.toMap(UserInfoDTO::getId, u -> u));
-            Map<Long, ClassDTO> classDTOMap = classReps.findByIdIn(classIds).stream()
-                    .map(classMapper::to).collect(Collectors.toMap(ClassDTO::getId, u -> u));
-            Map<Long, TopicDTO> topicDTOMap = topicReps.findByIdIn(topicIds).stream()
-                    .map(topicMapper::to).collect(Collectors.toMap(TopicDTO::getId, u -> u));
-
-            page.forEach(p -> {
-                if (!userDTOMap.isEmpty() && userDTOMap.containsKey(p.getUserInfoId())) {
-                    p.setUserInfoDTO(userDTOMap.get(p.getUserInfoId()));
-                }
-
-                if (!classDTOMap.isEmpty() && classDTOMap.containsKey(p.getClassId())) {
-                    p.setClassDTO(classDTOMap.get(p.getClassId()));
-                }
-
-                if (!topicDTOMap.isEmpty() && topicDTOMap.containsKey(p.getTopicId())) {
-                    p.setTopicDTO(topicDTOMap.get(p.getTopicId()));
-                }
-            });
-        }
-
+        Page<StudentDTO> page = studentReps.search(request, pageable).map(studentMapper::to);
+        setPageStudentDTO(page);
         return PageDataResponse.of(page);
     }
 
@@ -577,5 +551,84 @@ public class StudentServiceImpl implements StudentService {
         setTopicDTO(topicDTOS, topicIds, null, mapTopicStatusApprove, null);
 
         return PageDataResponse.of(topicDTOS);
+    }
+
+    // Lấy danh sách sinh viên theo đề tài mà giảng viên đó hướng dẫn
+    @Override
+    public PageDataResponse<StudentDTO> getAllStudentByLectureGuide(SearchStudentRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUser user = (CustomUser) authentication.getPrincipal();
+
+        Optional<Lecturers> lecturersOptional = lecturerReps.findByUserId(user.getId());
+        if (lecturersOptional.isEmpty()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên hướng dẫn");
+        }
+
+        List<Topics> topics = topicReps.findByLecturerGuideIdIn(Collections.singletonList(lecturersOptional.get().getId()));
+        List<Long> topicIdsByLecture = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(topics)) {
+            topicIdsByLecture = topics.stream().map(Topics::getId).collect(Collectors.toList());
+        }
+
+        setStudentRequest(request);
+        Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
+        Page<StudentDTO> page = studentReps.search(request, topicIdsByLecture, pageable).map(studentMapper::to);
+        setPageStudentDTO(page);
+
+        return PageDataResponse.of(page);
+    }
+
+    private void setPageStudentDTO(Page<StudentDTO> page) {
+        if (!CollectionUtils.isEmpty(page.toList())) {
+            List<Long> topicIds = page.map(StudentDTO::getTopicId).toList();
+            List<Long> classIds = page.map(StudentDTO::getClassId).toList();
+            List<Long> userInfoIds = page.map(StudentDTO::getUserInfoId).toList();
+
+            Map<Long, UserInfoDTO> userDTOMap = userInfoReps.findByIdIn(userInfoIds).stream()
+                    .map(userInfoMapper::to).collect(Collectors.toMap(UserInfoDTO::getId, u -> u));
+            Map<Long, ClassDTO> classDTOMap = classReps.findByIdIn(classIds).stream()
+                    .map(classMapper::to).collect(Collectors.toMap(ClassDTO::getId, u -> u));
+            Map<Long, TopicDTO> topicDTOMap = topicReps.findByIdIn(topicIds).stream()
+                    .map(topicMapper::to).collect(Collectors.toMap(TopicDTO::getId, u -> u));
+
+            page.forEach(p -> {
+                if (!userDTOMap.isEmpty() && userDTOMap.containsKey(p.getUserInfoId())) {
+                    p.setUserInfoDTO(userDTOMap.get(p.getUserInfoId()));
+                }
+
+                if (!classDTOMap.isEmpty() && classDTOMap.containsKey(p.getClassId())) {
+                    p.setClassDTO(classDTOMap.get(p.getClassId()));
+                }
+
+                if (!topicDTOMap.isEmpty() && topicDTOMap.containsKey(p.getTopicId())) {
+                    p.setTopicDTO(topicDTOMap.get(p.getTopicId()));
+                }
+            });
+        }
+    }
+
+    // Lấy danh sách sinh viên theo đề tài mà giảng viên đó phản biện
+    @Override
+    public PageDataResponse<StudentDTO> getAllStudentByLectureCounterArgument(SearchStudentRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUser user = (CustomUser) authentication.getPrincipal();
+
+        Optional<Lecturers> lecturersOptional = lecturerReps.findByUserId(user.getId());
+        if (lecturersOptional.isEmpty()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên hướng dẫn");
+        }
+
+        List<Topics> topics = topicReps.findByLecturerCounterArgumentIdIn(Collections.singletonList(lecturersOptional.get().getId()));
+        List<Long> topicIdsByLecture = new ArrayList<>();
+        if (!CollectionUtils.isEmpty(topics)) {
+            topicIdsByLecture = topics.stream().map(Topics::getId).collect(Collectors.toList());
+        }
+
+        setStudentRequest(request);
+        Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
+        Page<StudentDTO> page = studentReps.search(request, topicIdsByLecture, pageable).map(studentMapper::to);
+        setPageStudentDTO(page);
+
+        return PageDataResponse.of(page);
     }
 }

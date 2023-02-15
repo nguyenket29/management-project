@@ -90,4 +90,16 @@ public class StudentController {
     public ResponseEntity<APIResponse<PageDataResponse<StudentDTO>>> getAll(SearchStudentRequest request) {
         return ResponseEntity.ok(APIResponse.success(studentService.getAll(request)));
     }
+
+    @GetMapping("/students-by-lecture-guide")
+    @ApiOperation(value = "API lấy danh sách sinh viên mà giảng viên hiện tại hướng dẫn")
+    public ResponseEntity<APIResponse<PageDataResponse<StudentDTO>>> getAllByLectureGuide(SearchStudentRequest request) {
+        return ResponseEntity.ok(APIResponse.success(studentService.getAllStudentByLectureGuide(request)));
+    }
+
+    @GetMapping("/students-by-lecture-counter-argument")
+    @ApiOperation(value = "API lấy danh sách sinh viên mà giảng viên hiện tại phản biện")
+    public ResponseEntity<APIResponse<PageDataResponse<StudentDTO>>> getAllLectureCounterArgument(SearchStudentRequest request) {
+        return ResponseEntity.ok(APIResponse.success(studentService.getAllStudentByLectureCounterArgument(request)));
+    }
 }

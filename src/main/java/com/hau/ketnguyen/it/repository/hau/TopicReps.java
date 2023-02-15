@@ -18,6 +18,7 @@ import java.util.Optional;
 public interface TopicReps extends CrudRepository<Topics, Long> {
     List<Topics> findByIdIn(List<Long> ids);
     List<Topics> findByLecturerGuideIdIn(List<Long> lectureGuideIds);
+    List<Topics> findByLecturerCounterArgumentIdIn(List<Long> lectureCounterArgumentIds);
     @Query("SELECT c FROM topics c WHERE " +
             " (COALESCE(:lectureIds, NULL) IS NULL OR c.lecturerCounterArgumentId IN :lectureIds) " +
             " AND (COALESCE(:lectureIds, NULL) IS NULL OR c.lecturerGuideId IN :lectureIds)")
