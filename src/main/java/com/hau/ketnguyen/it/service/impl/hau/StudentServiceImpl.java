@@ -73,7 +73,8 @@ public class StudentServiceImpl implements StudentService {
             if (studentDTO.getTopicId() != null) {
                 StudentTopic studentTopic = new StudentTopic();
                 studentTopic.setStatusApprove(true);
-                studentTopic.setTopicId(studentTopic.getTopicId());
+                studentTopic.setStatusRegistry(true);
+                studentTopic.setTopicId(students.getTopicId());
                 studentTopic.setStudentId(students.getId());
 
                 studentTopicReps.save(studentTopic);
@@ -107,7 +108,7 @@ public class StudentServiceImpl implements StudentService {
 
             Long topicIdOld = studentOptional.get().getTopicId();
 
-            if (!StringUtils.isNullOrEmpty(studentDTO.getTopicId().toString())) {
+            if (studentDTO.getTopicId() != null && !StringUtils.isNullOrEmpty(studentDTO.getTopicId().toString())) {
                 validateRegistryTopicOnlyStudent(studentDTO.getTopicId());
             }
 
@@ -129,18 +130,18 @@ public class StudentServiceImpl implements StudentService {
             BeanUtil.copyNonNullProperties(userInfo, userInfoOptional.get());
             userInfoReps.save(userInfoOptional.get());
 
+            // Xóa đề tài cũ
+            Optional<StudentTopic> studentTopicOptional =
+                    studentTopicReps.findByStudentIdAndTopicId(students.getId(), topicIdOld);
+            studentTopicOptional.ifPresent(studentTopicReps::delete);
+
             if ((studentDTO.getTopicId() != null && !Objects.equals(topicIdOld, studentDTO.getTopicId())) ||
                     (studentDTO.getTopicId() != null && topicIdOld == null)) {
-                if (topicIdOld != null) {
-                    Optional<StudentTopic> studentTopicOptional =
-                            studentTopicReps.findByStudentIdAndTopicId(students.getId(), topicIdOld);
-                    studentTopicOptional.ifPresent(studentTopicReps::delete);
-                }
-
                 // Nếu tạo mới sinh viên đó có chọn đề tài thì đề tài đó sẽ được duyệt cho sinh viên đó
                 StudentTopic studentTopic = new StudentTopic();
                 studentTopic.setStatusApprove(true);
-                studentTopic.setTopicId(studentTopic.getTopicId());
+                studentTopic.setStatusRegistry(true);
+                studentTopic.setTopicId(students.getTopicId());
                 studentTopic.setStudentId(students.getId());
 
                 studentTopicReps.save(studentTopic);
