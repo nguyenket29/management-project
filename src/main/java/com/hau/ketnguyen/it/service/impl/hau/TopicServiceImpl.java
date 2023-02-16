@@ -2,9 +2,11 @@ package com.hau.ketnguyen.it.service.impl.hau;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hau.ketnguyen.it.common.enums.TypeUser;
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
+import com.hau.ketnguyen.it.common.util.StringUtils;
 import com.hau.ketnguyen.it.entity.auth.CustomUser;
 import com.hau.ketnguyen.it.entity.hau.*;
 import com.hau.ketnguyen.it.model.dto.hau.*;
@@ -38,6 +40,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.hau.ketnguyen.it.entity.hau.UserInfo.Gender.OTHER;
 import static com.hau.ketnguyen.it.service.impl.hau.AssemblyServiceImpl.getLongLecturerDTOMap;
 
 @Slf4j
@@ -379,6 +382,7 @@ public class TopicServiceImpl implements TopicService {
         if (!CollectionUtils.isEmpty(studentTopics.toList())) {
             List<Long> topicIds = studentTopics.toList().stream()
                     .map(StudentSuggestTopicDTO::getTopicId).distinct().collect(Collectors.toList());
+
             List<Topics> topics = topicReps.findByIdIn(topicIds);
             Map<Long, String> mapTopicName = new HashMap<>();
             if (!CollectionUtils.isEmpty(topics)) {
