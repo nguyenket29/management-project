@@ -32,7 +32,7 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
             " AND (:#{#request.status} IS NULL OR c.status = :#{#request.status}) " +
             " AND (:#{#request.statusSuggest} IS NULL OR c.statusSuggest = :#{#request.statusSuggest}) " +
             " AND (:#{#request.lecturerCounterArgumentId} IS NULL OR c.lecturerCounterArgumentId = :#{#request.lecturerCounterArgumentId}) " +
-            " AND (:#{#request.year} IS NULL OR c.year = :#{#request.year}) " +
+            " AND (:#{#request.year} IS NULL OR year(c.year) = year(:#{#request.year})) " +
             " AND (:#{#request.categoryId} IS NULL OR c.categoryId = :#{#request.categoryId}) " +
             " ORDER BY c.id desc")
     Page<Topics> search(SearchTopicRequest request, Pageable pageable);
@@ -46,7 +46,7 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
             " AND (:#{#request.status} IS NULL OR c.status = :#{#request.status}) " +
             " AND (:#{#request.statusSuggest} IS NULL OR c.statusSuggest = :#{#request.statusSuggest}) " +
             " AND (:#{#request.lecturerCounterArgumentId} IS NULL OR c.lecturerCounterArgumentId = :#{#request.lecturerCounterArgumentId}) " +
-            " AND (:#{#request.year} IS NULL OR c.year = :#{#request.year}) " +
+            " AND (:#{#request.year} IS NULL OR year(c.year) = year(:#{#request.year})) " +
             " AND (:#{#request.categoryId} IS NULL OR c.categoryId = :#{#request.categoryId}) " +
             " ORDER BY c.id desc")
     Page<Topics> getListTopicByPresidentAssembly(SearchTopicRequest request, List<Long> topicIds, Pageable pageable);
@@ -92,7 +92,7 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
             "and (:#{#request.topicName} IS NULL OR lower(t.name) LIKE %:#{#request.topicName}%) " +
             "and (:#{#request.lecturerGuideId} IS NULL OR t.lecturerGuideId = :#{#request.lecturerGuideId}) " +
             " AND (:#{#request.lecturerCounterArgumentId} IS NULL OR t.lecturerCounterArgumentId = :#{#request.lecturerCounterArgumentId}) " +
-            " AND (:#{#request.year} IS NULL OR t.year = :#{#request.year}) " +
+            " AND (:#{#request.year} IS NULL OR year(t.year) = year(:#{#request.year})) " +
             " AND (:#{#request.description} IS NULL OR lower(t.description) LIKE %:#{#request.description}%) " +
             " AND (:#{#request.categoryId} IS NULL OR t.categoryId = :#{#request.categoryId})")
     Page<Topics> getListByTopicIds(SearchTopicStudentRequest request, Pageable pageable);
@@ -108,7 +108,7 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
             " AND (:#{#request.status} IS NULL OR c.status = :#{#request.status}) " +
             " AND (:#{#request.statusSuggest} IS NULL OR c.statusSuggest = :#{#request.statusSuggest}) " +
             " AND (:#{#request.lecturerCounterArgumentId} IS NULL OR c.lecturerCounterArgumentId = :#{#request.lecturerCounterArgumentId}) " +
-            " AND (:#{#request.year} IS NULL OR c.year = :#{#request.year}) " +
+            " AND (:#{#request.year} IS NULL OR year(c.year) = year(:#{#request.year})) " +
             " AND (:#{#request.categoryId} IS NULL OR c.categoryId = :#{#request.categoryId}) " +
             " ORDER BY c.id desc")
     Page<Topics> searchTopicSuggest(SearchTopicRequest request, Pageable pageable);
