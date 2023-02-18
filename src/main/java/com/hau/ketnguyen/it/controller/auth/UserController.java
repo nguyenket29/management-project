@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -54,10 +55,8 @@ public class UserController  {
     }
 
     @PostMapping("/upload-avatar")
-    public ResponseEntity<APIResponse<Void>> uploadAvatar(@RequestParam("fileUpload") MultipartFile fileUpload,
-                                                             @RequestParam("filePath") String pathFile,
-                                                             @RequestParam("shared") String shared) {
-        userService.uploadAvatar(fileUpload, pathFile, Boolean.parseBoolean(shared));
+    public ResponseEntity<APIResponse<Void>> uploadAvatar(@RequestParam("fileUpload") MultipartFile fileUpload) throws IOException {
+        userService.uploadAvatar(fileUpload);
         return ResponseEntity.ok(APIResponse.success());
     }
 }

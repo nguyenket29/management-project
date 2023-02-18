@@ -468,7 +468,7 @@ public class StudentServiceImpl implements StudentService {
     /* Sinh viên đề xuất đề tài */
     @Override
     @Transactional
-    public void studentSuggestTopic(String topicName) {
+    public void studentSuggestTopic(String topicName, Date year, String description) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUser user = (CustomUser) authentication.getPrincipal();
 
@@ -481,6 +481,8 @@ public class StudentServiceImpl implements StudentService {
         // tạo mới đề tài
         TopicDTO topicDTO = TopicDTO.builder()
                 .name(topicName)
+                .year(year)
+                .description(description)
                 .statusSuggest(false)
                 .build();
         Topics topics = topicReps.save(topicMapper.from(topicDTO));

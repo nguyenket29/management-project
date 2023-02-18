@@ -89,7 +89,8 @@ public class FileServiceImpl implements FileService {
         return collect.stream().map(FileDTO::getId).collect(Collectors.toList());
     }
 
-    private FileDTO save(MultipartFile file) throws IOException {
+    @Override
+    public FileDTO save(MultipartFile file) throws IOException {
         try (InputStream inputStream = file.getInputStream()) {
             if (file.isEmpty()) {
                 throw APIException.from(HttpStatus.NO_CONTENT).withMessage(file.getOriginalFilename() + "File trống.");

@@ -69,7 +69,7 @@ public class StudentController {
     @PostMapping("/create-topic-suggest")
     @ApiOperation(value = "API sinh viên đề xuất đề tài")
     public ResponseEntity<APIResponse<Void>> createTopicSuggest(@RequestBody TopicSuggestDTO topicSuggestDTO) {
-        studentService.studentSuggestTopic(topicSuggestDTO.getTopicName());
+        studentService.studentSuggestTopic(topicSuggestDTO.getTopicName(), topicSuggestDTO.getYear(), topicSuggestDTO.getDescription());
         return ResponseEntity.ok(APIResponse.success());
     }
 

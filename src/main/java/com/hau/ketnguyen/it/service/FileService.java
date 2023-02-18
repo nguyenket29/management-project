@@ -11,4 +11,5 @@ public interface FileService {
     FileDTO getFileById(Long id, HttpServletResponse response) throws Exception;
     FileDTO getFileByStringId(String id, HttpServletResponse response) throws Exception;
     List<Long> uploadFile(MultipartFile[] file) throws IOException;
+    FileDTO save(MultipartFile file) throws IOException;
 }

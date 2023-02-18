@@ -37,6 +37,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -274,38 +275,36 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void uploadAvatar(MultipartFile file, String filePath, boolean isPublic) {
+    public void uploadAvatar(MultipartFile file) throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUser user = (CustomUser) authentication.getPrincipal();
-        String fileId = googleDriverFile.uploadFile(file);
-        if (fileId != null) {
-            UserInfo userInfo = new UserInfo();
-            if (user.getType().equalsIgnoreCase(STUDENT.name())) {
-                Optional<Students> studentOptional = studentReps.findByUserId(user.getId());
+        String fileId = fileService.save(file).getId().toString();
+        UserInfo userInfo = new UserInfo();
+        if (user.getType().equalsIgnoreCase(STUDENT.name())) {
+            Optional<Students> studentOptional = studentReps.findByUserId(user.getId());
 
-                if (studentOptional.isEmpty()) {
-                    throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
-                }
-
-                userInfo = userInfoReps.findById(studentOptional.get().getUserInfoId())
-                        .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin sinh viên"));
-            } else if (user.getType().equalsIgnoreCase(LECTURE.name())) {
-                Optional<Lecturers> lecturersOptional = lecturerReps.findByUserId(user.getId());
-
-                if (lecturersOptional.isEmpty()) {
-                    throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên");
-                }
-
-                userInfo = userInfoReps.findById(lecturersOptional.get().getUserInfoId())
-                        .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin giảng viên"));
-            } else {
-                userInfo = userInfoReps.findByUserId(user.getId())
-                        .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin tài khoản"));
+            if (studentOptional.isEmpty()) {
+                throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
             }
 
-            userInfo.setAvatar(fileId);
-            userInfoReps.save(userInfo);
+            userInfo = userInfoReps.findById(studentOptional.get().getUserInfoId())
+                    .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin sinh viên"));
+        } else if (user.getType().equalsIgnoreCase(LECTURE.name())) {
+            Optional<Lecturers> lecturersOptional = lecturerReps.findByUserId(user.getId());
+
+            if (lecturersOptional.isEmpty()) {
+                throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên");
+            }
+
+            userInfo = userInfoReps.findById(lecturersOptional.get().getUserInfoId())
+                    .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin giảng viên"));
+        } else {
+            userInfo = userInfoReps.findByUserId(user.getId())
+                    .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy thông tin tài khoản"));
         }
+
+        userInfo.setAvatar(fileId);
+        userInfoReps.save(userInfo);
     }
 
     @Override
