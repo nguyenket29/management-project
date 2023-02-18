@@ -55,8 +55,7 @@ public class UserController  {
     }
 
     @PostMapping("/upload-avatar")
-    public ResponseEntity<APIResponse<Void>> uploadAvatar(@RequestParam("fileUpload") MultipartFile fileUpload) throws IOException {
-        userService.uploadAvatar(fileUpload);
-        return ResponseEntity.ok(APIResponse.success());
+    public ResponseEntity<APIResponse<String>> uploadAvatar(@RequestParam("fileUpload") MultipartFile fileUpload) throws IOException {
+        return ResponseEntity.ok(APIResponse.success(userService.uploadAvatar(fileUpload)));
     }
 }

@@ -275,7 +275,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void uploadAvatar(MultipartFile file) throws IOException {
+    public String uploadAvatar(MultipartFile file) throws IOException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUser user = (CustomUser) authentication.getPrincipal();
         String fileId = fileService.save(file).getId().toString();
@@ -305,6 +305,8 @@ public class UserServiceImpl implements UserService {
 
         userInfo.setAvatar(fileId);
         userInfoReps.save(userInfo);
+
+        return fileId;
     }
 
     @Override
