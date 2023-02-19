@@ -452,8 +452,8 @@ public class ExcelServiceImpl implements ExcelService {
     }
 
     @Override
-    public void exportStatistical(HttpServletResponse response) throws Exception {
-        List<StatisticalDTO> statisticalDTOS = topicReps.getStatistical().stream().map(u -> {
+    public void exportStatistical(HttpServletResponse response, SearchTopicRequest request) throws Exception {
+        List<StatisticalDTO> statisticalDTOS = topicReps.getStatistical(request).stream().map(u -> {
             StatisticalDTO statisticalDTO = new StatisticalDTO();
             statisticalDTO.setNameClass(u.getNameClass());
             statisticalDTO.setNameStudent(u.getNameStudent());

@@ -19,7 +19,7 @@ public interface TopicService extends GenericService<TopicDTO, SearchTopicReques
     List<String> uploadFile(MultipartFile[] file, String filePath, boolean isPublic, Long topicId);
     List<String> uploadFileLocal(MultipartFile[] file, Long topicId) throws IOException;
     FileDTO downFileFromLocal(String id, HttpServletResponse response) throws Exception;
-    PageDataResponse<StatisticalDTO> getStatistical(SearchRequest request);
+    PageDataResponse<StatisticalDTO> getStatistical(SearchTopicRequest request);
     PageDataResponse<TopicDTO> getListTopicSuggest(SearchTopicRequest request);
     PageDataResponse<StudentSuggestTopicDTO> getListStudentSuggestTopic(SearchStudentTopicRequest request);
     PageDataResponse<TopicDTO> getTopicDTOPageDataResponse(Page<TopicDTO> page);

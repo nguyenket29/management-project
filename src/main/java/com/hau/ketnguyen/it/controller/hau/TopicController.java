@@ -74,7 +74,7 @@ public class TopicController {
 
     @ApiOperation(value = "Api thống kê điểm")
     @GetMapping("/statistical-score")
-    public ResponseEntity<APIResponse<PageDataResponse<StatisticalDTO>>> getScoreByTopic(SearchRequest request) {
+    public ResponseEntity<APIResponse<PageDataResponse<StatisticalDTO>>> getScoreByTopic(SearchTopicRequest request) {
         return ResponseEntity.ok(APIResponse.success(topicService.getStatistical(request)));
     }
 

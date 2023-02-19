@@ -335,9 +335,9 @@ public class TopicServiceImpl implements TopicService {
 
     /* Thống kê điểm */
     @Override
-    public PageDataResponse<StatisticalDTO> getStatistical(SearchRequest request) {
+    public PageDataResponse<StatisticalDTO> getStatistical(SearchTopicRequest request) {
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
-        List<StatisticalDTO> page = topicReps.getStatistical(pageable).stream().map(u -> {
+        List<StatisticalDTO> page = topicReps.getStatistical(request, pageable).stream().map(u -> {
             StatisticalDTO statisticalDTO = new StatisticalDTO();
             statisticalDTO.setNameTopic(u.getNameTopic());
             statisticalDTO.setNameClass(u.getNameClass());
@@ -353,7 +353,7 @@ public class TopicServiceImpl implements TopicService {
             return statisticalDTO;
         }).collect(Collectors.toList());
 
-        Long total = topicReps.getStatisticalTotal();
+        Long total = topicReps.getStatisticalTotal(request);
 
         return PageDataResponse.of(String.valueOf(total), page);
     }
