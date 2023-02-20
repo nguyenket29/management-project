@@ -1,6 +1,7 @@
 package com.hau.ketnguyen.it.repository.hau;
 
 import com.hau.ketnguyen.it.entity.hau.Topics;
+import com.hau.ketnguyen.it.model.request.hau.SearchStatisticalRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchStudentTopicRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchTopicRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchTopicStudentRequest;
@@ -63,14 +64,11 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
             "LEFT JOIN classes c ON c.id = s.class_id " +
             "LEFT JOIN user_info ui ON ui.id = s.user_info_id " +
             "WHERE st.status is true " +
-            " AND (:#{#request.description} IS NULL OR lower(t.description) LIKE %:#{#request.description}%) " +
-            " AND (:#{#request.status} IS NULL OR t.status = :#{#request.status}) " +
-            " AND (:#{#request.statusSuggest} IS NULL OR t.status_suggest = :#{#request.statusSuggest}) " +
-            " AND (:#{#request.lecturerCounterArgumentId} IS NULL OR t.lecturer_counter_argument_id = :#{#request.lecturerCounterArgumentId}) " +
-            " AND (:#{#request.lecturerGuideId} IS NULL OR t.lecturer_guide_id = :#{#request.lecturerGuideId}) " +
-            " AND (:#{#request.year} IS NULL OR year(t.year) = year(:#{#request.year})) " +
-            " AND (:#{#request.categoryId} IS NULL OR t.category_id = :#{#request.categoryId}) ", nativeQuery = true)
-    List<StatisticalProjection> getStatistical(SearchTopicRequest request, Pageable pageable);
+            " AND (:#{#request.topicYear} IS NULL OR year(t.year) = year(:#{#request.topicYear})) " +
+            " AND (:#{#request.nameStudent} IS NULL OR lower(ui.fullname) LIKE %:#{#request.nameStudent}%) " +
+            " AND (:#{#request.nameTopic} IS NULL OR lower(t.name) LIKE %:#{#request.nameTopic}%) " +
+            " AND (:#{#request.nameClass} IS NULL OR lower(c.name) LIKE %:#{#request.nameClass}%) ", nativeQuery = true)
+    List<StatisticalProjection> getStatistical(SearchStatisticalRequest request, Pageable pageable);
 
     @Query(value = "select t.name as nameTopic, ui.fullname as nameStudent, c.name as nameClass, t.year as topicYear, " +
             "t.score_assembly as scoreAssembly, t.score_guide as scoreGuide, t.score_counter_argument as scoreCounterArgument, " +
@@ -81,14 +79,11 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
             "LEFT JOIN classes c ON c.id = s.class_id " +
             "LEFT JOIN user_info ui ON ui.id = s.user_info_id " +
             "WHERE st.status is true " +
-            " AND (:#{#request.description} IS NULL OR lower(t.description) LIKE %:#{#request.description}%) " +
-            " AND (:#{#request.status} IS NULL OR t.status = :#{#request.status}) " +
-            " AND (:#{#request.statusSuggest} IS NULL OR t.status_suggest = :#{#request.statusSuggest}) " +
-            " AND (:#{#request.lecturerCounterArgumentId} IS NULL OR t.lecturer_counter_argument_id = :#{#request.lecturerCounterArgumentId}) " +
-            " AND (:#{#request.lecturerGuideId} IS NULL OR t.lecturer_guide_id = :#{#request.lecturerGuideId}) " +
-            " AND (:#{#request.year} IS NULL OR year(t.year) = year(:#{#request.year})) " +
-            " AND (:#{#request.categoryId} IS NULL OR t.category_id = :#{#request.categoryId}) ", nativeQuery = true)
-    List<StatisticalProjection> getStatistical(SearchTopicRequest request);
+            " AND (:#{#request.topicYear} IS NULL OR year(t.year) = year(:#{#request.topicYear})) " +
+            " AND (:#{#request.nameStudent} IS NULL OR lower(ui.fullname) LIKE %:#{#request.nameStudent}%) " +
+            " AND (:#{#request.nameTopic} IS NULL OR lower(t.name) LIKE %:#{#request.nameTopic}%) " +
+            " AND (:#{#request.nameClass} IS NULL OR lower(c.name) LIKE %:#{#request.nameClass}%) ", nativeQuery = true)
+    List<StatisticalProjection> getStatistical(SearchStatisticalRequest request);
 
     @Query(value = "select count(*) from (select t.name as nameTopic, ui.fullname as nameStudent, c.name as nameClass, t.year as topicYear, " +
             "t.score_assembly as scoreAssembly, t.score_guide as scoreGuide, t.score_counter_argument as scoreCounterArgument, " +
@@ -99,15 +94,12 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
             "LEFT JOIN classes c ON c.id = s.class_id " +
             "LEFT JOIN user_info ui ON ui.id = s.user_info_id " +
             "WHERE st.status is true " +
-            " AND (:#{#request.description} IS NULL OR lower(t.description) LIKE %:#{#request.description}%) " +
-            " AND (:#{#request.status} IS NULL OR t.status = :#{#request.status}) " +
-            " AND (:#{#request.statusSuggest} IS NULL OR t.status_suggest = :#{#request.statusSuggest}) " +
-            " AND (:#{#request.lecturerCounterArgumentId} IS NULL OR t.lecturer_counter_argument_id = :#{#request.lecturerCounterArgumentId}) " +
-            " AND (:#{#request.lecturerGuideId} IS NULL OR t.lecturer_guide_id = :#{#request.lecturerGuideId}) " +
-            " AND (:#{#request.year} IS NULL OR year(t.year) = year(:#{#request.year})) " +
-            " AND (:#{#request.categoryId} IS NULL OR t.category_id = :#{#request.categoryId}) " +
+            " AND (:#{#request.topicYear} IS NULL OR year(t.year) = year(:#{#request.topicYear})) " +
+            " AND (:#{#request.nameStudent} IS NULL OR lower(ui.fullname) LIKE %:#{#request.nameStudent}%) " +
+            " AND (:#{#request.nameTopic} IS NULL OR lower(t.name) LIKE %:#{#request.nameTopic}%) " +
+            " AND (:#{#request.nameClass} IS NULL OR lower(c.name) LIKE %:#{#request.nameClass}%) " +
             ") as totals", nativeQuery = true)
-    Long getStatisticalTotal(SearchTopicRequest request);
+    Long getStatisticalTotal(SearchStatisticalRequest request);
 
     @Query("select t from topics t " +
             "where (t.id IN :#{#request.topicIds}) " +

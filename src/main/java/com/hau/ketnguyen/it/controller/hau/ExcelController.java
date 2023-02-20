@@ -99,7 +99,7 @@ public class ExcelController {
 
     @GetMapping("/statistical")
     @ApiOperation(value = "Export Statistical")
-    public ResponseEntity<APIResponse<Void>> exportExcelStatistical(HttpServletResponse response, SearchTopicRequest request)
+    public ResponseEntity<APIResponse<Void>> exportExcelStatistical(HttpServletResponse response, SearchStatisticalRequest request)
             throws Exception {
         excelService.exportStatistical(response, request);
         return ResponseEntity.ok(APIResponse.success());

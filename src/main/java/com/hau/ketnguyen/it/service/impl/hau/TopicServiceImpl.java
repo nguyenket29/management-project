@@ -7,6 +7,7 @@ import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
 import com.hau.ketnguyen.it.entity.hau.*;
 import com.hau.ketnguyen.it.model.dto.hau.*;
+import com.hau.ketnguyen.it.model.request.hau.SearchStatisticalRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchStudentTopicRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchTopicRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
@@ -92,6 +93,12 @@ public class TopicServiceImpl implements TopicService {
 
         if (topicsOptional.isEmpty()) {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy đề tài");
+        }
+
+        //nếu có sinh viên thực hiện đề tài thì k được xóa
+        Optional<Students> students = studentReps.findByTopicId(id);
+        if (students.isPresent()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Có sinh viên thực hiện đề tài này, vui lòng không xóa.");
         }
 
         topicReps.delete(topicsOptional.get());
@@ -316,8 +323,9 @@ public class TopicServiceImpl implements TopicService {
 
     /* Thống kê điểm */
     @Override
-    public PageDataResponse<StatisticalDTO> getStatistical(SearchTopicRequest request) {
+    public PageDataResponse<StatisticalDTO> getStatistical(SearchStatisticalRequest request) {
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
+        setStatisticalRequest(request);
         List<StatisticalDTO> page = topicReps.getStatistical(request, pageable).stream().map(u -> {
             StatisticalDTO statisticalDTO = new StatisticalDTO();
             statisticalDTO.setNameTopic(u.getNameTopic());
@@ -337,6 +345,20 @@ public class TopicServiceImpl implements TopicService {
         Long total = topicReps.getStatisticalTotal(request);
 
         return PageDataResponse.of(String.valueOf(total), page);
+    }
+
+    private void setStatisticalRequest(SearchStatisticalRequest request) {
+        if (request.getNameStudent() != null) {
+            request.setNameStudent(request.getNameStudent().toLowerCase());
+        }
+
+        if (request.getNameTopic() != null) {
+            request.setNameTopic(request.getNameTopic().toLowerCase());
+        }
+
+        if (request.getNameClass() != null) {
+            request.setNameClass(request.getNameClass().toLowerCase());
+        }
     }
 
     /* Danh sách đề tài sinh viên đề xuất -> màn người quản trị -> để duyệt*/

@@ -4,6 +4,7 @@ import com.hau.ketnguyen.it.model.dto.hau.StatisticalDTO;
 import com.hau.ketnguyen.it.model.dto.hau.StudentSuggestTopicDTO;
 import com.hau.ketnguyen.it.model.dto.hau.TopicDTO;
 import com.hau.ketnguyen.it.model.request.auth.SearchRequest;
+import com.hau.ketnguyen.it.model.request.hau.SearchStatisticalRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchStudentTopicRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchTopicRequest;
 import com.hau.ketnguyen.it.model.response.APIResponse;
@@ -74,7 +75,7 @@ public class TopicController {
 
     @ApiOperation(value = "Api thống kê điểm")
     @GetMapping("/statistical-score")
-    public ResponseEntity<APIResponse<PageDataResponse<StatisticalDTO>>> getScoreByTopic(SearchTopicRequest request) {
+    public ResponseEntity<APIResponse<PageDataResponse<StatisticalDTO>>> getScoreByTopic(SearchStatisticalRequest request) {
         return ResponseEntity.ok(APIResponse.success(topicService.getStatistical(request)));
     }
 

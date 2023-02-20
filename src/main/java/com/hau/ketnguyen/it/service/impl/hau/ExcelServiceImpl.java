@@ -452,7 +452,8 @@ public class ExcelServiceImpl implements ExcelService {
     }
 
     @Override
-    public void exportStatistical(HttpServletResponse response, SearchTopicRequest request) throws Exception {
+    public void exportStatistical(HttpServletResponse response, SearchStatisticalRequest request) throws Exception {
+        setStatisticalRequest(request);
         List<StatisticalDTO> statisticalDTOS = topicReps.getStatistical(request).stream().map(u -> {
             StatisticalDTO statisticalDTO = new StatisticalDTO();
             statisticalDTO.setNameClass(u.getNameClass());
@@ -476,6 +477,20 @@ public class ExcelServiceImpl implements ExcelService {
         exportExcel(response, "Export Statistical",
                 "Danh sách điểm đồ án", "statistical_export", StatisticalDTO.class.getDeclaredFields(),
                 Arrays.asList(statisticalDTOS.toArray()), headerListNew);
+    }
+
+    private void setStatisticalRequest(SearchStatisticalRequest request) {
+        if (request.getNameStudent() != null) {
+            request.setNameStudent(request.getNameStudent().toLowerCase());
+        }
+
+        if (request.getNameTopic() != null) {
+            request.setNameTopic(request.getNameTopic().toLowerCase());
+        }
+
+        if (request.getNameClass() != null) {
+            request.setNameClass(request.getNameClass().toLowerCase());
+        }
     }
 
     private Map<Long, String> mapTopicWithCategoryName(List<Long> categoryIds) {
