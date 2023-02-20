@@ -99,13 +99,11 @@ public class FileServiceImpl implements FileService {
             Path filePath = Paths.get(fileName);
             String contentType = Objects.requireNonNull(file.getContentType()).isEmpty() ? "application/octet-stream" : file.getContentType();
             Files fileEntity = null;
-            if (Constants.ImageExtension.imageExtensions.contains(FileUtil.getImageExtension(file))) {
-                if (!java.nio.file.Files.exists(root)) {
-                    java.nio.file.Files.createDirectories(root);
-                }
-                java.nio.file.Files.copy(inputStream, root.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
-                fileEntity = fileMapper.from(fileMapper.fileDTO(fileName, contentType, filePath.toString(), FileUtil.getImageExtension(file)));
+            if (!java.nio.file.Files.exists(root)) {
+                java.nio.file.Files.createDirectories(root);
             }
+            java.nio.file.Files.copy(inputStream, root.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+            fileEntity = fileMapper.from(fileMapper.fileDTO(fileName, contentType, filePath.toString(), FileUtil.getImageExtension(file)));
             return fileMapper.to(fileReps.save(fileEntity));
         }
     }

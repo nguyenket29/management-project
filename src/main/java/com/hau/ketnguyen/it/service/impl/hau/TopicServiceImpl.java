@@ -2,15 +2,11 @@ package com.hau.ketnguyen.it.service.impl.hau;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.hau.ketnguyen.it.common.enums.TypeUser;
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.BeanUtil;
 import com.hau.ketnguyen.it.common.util.PageableUtils;
-import com.hau.ketnguyen.it.common.util.StringUtils;
-import com.hau.ketnguyen.it.entity.auth.CustomUser;
 import com.hau.ketnguyen.it.entity.hau.*;
 import com.hau.ketnguyen.it.model.dto.hau.*;
-import com.hau.ketnguyen.it.model.request.auth.SearchRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchStudentTopicRequest;
 import com.hau.ketnguyen.it.model.request.hau.SearchTopicRequest;
 import com.hau.ketnguyen.it.model.response.PageDataResponse;
@@ -28,8 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -40,7 +34,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.hau.ketnguyen.it.entity.hau.UserInfo.Gender.OTHER;
 import static com.hau.ketnguyen.it.service.impl.hau.AssemblyServiceImpl.getLongLecturerDTOMap;
 
 @Slf4j
@@ -144,8 +137,8 @@ public class TopicServiceImpl implements TopicService {
         }
 
         Map<Long, List<String>> fileIdsLong = mapTopicIdWithListFileId(Collections.singletonList(id));
-        Map<Long, Boolean> getStatusRegistryTopicByCurrentUser = getStatusRegistryTopicByCurrentUser();
-        Map<Long, Boolean> getStatusApproveTopicByCurrentUser = getStatusApproveTopicByCurrentUser();
+        Map<Long, Boolean> getStatusRegistryTopicByCurrentUser = getStatusRegistryTopics();
+        Map<Long, Boolean> getStatusApproveTopicByCurrentUser = getStatusApproveTopics();
         Map<Long, String> mapCategoryName = mapTopicWithCategoryName(Collections.singletonList(topicDTO.getCategoryId()));
         Map<Long, String> mapTopicWithFileNames = mapTopicWithFileNames(Collections.singletonList(topicDTO));
 
@@ -226,36 +219,24 @@ public class TopicServiceImpl implements TopicService {
     }
 
     /* Trạng thái đăng ký đề tài của người dùng hiện tại*/
-    private Map<Long, Boolean> getStatusRegistryTopicByCurrentUser() {
+    private Map<Long, Boolean> getStatusRegistryTopics() {
         Map<Long, Boolean> map = new HashMap<>();
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUser customUser = (CustomUser) authentication.getPrincipal();
 
-        Optional<Students> students = studentReps.findByUserId(customUser.getId());
-
-        if (students.isPresent()) {
-            List<StudentTopic> studentTopics = studentTopicReps.findByStudentId(students.get().getId());
-            if (!CollectionUtils.isEmpty(studentTopics)) {
-                studentTopics.forEach(s -> map.put(s.getTopicId(), s.getStatusRegistry()));
-            }
+        List<StudentTopic> studentTopics = studentTopicReps.findAll();
+        if (!CollectionUtils.isEmpty(studentTopics)) {
+            studentTopics.forEach(s -> map.put(s.getTopicId(), s.getStatusRegistry()));
         }
 
         return map;
     }
 
     /* Trạng thái duyệt đề tài của người dùng hiện tại*/
-    private Map<Long, Boolean> getStatusApproveTopicByCurrentUser() {
+    private Map<Long, Boolean> getStatusApproveTopics() {
         Map<Long, Boolean> map = new HashMap<>();
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        CustomUser customUser = (CustomUser) authentication.getPrincipal();
 
-        Optional<Students> students = studentReps.findByUserId(customUser.getId());
-
-        if (students.isPresent()) {
-            List<StudentTopic> studentTopics = studentTopicReps.findByStudentId(students.get().getId());
-            if (!CollectionUtils.isEmpty(studentTopics)) {
-                studentTopics.forEach(s -> map.put(s.getTopicId(), s.getStatusApprove()));
-            }
+        List<StudentTopic> studentTopics = studentTopicReps.findAll();
+        if (!CollectionUtils.isEmpty(studentTopics)) {
+            studentTopics.forEach(s -> map.put(s.getTopicId(), s.getStatusApprove()));
         }
 
         return map;
@@ -421,8 +402,8 @@ public class TopicServiceImpl implements TopicService {
     }
 
     public PageDataResponse<TopicDTO> getTopicDTOPageDataResponse(Page<TopicDTO> page) {
-        Map<Long, Boolean> getStatusRegistryTopicByCurrentUser = getStatusRegistryTopicByCurrentUser();
-        Map<Long, Boolean> getStatusApproveTopicByCurrentUser = getStatusApproveTopicByCurrentUser();
+        Map<Long, Boolean> getStatusRegistryTopicByCurrentUser = getStatusRegistryTopics();
+        Map<Long, Boolean> getStatusApproveTopicByCurrentUser = getStatusApproveTopics();
 
         if (!page.isEmpty()) {
             List<Long> topicIds = page.map(TopicDTO::getId).toList();

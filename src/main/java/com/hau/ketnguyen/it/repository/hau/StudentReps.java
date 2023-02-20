@@ -18,6 +18,7 @@ public interface StudentReps extends CrudRepository<Students, Long> {
     List<Students> findByUserIdIn(List<Integer> userIds);
     List<Students> findByIdIn(List<Long> studentIds);
     Optional<Students> findByTopicId(Long topicId);
+    Optional<Students> findByTopicIdAndId(Long topicId, Long id);
     @Query("SELECT l FROM students l " +
             "LEFT JOIN User u ON l.userId = u.id " +
             "LEFT JOIN UserInfo ui ON l.userInfoId = ui.id " +

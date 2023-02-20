@@ -34,4 +34,7 @@ public interface StudentTopicReps extends CrudRepository<StudentTopic, Long> {
             "AND (:#{#request.studentName} IS NULL OR lower(ui.fullName) LIKE %:#{#request.studentName}%) " +
             "AND (:#{#request.studentId} IS NULL OR st.studentId = :#{#request.studentId})")
     Page<StudentTopic> search(SearchStudentTopicRequest request, Pageable pageable);
+
+    @Query("select st from student_topics st")
+    List<StudentTopic> findAll();
 }

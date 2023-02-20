@@ -65,10 +65,11 @@ public class StudentServiceImpl implements StudentService {
             UserInfo userInfo = setUserInfo(studentDTO);
             userInfoReps.save(userInfo);
             studentDTO.setUserInfoId(userInfo.getId());
-            if (!StringUtils.isNullOrEmpty(studentDTO.getTopicId().toString())) {
-                validateRegistryTopicOnlyStudent(studentDTO.getTopicId());
-            }
+
             Students students = studentReps.save(studentMapper.from(studentDTO));
+            if (!StringUtils.isNullOrEmpty(studentDTO.getTopicId().toString())) {
+                validateRegistryTopicOnlyStudent(studentDTO.getTopicId(), students.getId());
+            }
 
             // Nếu tạo mới sinh viên đó có chọn đề tài thì đề tài đó sẽ được duyệt cho sinh viên đó
             if (studentDTO.getTopicId() != null) {
@@ -87,9 +88,9 @@ public class StudentServiceImpl implements StudentService {
         }
     }
 
-    private void validateRegistryTopicOnlyStudent(Long topic) {
+    private void validateRegistryTopicOnlyStudent(Long topic, Long studentId) {
         Optional<Students> studentsOptional = studentReps.findByTopicId(topic);
-        if (studentsOptional.isPresent()) {
+        if (studentsOptional.isPresent() && !Objects.equals(studentsOptional.get().getId(), studentId)) {
             throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Đề tài đã có sinh viên đăng ký, vui lòng chọn đề tài khác.");
         }
     }
@@ -110,7 +111,7 @@ public class StudentServiceImpl implements StudentService {
             Long topicIdOld = studentOptional.get().getTopicId();
 
             if (studentDTO.getTopicId() != null && !StringUtils.isNullOrEmpty(studentDTO.getTopicId().toString())) {
-                validateRegistryTopicOnlyStudent(studentDTO.getTopicId());
+                validateRegistryTopicOnlyStudent(studentDTO.getTopicId(), id);
             }
 
             Students students = studentOptional.get();

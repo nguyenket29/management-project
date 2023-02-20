@@ -37,8 +37,8 @@ spring:
     allow-bean-definition-overriding: true
   servlet:
     multipart:
-      max-request-size: 100MB
-      max-file-size: 100MB
+      max-request-size: 1000MB
+      max-file-size: 1000MB
       enabled: true
 
 port-fe: 8080
