@@ -67,7 +67,7 @@ public class StudentServiceImpl implements StudentService {
             studentDTO.setUserInfoId(userInfo.getId());
 
             Students students = studentReps.save(studentMapper.from(studentDTO));
-            if (!StringUtils.isNullOrEmpty(studentDTO.getTopicId().toString())) {
+            if (studentDTO.getTopicId() != null && !StringUtils.isNullOrEmpty(studentDTO.getTopicId().toString())) {
                 validateRegistryTopicOnlyStudent(studentDTO.getTopicId(), students.getId());
             }
 
@@ -184,6 +184,12 @@ public class StudentServiceImpl implements StudentService {
 
         studentReps.delete(studentOptional.get());
         userInfoReps.delete(userInfo.get());
+
+        // xóa đề tài đang thực hiện
+        List<StudentTopic> studentTopics = studentTopicReps.findByStudentId(id);
+        if (!CollectionUtils.isEmpty(studentTopics)) {
+            studentTopicReps.deleteAll(studentTopics);
+        }
     }
 
     @Override
@@ -258,11 +264,23 @@ public class StudentServiceImpl implements StudentService {
                 throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy sinh viên");
             }
 
+            // Sinh viên không thể đăng ký thêm đồ án nếu nó đang thực hiện 1 đồ án nào đó
+            validateStudentHaveOnlyTopicApprove(students.get().getId());
+
             StudentTopic studentTopic = new StudentTopic();
             studentTopic.setTopicId(topicId);
             studentTopic.setStudentId(students.get().getId());
             studentTopic.setStatusRegistry(registry);
             studentTopicReps.save(studentTopic);
+        }
+    }
+
+    private void validateStudentHaveOnlyTopicApprove(Long studentId) {
+        List<StudentTopic> studentTopics = studentTopicReps
+                .findByStudentIdInAndStatusRegistryIsTrue(Collections.singletonList(studentId));
+        if (!CollectionUtils.isEmpty(studentTopics)) {
+            throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Sinh viên này đang thực hiện đồ án, " +
+                    "không thể đăng ký thêm đồ án");
         }
     }
 

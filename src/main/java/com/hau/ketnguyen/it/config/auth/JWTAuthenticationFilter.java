@@ -66,19 +66,9 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         try {
             LoginRequest loginRequest = new ObjectMapper().readValue(request.getInputStream(), LoginRequest.class);
-            Authentication authentication = null;
-            try {
-                authentication = authenticationManager
-                        .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),
-                                loginRequest.getPassword()));
-            } catch (BadCredentialsException e) {
-                response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Bad credentials!");
-            } catch (InternalAuthenticationServiceException e) {
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal authentication!");
-            } catch (UsernameNotFoundException e) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND, "Not found!");
-            }
-            return authentication;
+            return authenticationManager
+                    .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(),
+                            loginRequest.getPassword()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

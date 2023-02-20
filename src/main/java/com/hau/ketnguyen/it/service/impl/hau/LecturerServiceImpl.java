@@ -319,6 +319,9 @@ public class LecturerServiceImpl implements LecturerService {
             throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Sinh viên chưa đăng ký đề tài này");
         }
 
+        // kiểm tra sinh viên có đang thực hiện đồ án hay chưa
+        validateStudentHaveOnlyTopicApprove(studentId);
+
         // kiểm tra xem có sinh viên nào thực hiện đề tài này hay chưa
         validateTopicHaveStudentRegistry(topicId);
         studentTopicOptional.get().setStatusApprove(true);
@@ -346,6 +349,14 @@ public class LecturerServiceImpl implements LecturerService {
         Optional<StudentTopic> studentTopicOptional = studentTopicReps.findByTopicIdAndStatusRegistryIsTrueAndStatusApproveIsTrue(topicId);
         if (studentTopicOptional.isPresent()) {
             throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Đã có sinh viên đăng ký đề tài này.");
+        }
+    }
+
+    private void validateStudentHaveOnlyTopicApprove(Long studentId) {
+        List<StudentTopic> studentTopics = studentTopicReps
+                .findByStudentIdInAndStatusRegistryIsTrueAndStatusApproveIsTrue(Collections.singletonList(studentId));
+        if (!CollectionUtils.isEmpty(studentTopics)) {
+            throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Sinh viên này đang thực hiện đồ án.");
         }
     }
 
