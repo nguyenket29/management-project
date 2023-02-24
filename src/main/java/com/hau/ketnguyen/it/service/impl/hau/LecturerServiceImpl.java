@@ -57,11 +57,22 @@ public class LecturerServiceImpl implements LecturerService {
     @Override
     @Transactional
     public LecturerDTO save(LecturerDTO lecturerDTO) {
+        // check trùng
+        validateLecture(lecturerDTO.getCodeLecture(), lecturerDTO.getFullName());
+
         UserInfo userInfo = setUserInfo(lecturerDTO);
         userInfoReps.save(userInfo);
         lecturerDTO.setUserInfoId(userInfo.getId());
         Lecturers lecturers = lecturerReps.save(lecturerMapper.from(lecturerDTO));
         return lecturerMapper.to(lecturers);
+    }
+
+    private void validateLecture(String code, String fullName) {
+        Optional<Lecturers> lecturers = lecturerReps.findByCodeLecture(code);
+        Optional<UserInfo> userInfo = userInfoReps.findByFullName(fullName);
+        if (lecturers.isPresent() || userInfo.isPresent()) {
+            throw APIException.from(HttpStatus.CONFLICT).withMessage("Giảng viên này đã tồn tại trên hệ thống");
+        }
     }
 
     @Override

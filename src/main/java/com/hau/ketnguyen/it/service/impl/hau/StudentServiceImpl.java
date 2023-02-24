@@ -61,6 +61,9 @@ public class StudentServiceImpl implements StudentService {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         CustomUser user = (CustomUser) authentication.getPrincipal();
 
+        // check trùng
+        validateStudent(studentDTO.getCodeStudent(), studentDTO.getFullName());
+
         if (StringUtils.isNullOrEmpty(user.getType()) || user.getType().equalsIgnoreCase(OTHER.name())) {
             UserInfo userInfo = setUserInfo(studentDTO);
             userInfoReps.save(userInfo);
@@ -85,6 +88,14 @@ public class StudentServiceImpl implements StudentService {
             return studentMapper.to(students);
         } else {
             throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Người dùng hiện tại không có quyền.");
+        }
+    }
+
+    private void validateStudent(String code, String fullName) {
+        Optional<Students> students = studentReps.findByCodeStudent(code);
+        Optional<UserInfo> userInfo = userInfoReps.findByFullName(fullName);
+        if (students.isPresent() || userInfo.isPresent()) {
+            throw APIException.from(HttpStatus.CONFLICT).withMessage("Sinh viên này đã tồn tại trên hệ thống");
         }
     }
 

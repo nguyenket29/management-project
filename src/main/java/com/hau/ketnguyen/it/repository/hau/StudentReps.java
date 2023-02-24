@@ -54,4 +54,5 @@ public interface StudentReps extends CrudRepository<Students, Long> {
             " ORDER BY l.id desc")
     Page<Students> search(SearchStudentRequest request, List<Long> topicIds, Pageable pageable);
     List<Students> findByStdPass(boolean stdPass);
+    Optional<Students> findByCodeStudent(String code);
 }
