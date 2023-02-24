@@ -7,4 +7,8 @@ public interface ImportExcelService {
     void importFacultyExcel(MultipartFile file);
     void importStudentExcel(MultipartFile file);
     void importLectureExcel(MultipartFile file);
+    void importTopicExcel(MultipartFile file);
+    void importTopicWorkplace(MultipartFile file);
+    void importTopicCategory(MultipartFile file);
+    void importTopicAssembly(MultipartFile file);
 }

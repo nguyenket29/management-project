@@ -17,4 +17,7 @@ public interface UserInfoReps extends JpaRepository<UserInfo, Long> {
 
     @Query("select ui from UserInfo ui where lower(ui.fullName) = :fullName")
     Optional<UserInfo> findByFullName(String fullName);
+
+    @Query("select ui from UserInfo ui where lower(ui.fullName) in :names")
+    List<UserInfo> findAllByFullNameIn(List<String> names);
 }

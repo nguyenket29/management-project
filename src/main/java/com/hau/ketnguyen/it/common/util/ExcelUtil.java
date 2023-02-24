@@ -1,5 +1,6 @@
 package com.hau.ketnguyen.it.common.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.entity.auth.User;
 import com.hau.ketnguyen.it.entity.hau.*;
@@ -7,20 +8,21 @@ import com.hau.ketnguyen.it.repository.auth.UserInfoReps;
 import com.hau.ketnguyen.it.repository.auth.UserReps;
 import com.hau.ketnguyen.it.repository.hau.LecturerReps;
 import com.hau.ketnguyen.it.repository.hau.StudentReps;
+import com.hau.ketnguyen.it.repository.hau.TopicReps;
 import lombok.AllArgsConstructor;
+import org.apache.poi.ss.formula.functions.T;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.hau.ketnguyen.it.common.enums.TypeUser.LECTURE;
 
@@ -31,6 +33,7 @@ public class ExcelUtil {
     private final LecturerReps lecturerReps;
     private final UserReps userReps;
     private final StudentReps studentReps;
+    private final TopicReps topicReps;
     public static String TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
     public boolean hasExcelFormat(MultipartFile file) {
@@ -145,6 +148,206 @@ public class ExcelUtil {
             throw APIException.from(HttpStatus.BAD_REQUEST)
                     .withMessage("Fail to parse to Excel file: " + e.getMessage());
         }
+    }
+
+    // import workplace
+    @Transactional
+    public List<Workplaces> excelToWorkplace(InputStream is, String SHEET) {
+        try {
+            Workbook workbook = new XSSFWorkbook(is);
+
+            Sheet sheet = workbook.getSheet(SHEET);
+            Iterator<Row> rows = sheet.iterator();
+            List<Workplaces> workplaces = new ArrayList<>();
+
+            int rowNumber = 0;
+            while (rows.hasNext()) {
+                Row currentRow = rows.next();
+                if (rowNumber == 0) {
+                    rowNumber++;
+                    continue;
+                }
+                Iterator<Cell> cellsInRow = currentRow.iterator();
+
+                Workplaces workplace = new Workplaces();
+
+                int cellIdx = 0;
+                while (cellsInRow.hasNext()) {
+                    Cell currentCell = cellsInRow.next();
+
+                    switch (cellIdx) {
+                        case 0:
+                            currentCell.setCellType(CellType.STRING);
+                            workplace.setName(currentCell.getStringCellValue());
+                            break;
+                        case 1:
+                            currentCell.setCellType(CellType.STRING);
+                            workplace.setAddress(currentCell.getStringCellValue());
+                            break;
+                        case 2:
+                            currentCell.setCellType(CellType.STRING);
+                            workplace.setEmail(currentCell.getStringCellValue());
+                            break;
+                        case 3:
+                            currentCell.setCellType(CellType.STRING);
+                            workplace.setPhoneNumber(currentCell.getStringCellValue());
+                            break;
+                    }
+
+                    cellIdx++;
+                }
+                workplaces.add(workplace);
+            }
+            workbook.close();
+            return workplaces;
+        } catch (IOException e) {
+            throw APIException.from(HttpStatus.BAD_REQUEST)
+                    .withMessage("Fail to parse to Excel file: " + e.getMessage());
+        }
+    }
+
+    // import category
+    @Transactional
+    public List<Categories> excelToCategory(InputStream is, String SHEET) {
+        try {
+            Workbook workbook = new XSSFWorkbook(is);
+
+            Sheet sheet = workbook.getSheet(SHEET);
+            Iterator<Row> rows = sheet.iterator();
+            List<Categories> categories = new ArrayList<>();
+
+            int rowNumber = 0;
+            while (rows.hasNext()) {
+                Row currentRow = rows.next();
+                if (rowNumber == 0) {
+                    rowNumber++;
+                    continue;
+                }
+                Iterator<Cell> cellsInRow = currentRow.iterator();
+
+                Categories category = new Categories();
+
+                int cellIdx = 0;
+                while (cellsInRow.hasNext()) {
+                    Cell currentCell = cellsInRow.next();
+
+                    switch (cellIdx) {
+                        case 0:
+                            currentCell.setCellType(CellType.STRING);
+                            category.setName(currentCell.getStringCellValue());
+                            break;
+                        case 1:
+                            currentCell.setCellType(CellType.STRING);
+                            category.setCode(currentCell.getStringCellValue());
+                            break;
+                        case 2:
+                            currentCell.setCellType(CellType.STRING);
+                            category.setDescription(currentCell.getStringCellValue());
+                            break;
+                    }
+
+                    cellIdx++;
+                }
+                categories.add(category);
+            }
+            workbook.close();
+            return categories;
+        } catch (IOException e) {
+            throw APIException.from(HttpStatus.BAD_REQUEST)
+                    .withMessage("Fail to parse to Excel file: " + e.getMessage());
+        }
+    }
+
+    // import assembly
+    @Transactional
+    public List<Assemblies> excelToAssembly(InputStream is, String SHEET) {
+        try {
+            Workbook workbook = new XSSFWorkbook(is);
+
+            Sheet sheet = workbook.getSheet(SHEET);
+            Iterator<Row> rows = sheet.iterator();
+            List<Assemblies> assemblies = new ArrayList<>();
+
+            int rowNumber = 0;
+            while (rows.hasNext()) {
+                Row currentRow = rows.next();
+                if (rowNumber == 0) {
+                    rowNumber++;
+                    continue;
+                }
+                Iterator<Cell> cellsInRow = currentRow.iterator();
+
+                Assemblies assembly = new Assemblies();
+                ObjectMapper objectMapper = new ObjectMapper();
+
+                int cellIdx = 0;
+                while (cellsInRow.hasNext()) {
+                    Cell currentCell = cellsInRow.next();
+
+                    switch (cellIdx) {
+                        case 0:
+                            currentCell.setCellType(CellType.STRING);
+                            assembly.setNameAssembly(currentCell.getStringCellValue());
+                            break;
+                        case 1:
+                            currentCell.setCellType(CellType.STRING);
+                            assembly.setLecturePresidentId(getLectureId(currentCell.getStringCellValue()));
+                            break;
+                        case 2:
+                            currentCell.setCellType(CellType.STRING);
+                            assembly.setLectureSecretaryId(getLectureId(currentCell.getStringCellValue()));
+                            break;
+                        case 3:
+                            currentCell.setCellType(CellType.STRING);
+                            String lectureNames = currentCell.getStringCellValue();
+
+                            List<String> listName = splitByRegex(lectureNames);
+                            List<UserInfo> userInfos = userInfoReps.findAllByFullNameIn(listName);
+                            if (!CollectionUtils.isEmpty(userInfos)) {
+                                List<Long> userInfoIds = userInfos.stream().map(UserInfo::getId).collect(Collectors.toList());
+                                if (!CollectionUtils.isEmpty(userInfoIds)) {
+                                    List<Lecturers> lecturers = lecturerReps.findAllByUserInfoIdIn(userInfoIds);
+                                    if (!CollectionUtils.isEmpty(lecturers)) {
+                                        List<Long> lectureIds = lecturers.stream().map(Lecturers::getId).collect(Collectors.toList());
+                                        String lectureIdList = objectMapper.writeValueAsString(lectureIds);
+                                        assembly.setLecturerIds(lectureIdList);
+                                    }
+                                }
+                            }
+                            break;
+                        case 4:
+                            currentCell.setCellType(CellType.STRING);
+                            String topicNames = currentCell.getStringCellValue();
+
+                            List<String> nameTopicList = splitByRegex(topicNames);
+                            if (!CollectionUtils.isEmpty(nameTopicList)) {
+                                List<Topics> topics = topicReps.findByNameIn(nameTopicList);
+                                if (!CollectionUtils.isEmpty(topics)) {
+                                    List<Long> topicIds = topics.stream().map(Topics::getId).collect(Collectors.toList());
+                                    assembly.setTopicIds(objectMapper.writeValueAsString(topicIds));
+                                }
+                            }
+                            break;
+                    }
+
+                    cellIdx++;
+                }
+                assemblies.add(assembly);
+            }
+            workbook.close();
+            return assemblies;
+        } catch (IOException e) {
+            throw APIException.from(HttpStatus.BAD_REQUEST)
+                    .withMessage("Fail to parse to Excel file: " + e.getMessage());
+        }
+    }
+
+    private List<String> splitByRegex(String value) {
+        List<String> list = new ArrayList<>();
+        if (!StringUtil.isEmpty(value)) {
+            Arrays.stream(value.split(",")).forEach(i -> list.add(i.toLowerCase()));
+        }
+        return list;
     }
 
     // import student
@@ -359,11 +562,7 @@ public class ExcelUtil {
                             break;
                         case 8:
                             currentCell.setCellType(CellType.STRING);
-                            UserInfo userInfo = userInfoReps.findByFullName(currentCell.getStringCellValue().toLowerCase())
-                                            .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên"));
-                            Lecturers lecturers = lecturerReps.findByUserInfoId(userInfo.getId())
-                                    .orElseThrow(() -> APIException.from(HttpStatus.NOT_FOUND).withMessage("Không tìm thấy giảng viên"));
-                            topic.setLecturerGuideId(lecturers.getId());
+                            topic.setLecturerGuideId(getLectureId(currentCell.getStringCellValue()));
                             break;
                     }
                     cellIdx++;
@@ -376,6 +575,22 @@ public class ExcelUtil {
             throw APIException.from(HttpStatus.BAD_REQUEST)
                     .withMessage("Fail to parse to Excel file: " + e.getMessage());
         }
+    }
+
+    private Long getLectureId(String value) {
+        UserInfo userInfo = new UserInfo();
+        Optional<UserInfo> userInfoOptional = userInfoReps.findByFullName(value.toLowerCase());
+        if (userInfoOptional.isPresent()) {
+            userInfo = userInfoOptional.get();
+        }
+
+        Lecturers lecturers = new Lecturers();
+        Optional<Lecturers> lecturersOptional = lecturerReps.findByUserInfoId(userInfo.getId());
+        if (lecturersOptional.isPresent()) {
+            lecturers = lecturersOptional.get();
+        }
+
+        return lecturers.getId();
     }
 
     // import user

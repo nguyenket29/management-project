@@ -2,14 +2,9 @@ package com.hau.ketnguyen.it.service.impl.hau;
 
 import com.hau.ketnguyen.it.common.exception.APIException;
 import com.hau.ketnguyen.it.common.util.ExcelUtil;
-import com.hau.ketnguyen.it.entity.hau.Classes;
-import com.hau.ketnguyen.it.entity.hau.Faculties;
-import com.hau.ketnguyen.it.entity.hau.Lecturers;
-import com.hau.ketnguyen.it.entity.hau.Students;
-import com.hau.ketnguyen.it.repository.hau.ClassReps;
-import com.hau.ketnguyen.it.repository.hau.FacultyReps;
-import com.hau.ketnguyen.it.repository.hau.LecturerReps;
-import com.hau.ketnguyen.it.repository.hau.StudentReps;
+import com.hau.ketnguyen.it.entity.hau.*;
+import com.hau.ketnguyen.it.repository.auth.UserReps;
+import com.hau.ketnguyen.it.repository.hau.*;
 import com.hau.ketnguyen.it.service.ImportExcelService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -28,6 +23,11 @@ public class ImportExcelServiceImpl implements ImportExcelService {
     private final StudentReps studentReps;
     private final LecturerReps lecturerReps;
     private final ExcelUtil excelUtil;
+    private final TopicReps topicReps;
+    private final WorkplaceReps workplaceReps;
+    private final UserReps userReps;
+    private final CategoryReps categoryReps;
+    private final AssemblyReps assemblyReps;
 
     @Override
     public void importClassExcel(MultipartFile file) {
@@ -78,6 +78,62 @@ public class ImportExcelServiceImpl implements ImportExcelService {
                 List<Lecturers> lecturers = excelUtil.excelToLecture(file.getInputStream(), "Lecture");
                 if (!CollectionUtils.isEmpty(lecturers)) {
                     lecturerReps.saveAll(lecturers);
+                }
+            } catch (IOException e) {
+                throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Import Excel Thất Bại");
+            }
+        }
+    }
+
+    @Override
+    public void importTopicExcel(MultipartFile file) {
+        if (excelUtil.hasExcelFormat(file)) {
+            try {
+                List<Topics> topics = excelUtil.excelToTopic(file.getInputStream(), "Topic");
+                if (!CollectionUtils.isEmpty(topics)) {
+                    topicReps.saveAll(topics);
+                }
+            } catch (IOException e) {
+                throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Import Excel Thất Bại");
+            }
+        }
+    }
+
+    @Override
+    public void importTopicWorkplace(MultipartFile file) {
+        if (excelUtil.hasExcelFormat(file)) {
+            try {
+                List<Workplaces> workplaces = excelUtil.excelToWorkplace(file.getInputStream(), "Workplace");
+                if (!CollectionUtils.isEmpty(workplaces)) {
+                    workplaceReps.saveAll(workplaces);
+                }
+            } catch (IOException e) {
+                throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Import Excel Thất Bại");
+            }
+        }
+    }
+
+    @Override
+    public void importTopicCategory(MultipartFile file) {
+        if (excelUtil.hasExcelFormat(file)) {
+            try {
+                List<Categories> categories = excelUtil.excelToCategory(file.getInputStream(), "Category");
+                if (!CollectionUtils.isEmpty(categories)) {
+                    categoryReps.saveAll(categories);
+                }
+            } catch (IOException e) {
+                throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Import Excel Thất Bại");
+            }
+        }
+    }
+
+    @Override
+    public void importTopicAssembly(MultipartFile file) {
+        if (excelUtil.hasExcelFormat(file)) {
+            try {
+                List<Assemblies> assemblies = excelUtil.excelToAssembly(file.getInputStream(), "Assembly");
+                if (!CollectionUtils.isEmpty(assemblies)) {
+                    assemblyReps.saveAll(assemblies);
                 }
             } catch (IOException e) {
                 throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Import Excel Thất Bại");

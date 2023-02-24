@@ -129,4 +129,7 @@ public interface TopicReps extends CrudRepository<Topics, Long> {
 
     @Query("SELECT c FROM topics c WHERE lower(c.name) = :name")
     Optional<Topics> findByName(String name);
+
+    @Query("select t from topics t where lower(t.name) in :names")
+    List<Topics> findByNameIn(List<String> names);
 }

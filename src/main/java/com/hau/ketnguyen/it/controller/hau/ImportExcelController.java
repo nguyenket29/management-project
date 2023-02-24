@@ -48,4 +48,32 @@ public class ImportExcelController {
         importExcelService.importLectureExcel(file);
         return ResponseEntity.ok(APIResponse.success());
     }
+
+    @PostMapping("/topic")
+    @ApiOperation(value = "Import Topic")
+    public ResponseEntity<APIResponse<Void>> exportExcelTopic(@RequestParam("file") MultipartFile file) throws Exception {
+        importExcelService.importTopicExcel(file);
+        return ResponseEntity.ok(APIResponse.success());
+    }
+
+    @PostMapping("/workplace")
+    @ApiOperation(value = "Import Workplace")
+    public ResponseEntity<APIResponse<Void>> exportExcelWorkplace(@RequestParam("file") MultipartFile file) throws Exception {
+        importExcelService.importTopicWorkplace(file);
+        return ResponseEntity.ok(APIResponse.success());
+    }
+
+    @PostMapping("/category")
+    @ApiOperation(value = "Import Category")
+    public ResponseEntity<APIResponse<Void>> exportExcelCategory(@RequestParam("file") MultipartFile file) throws Exception {
+        importExcelService.importTopicCategory(file);
+        return ResponseEntity.ok(APIResponse.success());
+    }
+
+    @PostMapping("/assembly")
+    @ApiOperation(value = "Import Assembly")
+    public ResponseEntity<APIResponse<Void>> exportExcelAssembly(@RequestParam("file") MultipartFile file) throws Exception {
+        importExcelService.importTopicAssembly(file);
+        return ResponseEntity.ok(APIResponse.success());
+    }
 }
