@@ -345,7 +345,7 @@ public class ExcelUtil {
     private List<String> splitByRegex(String value) {
         List<String> list = new ArrayList<>();
         if (!StringUtil.isEmpty(value)) {
-            Arrays.stream(value.split(",")).forEach(i -> list.add(i.toLowerCase()));
+            Arrays.stream(value.split(",")).forEach(i -> list.add(i.toLowerCase().trim()));
         }
         return list;
     }
@@ -400,6 +400,10 @@ public class ExcelUtil {
                         case 4:
                             currentCell.setCellType(CellType.STRING);
                             userInfo.setGender(Short.parseShort(currentCell.getStringCellValue()));
+                            break;
+                        case 5:
+                            currentCell.setCellType(CellType.STRING);
+                            userInfo.setTown(currentCell.getStringCellValue());
                             break;
                     }
 
@@ -479,6 +483,10 @@ public class ExcelUtil {
                         case 6:
                             currentCell.setCellType(CellType.STRING);
                             lecturer.setDegree(currentCell.getStringCellValue());
+                            break;
+                        case 7:
+                            currentCell.setCellType(CellType.STRING);
+                            userInfo.setTown(currentCell.getStringCellValue());
                             break;
                     }
 
@@ -565,6 +573,8 @@ public class ExcelUtil {
                             topic.setLecturerGuideId(getLectureId(currentCell.getStringCellValue()));
                             break;
                     }
+
+                    topic.setStatusSuggest(true);
                     cellIdx++;
                 }
                 topics.add(topic);
