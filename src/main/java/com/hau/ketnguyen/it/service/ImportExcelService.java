@@ -11,4 +11,5 @@ public interface ImportExcelService {
     void importTopicWorkplace(MultipartFile file);
     void importTopicCategory(MultipartFile file);
     void importTopicAssembly(MultipartFile file);
+    void importExcelUser(MultipartFile file);
 }

@@ -55,4 +55,5 @@ public interface StudentReps extends CrudRepository<Students, Long> {
     Page<Students> search(SearchStudentRequest request, List<Long> topicIds, Pageable pageable);
     List<Students> findByStdPass(boolean stdPass);
     Optional<Students> findByCodeStudent(String code);
+    List<Students> findByCodeStudentIn(List<String> code);
 }

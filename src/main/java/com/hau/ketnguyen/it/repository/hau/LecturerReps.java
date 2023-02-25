@@ -36,5 +36,6 @@ public interface LecturerReps extends CrudRepository<Lecturers, Long> {
     Optional<Lecturers> findByUserInfoId(Long userInfoId);
     List<Lecturers> findByUserIdIn(List<Integer> userIds);
     Optional<Lecturers> findByCodeLecture(String code);
+    List<Lecturers> findByCodeLectureIn(List<String> codes);
     List<Lecturers> findAllByUserInfoIdIn(List<Long> userInfoIds);
 }

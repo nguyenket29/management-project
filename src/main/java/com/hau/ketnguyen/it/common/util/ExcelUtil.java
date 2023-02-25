@@ -9,11 +9,13 @@ import com.hau.ketnguyen.it.repository.auth.UserReps;
 import com.hau.ketnguyen.it.repository.hau.LecturerReps;
 import com.hau.ketnguyen.it.repository.hau.StudentReps;
 import com.hau.ketnguyen.it.repository.hau.TopicReps;
+import io.swagger.models.auth.In;
 import lombok.AllArgsConstructor;
 import org.apache.poi.ss.formula.functions.T;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -24,7 +26,8 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.hau.ketnguyen.it.common.enums.TypeUser.LECTURE;
+import static com.hau.ketnguyen.it.common.enums.TypeUser.*;
+import static com.hau.ketnguyen.it.entity.auth.User.Status.ACTIVE;
 
 @Component
 @AllArgsConstructor
@@ -33,6 +36,7 @@ public class ExcelUtil {
     private final LecturerReps lecturerReps;
     private final UserReps userReps;
     private final StudentReps studentReps;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final TopicReps topicReps;
     public static String TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
@@ -612,6 +616,11 @@ public class ExcelUtil {
             Sheet sheet = workbook.getSheet(SHEET);
             Iterator<Row> rows = sheet.iterator();
             List<User> users = new ArrayList<>();
+            List<Students> students = new ArrayList<>();
+            List<Lecturers> lecturers = new ArrayList<>();
+            Map<Integer, String> codeStudents = new HashMap<>();
+            Map<Integer, String> codeLectures = new HashMap<>();
+            List<UserInfo> userInfos = new ArrayList<>();
 
             int rowNumber = 0;
             while (rows.hasNext()) {
@@ -630,24 +639,118 @@ public class ExcelUtil {
                 while (cellsInRow.hasNext()) {
                     Cell currentCell = cellsInRow.next();
 
+                    user.setStatus(ACTIVE);
                     switch (cellIdx) {
                         case 0:
                             currentCell.setCellType(CellType.STRING);
                             String typeAcc = currentCell.getStringCellValue();
-                            if (Objects.equals(typeAcc, LECTURE.name())) {
-
+                            if (LECTURE.name().equalsIgnoreCase(typeAcc)) {
+                                user.setType(LECTURE.name());
+                            } else if (STUDENT.name().equalsIgnoreCase(typeAcc)) {
+                                user.setType(STUDENT.name());
+                            } else if (OTHER.name().equalsIgnoreCase(typeAcc)) {
+                                user.setType(OTHER.name());
+                            }
+                            break;
+                        case 1:
+                            currentCell.setCellType(CellType.STRING);
+                            user.setUsername(currentCell.getStringCellValue());
+                            break;
+                        case 2:
+                            currentCell.setCellType(CellType.STRING);
+                            user.setEmail(currentCell.getStringCellValue());
+                            break;
+                        case 3:
+                            currentCell.setCellType(CellType.STRING);
+                            user.setPassword(bCryptPasswordEncoder.encode(currentCell.getStringCellValue()));
+                            break;
+                        case 4:
+                            currentCell.setCellType(CellType.STRING);
+                            String code = currentCell.getStringCellValue().toLowerCase();
+                            if (!StringUtils.isNullOrEmpty(code)) {
+                                if (LECTURE.name().equalsIgnoreCase(user.getType())) {
+                                    userReps.save(user);
+                                    codeLectures.put(user.getId(), code);
+                                } else if (STUDENT.name().equalsIgnoreCase(user.getType())) {
+                                    userReps.save(user);
+                                    codeStudents.put(user.getId(), code);
+                                } else if (OTHER.name().equalsIgnoreCase(user.getType())) {
+                                    userReps.save(user);
+                                    UserInfo userInfo = new UserInfo();
+                                    userInfo.setUserId(user.getId());
+                                    userInfos.add(userInfo);
+                                }
                             }
                             break;
                     }
+
                     cellIdx++;
                 }
                 users.add(user);
             }
+
+            // cập nhật sinh viên
+            if (!CollectionUtils.isEmpty(codeStudents)) {
+                Map<String, Students> mapStudent = getStudentIds(new ArrayList<>(codeStudents.values()));
+                if (!CollectionUtils.isEmpty(mapStudent) && !CollectionUtils.isEmpty(codeStudents)) {
+                    mapStudent.forEach((k, v) -> codeStudents.forEach((i, j) -> {
+                        if (Objects.equals(k, j)) {
+                            v.setUserId(i);
+                            students.add(v);
+                        }
+                    }));
+                }
+
+                if (!CollectionUtils.isEmpty(students)) {
+                    studentReps.saveAll(students);
+                }
+            }
+
+            // cập nhật giảng viên
+            if (!CollectionUtils.isEmpty(codeLectures)) {
+                Map<String, Lecturers> mapLecture = getLectureIds(new ArrayList<>(codeLectures.values()));
+                if (!CollectionUtils.isEmpty(mapLecture) && !CollectionUtils.isEmpty(codeStudents)) {
+                    mapLecture.forEach((k, v) -> codeLectures.forEach((i, j) -> {
+                        if (Objects.equals(k, j)) {
+                            v.setUserId(i);
+                            lecturers.add(v);
+                        }
+                    }));
+                }
+
+                if (!CollectionUtils.isEmpty(lecturers)) {
+                    lecturerReps.saveAll(lecturers);
+                }
+            }
+
+            // cập nhật quản trị viên
+            if (!CollectionUtils.isEmpty(userInfos)) {
+                userInfoReps.saveAll(userInfos);
+            }
+
             workbook.close();
             return users;
         } catch (IOException e) {
             throw APIException.from(HttpStatus.BAD_REQUEST)
                     .withMessage("Fail to parse to Excel file: " + e.getMessage());
         }
+    }
+
+    private Map<String, Students> getStudentIds(List<String> codes) {
+        Map<String, Students> map =
+                studentReps.findByCodeStudentIn(codes).stream().collect(Collectors.toMap(Students::getCodeStudent, l -> l));
+        if (!CollectionUtils.isEmpty(map)) {
+            return map;
+        }
+        return new HashMap<>();
+    }
+
+    private Map<String, Lecturers> getLectureIds(List<String> codes) {
+        Map<String, Lecturers> map =
+                lecturerReps.findByCodeLectureIn(codes).stream().collect(Collectors.toMap(Lecturers::getCodeLecture, l -> l));
+        if (!CollectionUtils.isEmpty(map)) {
+            return map;
+        }
+        return new HashMap<>();
     }
 }

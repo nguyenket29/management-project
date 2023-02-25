@@ -76,4 +76,11 @@ public class ImportExcelController {
         importExcelService.importTopicAssembly(fileUpload);
         return ResponseEntity.ok(APIResponse.success());
     }
+
+    @PostMapping("/user")
+    @ApiOperation(value = "Import User")
+    public ResponseEntity<APIResponse<Void>> exportExcelUser(@RequestParam("fileUpload") MultipartFile fileUpload) throws Exception {
+        importExcelService.importExcelUser(fileUpload);
+        return ResponseEntity.ok(APIResponse.success());
+    }
 }
