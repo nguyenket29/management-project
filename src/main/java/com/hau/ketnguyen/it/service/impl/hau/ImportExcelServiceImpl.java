@@ -145,7 +145,7 @@ public class ImportExcelServiceImpl implements ImportExcelService {
     public void importExcelUser(MultipartFile file) {
         if (excelUtil.hasExcelFormat(file)) {
             try {
-                excelUtil.excelToAssembly(file.getInputStream(), "User");
+                excelUtil.excelToUser(file.getInputStream(), "User");
             } catch (IOException e) {
                 throw APIException.from(HttpStatus.BAD_REQUEST).withMessage("Import Excel Thất Bại");
             }

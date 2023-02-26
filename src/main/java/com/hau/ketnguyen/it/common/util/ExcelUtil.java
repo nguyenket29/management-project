@@ -411,6 +411,7 @@ public class ExcelUtil {
                             break;
                     }
 
+                    validateLecture(student.getCodeStudent(), userInfo.getFullName());
                     student.setClassId(Long.parseLong("7"));
                     student.setUserInfoId(userInfo.getId());
                     cellIdx++;
@@ -494,6 +495,7 @@ public class ExcelUtil {
                             break;
                     }
 
+                    validateLecture(lecturer.getCodeLecture(), userInfo.getFullName());
                     lecturer.setFacultyId(Long.parseLong("5"));
                     lecturer.setUserInfoId(userInfo.getId());
                     cellIdx++;
@@ -666,6 +668,7 @@ public class ExcelUtil {
                             break;
                         case 4:
                             currentCell.setCellType(CellType.STRING);
+                            validateAcc(user.getUsername(), user.getEmail());
                             String code = currentCell.getStringCellValue().toLowerCase();
                             if (!StringUtils.isNullOrEmpty(code)) {
                                 if (LECTURE.name().equalsIgnoreCase(user.getType())) {
@@ -736,6 +739,13 @@ public class ExcelUtil {
         }
     }
 
+    private void validateAcc(String username, String email) {
+        List<User> users = userReps.findAllByUsernameOrEmail(username, email);
+        if (!CollectionUtils.isEmpty(users)) {
+            throw APIException.from(HttpStatus.CONFLICT).withMessage("Tài khoản đã tồn tại");
+        }
+    }
+
     private Map<String, Students> getStudentIds(List<String> codes) {
         Map<String, Students> map =
                 studentReps.findByCodeStudentIn(codes).stream().collect(Collectors.toMap(Students::getCodeStudent, l -> l));
@@ -752,5 +762,21 @@ public class ExcelUtil {
             return map;
         }
         return new HashMap<>();
+    }
+
+    private void validateLecture(String code, String fullName) {
+        Optional<Lecturers> lecturers = lecturerReps.findByCodeLecture(code);
+        Optional<UserInfo> userInfo = userInfoReps.findByFullName(fullName);
+        if (lecturers.isPresent() || userInfo.isPresent()) {
+            throw APIException.from(HttpStatus.CONFLICT).withMessage("Giảng viên này đã tồn tại trên hệ thống");
+        }
+    }
+
+    private void validateStudent(String code, String fullName) {
+        Optional<Students> students = studentReps.findByCodeStudent(code);
+        Optional<UserInfo> userInfo = userInfoReps.findByFullName(fullName);
+        if (students.isPresent() || userInfo.isPresent()) {
+            throw APIException.from(HttpStatus.CONFLICT).withMessage("Sinh viên này đã tồn tại trên hệ thống");
+        }
     }
 }

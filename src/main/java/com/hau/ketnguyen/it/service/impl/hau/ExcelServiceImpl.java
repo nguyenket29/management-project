@@ -395,6 +395,14 @@ public class ExcelServiceImpl implements ExcelService {
 
     @Override
     public void exportTopic(SearchTopicRequest request, HttpServletResponse response) throws Exception {
+        if (request.getName() != null) {
+            request.setName(request.getName().toLowerCase());
+        }
+
+        if (request.getDescription() != null) {
+            request.setDescription(request.getDescription().toLowerCase());
+        }
+
         Pageable pageable = PageableUtils.of(request.getPage(), request.getSize());
         long count = topicReps.getCount();
         request.setSize((int) count);

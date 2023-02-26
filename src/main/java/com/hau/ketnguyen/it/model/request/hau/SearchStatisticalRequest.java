@@ -1,6 +1,7 @@
 package com.hau.ketnguyen.it.model.request.hau;
 
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 
@@ -15,5 +16,6 @@ public class SearchStatisticalRequest extends BaseRequest {
     private Float scoreProcessOne = (float) 0;
     private Float scoreProcessTwo = (float) 0;
     private Float scoreMedium = (float) 0;
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private Date topicYear;
 }

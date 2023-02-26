@@ -203,39 +203,34 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(List<Integer> userIds) {
         if (userIds != null && !userIds.isEmpty()) {
             List<User> users = userReps.findByIds(userIds);
-//            List<Long> userInfoIds = new ArrayList<>();
-//            List<Students> students = studentReps.findByUserIdIn(userIds);
-//            List<Lecturers> lecturers = lecturerReps.findByUserIdIn(userIds);
-//
-//            userInfoIds.addAll(students.stream().map(Students::getUserInfoId).collect(Collectors.toList()));
-//            userInfoIds.addAll(lecturers.stream().map(Lecturers::getUserInfoId).collect(Collectors.toList()));
-//            List<UserInfo> userInfos = userInfoReps.findByIdIn(userInfoIds);
 
-            // Kiểm tra nếu giáo viên hoặc sinh vieen đó đang thực hiện or hướng dẫn đề tài thì k xóa
-//            List<Long> lectureIds = lecturers.stream().map(Lecturers::getId).collect(Collectors.toList());
-//            List<Topics> topics = topicReps.checkTopicWhenRemoveUser(lectureIds);
-//            if (topics != null && !topics.isEmpty()) {
-//                throw APIException.from(HttpStatus.BAD_REQUEST)
-//                        .withMessage("Sinh viên hoặc giáo viên đang thực hiện hoặc hướng dẫn đồ án, không thể xóa!");
-//            }
-
-            //checkStudent(students);
+            List<Students> students = studentReps.findByUserIdIn(userIds);
+            List<Lecturers> lecturers = lecturerReps.findByUserIdIn(userIds);
+            checkStudent(students);
 
             if (!users.isEmpty()) {
+                List<Integer> idUsers = new ArrayList<>();
+                users.forEach(u -> {
+                    if (OTHER.name().equalsIgnoreCase(u.getType())) {
+                        idUsers.add(u.getId());
+                    }
+                });
+
+                if (!CollectionUtils.isEmpty(idUsers)) {
+                    userInfoReps.deleteAllByUserIdIn(idUsers);
+                }
                 userReps.deleteAll(users);
             }
 
-//            if (!students.isEmpty()) {
-//                studentReps.deleteAll(students);
-//            }
-//
-//            if (!lecturers.isEmpty()) {
-//                lecturerReps.deleteAll(lecturers);
-//            }
-//
-//            if (!userInfos.isEmpty()) {
-//                userInfoReps.deleteAll(userInfos);
-//            }
+            if (!CollectionUtils.isEmpty(students)) {
+                students.forEach(s -> s.setUserId(null));
+                studentReps.saveAll(students);
+            }
+
+            if (!CollectionUtils.isEmpty(lecturers)) {
+                lecturers.forEach(s -> s.setUserId(null));
+                lecturerReps.saveAll(lecturers);
+            }
         }
     }
 

@@ -27,4 +27,7 @@ public interface UserReps extends JpaRepository<User, Integer> {
     Page<User> search(UserRequest request, Pageable pageable);
     @Query("SELECT u FROM User u WHERE (COALESCE(:ids, NULL) IS NULL OR u.id IN :ids)")
     List<User> findByIds(List<Integer> ids);
+
+    @Query("SELECT u FROM User u WHERE lower(u.username) = :username OR lower(u.email) = :email")
+    List<User> findAllByUsernameOrEmail(String username, String email);
 }
