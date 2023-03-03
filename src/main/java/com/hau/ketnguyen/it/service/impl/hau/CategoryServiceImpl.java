@@ -28,7 +28,14 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDTO save(CategoryDTO categoryDTO) {
+        validate(categoryDTO.getName(), categoryDTO.getCode());
         return categoryMapper.to(categoryReps.save(categoryMapper.from(categoryDTO)));
+    }
+
+    private void validate(String name, String code) {
+        if (categoryReps.findByCodeOrName(code.trim(), name.trim()).isPresent()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Tên chủ đề đã tồn tại");
+        }
     }
 
     @Override

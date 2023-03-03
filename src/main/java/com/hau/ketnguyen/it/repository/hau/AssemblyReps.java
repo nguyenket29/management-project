@@ -12,6 +12,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AssemblyReps extends CrudRepository<Assemblies, Long> {
@@ -25,4 +26,5 @@ public interface AssemblyReps extends CrudRepository<Assemblies, Long> {
     List<Assemblies> findByLecturePresidentIdIn(List<Long> lecturePresidentIds);
     @Query("SELECT a FROM assembly a")
     List<Assemblies> findAll();
+    Optional<AssemblyReps> findByNameAssembly(String name);
 }

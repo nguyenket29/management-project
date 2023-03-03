@@ -37,7 +37,14 @@ public class FacultyServiceImpl implements FacultyService {
 
     @Override
     public FacultyDTO save(FacultyDTO facultyDTO) {
+        validate(facultyDTO.getName(), facultyDTO.getCode());
         return facultyMapper.to(facultyReps.save(facultyMapper.from(facultyDTO)));
+    }
+
+    private void validate(String name, String code) {
+        if (facultyReps.findByCodeOrName(code.trim(), name.trim()).isPresent()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Tên hoặc mã khoa đã tồn tại");
+        }
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.hau.ketnguyen.it.repository.hau;
 
+import com.hau.ketnguyen.it.entity.hau.Classes;
 import com.hau.ketnguyen.it.entity.hau.Faculties;
 import com.hau.ketnguyen.it.model.request.hau.SearchFacultyRequest;
 import org.springframework.data.domain.Page;
@@ -9,6 +10,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface FacultyReps extends CrudRepository<Faculties, Long> {
@@ -20,4 +22,5 @@ public interface FacultyReps extends CrudRepository<Faculties, Long> {
             " ORDER BY c.id desc")
     Page<Faculties> search(SearchFacultyRequest request, Pageable pageable);
     List<Faculties> findByIdIn(List<Long> ids);
+    Optional<Faculties> findByCodeOrName(String code, String name);
 }

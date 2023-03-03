@@ -50,6 +50,8 @@ public class AssemblyServiceImpl implements AssemblyService {
     public AssemblyDTO save(AssemblyDTO assemblyDTO) {
         ObjectMapper objectMapper = new ObjectMapper();
 
+        validate(assemblyDTO.getNameAssembly());
+
         // lưu danh sách giảng viên
         if (!CollectionUtils.isEmpty(assemblyDTO.getIdLectures())) {
             String lectureIds = null;
@@ -73,6 +75,12 @@ public class AssemblyServiceImpl implements AssemblyService {
         }
 
         return assemblyMapper.to(assemblyReps.save(assemblyMapper.from(assemblyDTO)));
+    }
+
+    private void validate(String name) {
+        if (assemblyReps.findByNameAssembly(name.trim()).isPresent()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Tên hội đồng đã tồn tại");
+        }
     }
 
     @Override

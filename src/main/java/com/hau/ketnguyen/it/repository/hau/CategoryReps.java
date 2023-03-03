@@ -9,6 +9,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface CategoryReps extends CrudRepository<Categories, Long> {
@@ -20,4 +21,5 @@ public interface CategoryReps extends CrudRepository<Categories, Long> {
     Page<Categories> search(SearchCategoryRequest request, Pageable pageable);
 
     List<Categories> findByIdIn(List<Long> categoryIds);
+    Optional<Categories> findByCodeOrName(String code, String name);
 }

@@ -42,7 +42,14 @@ public class ClassServiceImpl implements ClassService {
 
     @Override
     public ClassDTO save(ClassDTO classDTO) {
+        validate(classDTO.getName(), classDTO.getCode());
         return classMapper.to(classReps.save(classMapper.from(classDTO)));
+    }
+
+    private void validate(String name, String code) {
+        if (classReps.findByCodeOrName(code.trim(), name.trim()).isPresent()) {
+            throw APIException.from(HttpStatus.NOT_FOUND).withMessage("Tên hoặc mã lớp đã tồn tại");
+        }
     }
 
     @Override

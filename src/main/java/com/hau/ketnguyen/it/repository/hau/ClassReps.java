@@ -1,5 +1,6 @@
 package com.hau.ketnguyen.it.repository.hau;
 
+import com.hau.ketnguyen.it.entity.hau.Categories;
 import com.hau.ketnguyen.it.entity.hau.Classes;
 import com.hau.ketnguyen.it.entity.hau.Files;
 import com.hau.ketnguyen.it.entity.hau.Workplaces;
@@ -12,6 +13,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ClassReps extends CrudRepository<Classes, Long> {
@@ -24,4 +26,5 @@ public interface ClassReps extends CrudRepository<Classes, Long> {
     Page<Classes> search(SearchClassRequest request, Pageable pageable);
 
     List<Classes> findByIdIn(List<Long> ids);
+    Optional<Classes> findByCodeOrName(String code, String name);
 }

@@ -106,6 +106,9 @@ public class TopicServiceImpl implements TopicService {
         if (!CollectionUtils.isEmpty(studentTopics)) {
             studentTopicReps.deleteAll(studentTopics);
         }
+
+        // xóa đề tài đề xuất
+        studentSuggestTopicReps.deleteAllByTopicId(id);
     }
 
     @Override

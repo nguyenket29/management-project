@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,4 +29,6 @@ public interface StudentSuggestTopicReps extends CrudRepository<StudentSuggestTo
             "AND (:#{#request.studentName} IS NULL OR lower(ui.fullName) LIKE %:#{#request.studentName}%) " +
             "AND (:#{#request.studentId} IS NULL OR st.studentId = :#{#request.studentId})")
     Page<StudentSuggestTopic> search(SearchStudentTopicRequest request, Pageable pageable);
+    @Transactional
+    void deleteAllByTopicId(Long topicId);
 }
